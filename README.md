@@ -2,7 +2,7 @@
 
 Create a new project with Supabase enabled. PROJECT NAME:
 
-CHAR AMETI FOUNDATION
+EKATM KALAR YUVA MANCH
 
 Build PHASE 1 of a production-ready full-stack NGO website and NGO management foundation using:
 
