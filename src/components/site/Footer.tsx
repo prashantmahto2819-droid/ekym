@@ -78,12 +78,14 @@ export function Footer() {
                 <span>{address}</span>
               </li>
             ) : null}
-            <li className="flex gap-2">
-              <Phone className="mt-0.5 size-4 shrink-0" />
-              <a href={telHref(org?.phone || "+91 9300008540")} className="hover:underline">
-                {org?.phone || "+91 9300008540"}
-              </a>
-            </li>
+            {org?.phone ? (
+              <li className="flex gap-2">
+                <Phone className="mt-0.5 size-4 shrink-0" />
+                <a href={telHref(org.phone)} className="hover:underline">
+                  {org.phone}
+                </a>
+              </li>
+            ) : null}
             <li className="flex gap-2">
               <Mail className="mt-0.5 size-4 shrink-0" />
               <a href={`mailto:${org?.email || "info@ekym.org"}`} className="hover:underline">

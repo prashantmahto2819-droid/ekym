@@ -10,10 +10,28 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -847,6 +865,63 @@ export type Database = {
           },
         ]
       }
+      families: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          created_at: string
+          family_name: string
+          id: string
+          main_whatsapp: string
+          owner_id: string
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          village_id: string | null
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          created_at?: string
+          family_name: string
+          id?: string
+          main_whatsapp: string
+          owner_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          village_id?: string | null
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          created_at?: string
+          family_name?: string
+          id?: string
+          main_whatsapp?: string
+          owner_id?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "families_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "families_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       festival_slides: {
         Row: {
           active: boolean
@@ -1238,6 +1313,170 @@ export type Database = {
         }
         Relationships: []
       }
+      letter_designs: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          owner_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "letter_designs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      letter_recipients: {
+        Row: {
+          attempts: number
+          created_at: string
+          error: string | null
+          family_id: string | null
+          father_name: string | null
+          id: string
+          image_path: string | null
+          letter_id: string
+          member_id: string | null
+          phone: string
+          recipient_name: string
+          sent_at: string | null
+          status: string
+          village_name: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          family_id?: string | null
+          father_name?: string | null
+          id?: string
+          image_path?: string | null
+          letter_id: string
+          member_id?: string | null
+          phone: string
+          recipient_name: string
+          sent_at?: string | null
+          status?: string
+          village_name?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          family_id?: string | null
+          father_name?: string | null
+          id?: string
+          image_path?: string | null
+          letter_id?: string
+          member_id?: string | null
+          phone?: string
+          recipient_name?: string
+          sent_at?: string | null
+          status?: string
+          village_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "letter_recipients_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "letter_recipients_letter_id_fkey"
+            columns: ["letter_id"]
+            isOneToOne: false
+            referencedRelation: "letters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "letter_recipients_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      letters: {
+        Row: {
+          base_image_path: string | null
+          ceremony_date: string | null
+          created_at: string
+          created_by: string
+          death_date: string | null
+          deceased_name: string
+          id: string
+          message_text: string | null
+          name_box: Json | null
+          send_mode: string
+          status: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          base_image_path?: string | null
+          ceremony_date?: string | null
+          created_at?: string
+          created_by?: string
+          death_date?: string | null
+          deceased_name: string
+          id?: string
+          message_text?: string | null
+          name_box?: Json | null
+          send_mode?: string
+          status?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          base_image_path?: string | null
+          ceremony_date?: string | null
+          created_at?: string
+          created_by?: string
+          death_date?: string | null
+          deceased_name?: string
+          id?: string
+          message_text?: string | null
+          name_box?: Json | null
+          send_mode?: string
+          status?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "letters_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       material_donation_requests: {
         Row: {
           address: string | null
@@ -1366,6 +1605,70 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      members: {
+        Row: {
+          created_at: string
+          family_id: string
+          id: string
+          is_head: boolean
+          name: string
+          parent_id: string | null
+          phone: string | null
+          relation: string | null
+          sort_order: number
+          updated_at: string
+          village_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          family_id: string
+          id?: string
+          is_head?: boolean
+          name: string
+          parent_id?: string | null
+          phone?: string | null
+          relation?: string | null
+          sort_order?: number
+          updated_at?: string
+          village_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          family_id?: string
+          id?: string
+          is_head?: boolean
+          name?: string
+          parent_id?: string | null
+          phone?: string | null
+          relation?: string | null
+          sort_order?: number
+          updated_at?: string
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       news: {
         Row: {
@@ -1662,52 +1965,34 @@ export type Database = {
       }
       profiles: {
         Row: {
-          address: string | null
-          city: string | null
           created_at: string
-          district: string | null
           email: string | null
           full_name: string | null
           id: string
-          mobile: string | null
-          photo_url: string | null
-          pincode: string | null
-          state: string | null
+          phone: string | null
+          role: string
           status: string
           updated_at: string
-          whatsapp: string | null
         }
         Insert: {
-          address?: string | null
-          city?: string | null
           created_at?: string
-          district?: string | null
           email?: string | null
           full_name?: string | null
           id: string
-          mobile?: string | null
-          photo_url?: string | null
-          pincode?: string | null
-          state?: string | null
+          phone?: string | null
+          role?: string
           status?: string
           updated_at?: string
-          whatsapp?: string | null
         }
         Update: {
-          address?: string | null
-          city?: string | null
           created_at?: string
-          district?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
-          mobile?: string | null
-          photo_url?: string | null
-          pincode?: string | null
-          state?: string | null
+          phone?: string | null
+          role?: string
           status?: string
           updated_at?: string
-          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -1852,6 +2137,57 @@ export type Database = {
           state?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      site_profiles: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          district: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          mobile: string | null
+          photo_url: string | null
+          pincode: string | null
+          state: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          mobile?: string | null
+          photo_url?: string | null
+          pincode?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          district?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          mobile?: string | null
+          photo_url?: string | null
+          pincode?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -2053,6 +2389,27 @@ export type Database = {
         }
         Relationships: []
       }
+      villages: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       volunteer_applications: {
         Row: {
           address: string | null
@@ -2166,8 +2523,48 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_letter_recipients: {
+        Args: { p_letter_id: string; p_member_ids: string[] }
+        Returns: {
+          father_name: string
+          member_id: string
+          recipient_id: string
+          recipient_name: string
+          village_name: string
+        }[]
+      }
+      dashboard_stats: { Args: never; Returns: Json }
+      directory_members: {
+        Args: { p_village?: string }
+        Returns: {
+          family_id: string
+          family_name: string
+          father_name: string
+          has_phone: boolean
+          is_head: boolean
+          member_id: string
+          member_name: string
+          relation: string
+          village_id: string
+          village_name: string
+        }[]
+      }
+      is_admin: { Args: never; Returns: boolean }
+      is_approved: { Args: never; Returns: boolean }
+      my_role: { Args: never; Returns: string }
+      my_status: { Args: never; Returns: string }
       next_donation_id: { Args: never; Returns: string }
       next_receipt_number: { Args: never; Returns: string }
+      queue_letter: { Args: { p_letter_id: string }; Returns: number }
+      village_stats: {
+        Args: never
+        Returns: {
+          families: number
+          members: number
+          village_id: string
+          village_name: string
+        }[]
+      }
     }
     Enums: {
       app_role:

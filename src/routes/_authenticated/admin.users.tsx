@@ -46,7 +46,7 @@ function UsersAdmin() {
     queryFn: async () => {
       const [profiles, roles] = await Promise.all([
         supabase
-          .from("profiles")
+          .from("site_profiles")
           .select("id,full_name,email,mobile,city,status,created_at")
           .order("created_at", { ascending: false })
           .limit(500),

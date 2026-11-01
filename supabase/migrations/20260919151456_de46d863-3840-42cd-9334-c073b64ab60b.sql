@@ -1,1 +1,0 @@
-REVOKE ALL ON FUNCTION public.sync_campaign_raised_amount() FROM PUBLIC, anon, authenticated;
