@@ -1,0 +1,27 @@
+{
+  "compatibility_date": "2026-11-04",
+  "name": "kalchuri-one",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "SUPABASE_URL": "https://udxdxkyfrqlgdwwqaucu.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_KzSzDcvJpg5HBQp5-ka6mQ_bKzJ3T8N",
+    "PUBLIC_SITE_URL": "https://kalchuri-one.workers.dev"
+  },
+  "main": "index.mjs",
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "../public"
+  },
+  "no_bundle": true,
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": [
+        "**/*.mjs",
+        "**/*.js"
+      ]
+    }
+  ]
+}
