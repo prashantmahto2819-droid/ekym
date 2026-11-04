@@ -40,7 +40,7 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/publishing", label: "Publishing (comments, feed, magazine)", group: "Content" },
   { to: "/admin/campaigns", label: "Campaigns", group: "Content" },
   { to: "/admin/media", label: "Videos, reels & gallery", group: "Content" },
-  { to: "/admin/community", label: "Contributors & testimonials", group: "Content" },
+  { to: "/admin/community", label: "Community (directory, matrimony, polls)", group: "Operations" },
   { to: "/admin/vouchers", label: "Vouchers & receipts", group: "Accounts" },
   { to: "/admin/reports", label: "Books & reports", group: "Accounts" },
   { to: "/admin/accounts", label: "Chart of accounts & years", group: "Accounts" },

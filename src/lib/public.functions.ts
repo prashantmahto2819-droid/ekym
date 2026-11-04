@@ -432,3 +432,17 @@ export const getRsvpInfo = createServerFn({ method: "GET" })
     const { data: info } = await sb().rpc("k1_rsvp_info", { p_token: data.token } as never);
     return (info ?? null) as null | { guest: { name: string; seats: number; rsvp: string; rsvp_note: string | null; checked_in: boolean }; event: { title: string; title_hi: string | null; starts_at: string; ends_at: string | null; venue: string | null; venue_hi: string | null; map_url: string | null; cover_image: string | null; status: string; slug: string }; org: { name: string; name_hi: string | null } };
   });
+
+/* --------------------------- COMMUNITY (Phase 11) --------------------------- */
+export const getListings = createServerFn({ method: "GET" })
+  .inputValidator((d: { kinds: string[] }) => ({ kinds: Array.isArray(d?.kinds) ? d.kinds.map(str) : [] }))
+  .handler(async ({ data }) => {
+    const org = await tenantId();
+    const { data: rows } = await sb().from("cm_listings").select("id,kind,title,title_hi,body,body_hi,category,fields,contact_name,phone,email,website,address,city,district,state,image,featured,expires_at,views,created_at").eq("organization_id", org).eq("status", "approved").in("kind", data.kinds).order("featured", { ascending: false }).order("created_at", { ascending: false }).limit(500);
+    return rows ?? [];
+  });
+export const getPolls = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const { data } = await sb().from("cm_polls").select("id,question,question_hi,description,options,audience,status,ends_at,open_results").eq("organization_id", org).eq("audience", "public").in("status", ["open", "closed"]).order("created_at", { ascending: false }).limit(20);
+  return data ?? [];
+});
