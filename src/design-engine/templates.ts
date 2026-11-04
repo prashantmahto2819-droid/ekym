@@ -1,7 +1,7 @@
 // Built-in starter templates. Organizations copy these and edit them in the Studio.
 import { mm, newDoc, uid, type DesignDoc, type Layer } from "./model";
 
-type Brand = { name: string; name_hi?: string | null; tagline?: string | null; address?: string | null; phone?: string | null; email?: string | null; website?: string | null; logo?: string | null; color?: string };
+export type Brand = { name: string; name_hi?: string | null | undefined; tagline?: string | null | undefined; address?: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; website?: string | null | undefined; logo?: string | null | undefined; color?: string | undefined };
 
 const ink = "#1b2a4a";
 
