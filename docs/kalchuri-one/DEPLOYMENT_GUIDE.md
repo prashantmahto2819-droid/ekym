@@ -40,5 +40,11 @@
 3. (Meta Cloud API के लिए) <https://developers.facebook.com/apps> → अपना app → WhatsApp → API setup से Phone number ID और permanent token लें; Webhook: Callback URL `https://udxdxkyfrqlgdwwqaucu.supabase.co/functions/v1/comms-webhook`, Verify token वही जो <https://supabase.com/dashboard/project/udxdxkyfrqlgdwwqaucu/functions/secrets> में `META_WEBHOOK_VERIFY_TOKEN` नाम से डालें; `messages` subscribe करें।
 4. भेजे गए संदेश और स्थिति उसी पेज के Delivery log में दिखेंगे; queue हर मिनट अपने आप चलती है (pg_cron)।
 
+## किसी संगठन का अपना डोमेन जोड़ना (Phase 9)
+1. संगठन का एडमिन: Admin → Website → Domains → "Request custom domain" में `www.unka-domain.org` लिखे।
+2. डोमेन के DNS में CNAME: `www` → Worker का hostname (जैसे `kalchuri-one.<account>.workers.dev`)।
+3. आप (platform admin): <https://dash.cloudflare.com> → Workers & Pages → kalchuri-one → Settings → Domains & Routes → **Add → Custom domain** → वही hostname।
+4. फिर Admin → Website → Domains (platform admin पैनल) → **Verify**। उसके बाद वह पता उसी संगठन की साइट खोलेगा।
+
 ## Custom domain (डोमेन तय होने के बाद)
 Cloudflare → kalchuri-one → Settings → **Domains & Routes → Add → Custom domain**। संगठनों के subdomain (`*.domain`) के लिए wildcard route, और दूसरे संगठनों के अपने डोमेन के लिए Cloudflare for SaaS (Phase 9)।

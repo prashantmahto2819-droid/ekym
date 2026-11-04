@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   Facebook,
@@ -16,7 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLang, type TKey } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { telHref } from "@/lib/format";
-import { organizationQuery } from "@/lib/queries";
+import { menusQuery, organizationQuery } from "@/lib/queries";
 
 const sevaLinks: { key: TKey; to: string }[] = [
   { key: "seva", to: "/seva" },
@@ -120,6 +120,7 @@ export function Footer() {
 
         <FooterColumn title={t("our_seva")} links={sevaLinks} />
         <FooterColumn title={t("get_involved")} links={getInvolved} />
+        <CustomFooterLinks />
         <div className="space-y-6">
           <FooterColumn title={t("read_watch")} links={readLinks} />
           <FooterColumn title={t("policies")} links={legalLinks} />
@@ -167,6 +168,27 @@ function FooterColumn({ title, links }: { title: string; links: { key: TKey; to:
             <Link to={l.to} className="opacity-90 hover:opacity-100 hover:underline">
               {t(l.key)}
             </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Extra footer links from the website builder (Admin → Website → Menus → Footer). */
+function CustomFooterLinks() {
+  const { lang } = useLang();
+  const menus = useQuery(menusQuery());
+  const items = menus.data?.footer ?? [];
+  if (!items.length) return null;
+  return (
+    <div>
+      <h3 className="font-display text-sm font-semibold uppercase tracking-wider opacity-70">{lang === "hi" ? "और लिंक" : "More"}</h3>
+      <ul className="mt-3 space-y-2 text-sm">
+        {items.map((l) => (
+          <li key={l.to}>
+            {l.to.startsWith("http") ? <a href={l.to} target="_blank" rel="noreferrer" className="opacity-90 hover:opacity-100 hover:underline">{lang === "hi" && l.label_hi ? l.label_hi : l.label}</a>
+              : <Link to={l.to as "/"} className="opacity-90 hover:opacity-100 hover:underline">{lang === "hi" && l.label_hi ? l.label_hi : l.label}</Link>}
           </li>
         ))}
       </ul>

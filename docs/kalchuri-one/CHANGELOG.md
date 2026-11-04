@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-04 — Phase 9 (Website builder)
+- Migration `web_01_builder`: `cms_pages` (blocks jsonb, draft/published, `publish_at` से scheduled, SEO, `is_home` = डिफ़ॉल्ट होम की जगह, `show_in_menu`), `cms_page_revisions` (हर सहेजने पर संस्करण, आख़िरी 30; `k1_page_restore`), `cms_menus` (header/footer items), `k1_set_branding` (core.organizations.branding), domains: `k1_request_domain` (org admin, custom, unverified), `k1_org_domains`, `k1_verify_domain` (platform admin), `k1_delete_domain`, `k1_pending_domains`; `k1_resolve_host` अब सिर्फ़ verified custom domain या subdomain पर resolve करता है।
+- `src/components/site/Blocks.tsx`: block model + renderer — hero, text (**bold**, paragraphs), image, gallery, cards, CTA, stats, embed (YouTube/map auto), latest posts, contact, spacer, divider; हर block में हिंदी fields (`*_hi`) भाषा toggle से बदलते हैं।
+- Admin → **Pages**: सूची + builder (ब्लॉक जोड़ें/क्रम/बदलें/हटाएँ, live preview, settings: slug, हिंदी शीर्षक, publish time, SEO, home, menu; revisions restore; publish/unpublish)। Admin → **Website**: Theme (primary/accent रंग, heading/body font, radius → `themeCss` से `<style>` root में), Menus (header: items + sub-items → "More"; footer links), Domains (subdomain जानकारी, custom domain request + DNS steps; platform admin verify)।
+- Public: `/p/<slug>`; published home page हो तो `/` उसी को दिखाता है; Header/Footer builder menus पढ़ते हैं (खाली = default); builder pages sitemap में।
+- बाकी: media library (upload से URL), drag-and-drop ordering, block templates/presets, Cloudflare for SaaS से custom domain अपने आप (अभी Worker पर हाथ से add), per-page custom CSS।
+
 ## 2026-11-04 — Phase 8 (Publishing)
 - Migration `pub_01_publishing` (मौजूदा `blogs`/`news` पर additive): `cms_categories`; blogs/news में category, tags, byline, review_note/submitted_at/reviewed_*, `central_status` (none|nominated|approved|declined), views, featured (news: content/content_hi, breaking)। लेखक (`cms.post.create`) अपने draft/review बना-बदल सकते हैं; समीक्षक (`cms.post.review`) सब देखते हैं। RPCs `k1_post_submit`, `k1_post_decide` (publish | changes with note | unpublish), `k1_post_nominate`, `k1_central_decide` (parent संगठन का publisher), `k1_central_feed(org)` (descendant संगठनों के approved + अपने published), `k1_post_view`। `cms_comments` (anon insert, moderated), `pub_issues` + bucket `publications` (cover, PDF, page images; access public|members), `k1_issue_view`।
 - `pub_02_tenant_parent`: `k1_resolve_host` / `k1_org_by_slug` अब `parent_id`, `child_count` भी देते हैं (Tenant type)।

@@ -798,6 +798,125 @@ export type Database = {
         }
         Relationships: []
       }
+      cms_menus: {
+        Row: {
+          id: string
+          items: Json
+          location: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          items?: Json
+          location: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          items?: Json
+          location?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_page_revisions: {
+        Row: {
+          blocks: Json
+          id: string
+          organization_id: string
+          page_id: string
+          saved_at: string
+          saved_by: string | null
+          title: string
+        }
+        Insert: {
+          blocks: Json
+          id?: string
+          organization_id: string
+          page_id: string
+          saved_at?: string
+          saved_by?: string | null
+          title: string
+        }
+        Update: {
+          blocks?: Json
+          id?: string
+          organization_id?: string
+          page_id?: string
+          saved_at?: string
+          saved_by?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_page_revisions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cms_pages: {
+        Row: {
+          blocks: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_home: boolean
+          menu_order: number
+          organization_id: string
+          publish_at: string | null
+          seo: Json
+          show_in_menu: boolean
+          slug: string
+          status: string
+          title: string
+          title_hi: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_home?: boolean
+          menu_order?: number
+          organization_id: string
+          publish_at?: string | null
+          seo?: Json
+          show_in_menu?: boolean
+          slug: string
+          status?: string
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_home?: boolean
+          menu_order?: number
+          organization_id?: string
+          publish_at?: string | null
+          seo?: Json
+          show_in_menu?: boolean
+          slug?: string
+          status?: string
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       comms_campaigns: {
         Row: {
           audience: Json
@@ -5642,6 +5761,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_delete_domain: { Args: { p_id: string }; Returns: undefined }
       k1_enqueue_message: {
         Args: {
           p_body: string
@@ -5746,6 +5866,17 @@ export type Database = {
           slug: string
         }[]
       }
+      k1_org_domains: {
+        Args: { p_org: string }
+        Returns: {
+          created_at: string
+          hostname: string
+          id: string
+          is_primary: boolean
+          kind: string
+          verified_at: string
+        }[]
+      }
       k1_org_roles: {
         Args: { p_org: string }
         Returns: {
@@ -5769,6 +5900,17 @@ export type Database = {
           role_key: string
           role_name: string
           user_id: string
+        }[]
+      }
+      k1_page_restore: { Args: { p_revision: string }; Returns: undefined }
+      k1_pending_domains: {
+        Args: never
+        Returns: {
+          created_at: string
+          hostname: string
+          id: string
+          org_name: string
+          organization_id: string
         }[]
       }
       k1_pick_channel: {
@@ -5797,6 +5939,10 @@ export type Database = {
         Returns: undefined
       }
       k1_remove_role: { Args: { p_assignment: string }; Returns: undefined }
+      k1_request_domain: {
+        Args: { p_hostname: string; p_org: string }
+        Returns: string
+      }
       k1_resolve_host: {
         Args: { p_host: string }
         Returns: {
@@ -5809,6 +5955,10 @@ export type Database = {
           short_name: string
           slug: string
         }[]
+      }
+      k1_set_branding: {
+        Args: { p_branding: Json; p_org: string }
+        Returns: Json
       }
       k1_set_document_pdf: {
         Args: { p_id: string; p_path: string }
@@ -5864,6 +6014,10 @@ export type Database = {
           status: string
           title: string
         }[]
+      }
+      k1_verify_domain: {
+        Args: { p_id: string; p_verified?: boolean }
+        Returns: undefined
       }
       lineage_roots: {
         Args: never

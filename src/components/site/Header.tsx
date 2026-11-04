@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, HeartHandshake, Menu, Phone, ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLang, type TKey } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { telHref } from "@/lib/format";
-import { organizationQuery } from "@/lib/queries";
+import { menusQuery, organizationQuery } from "@/lib/queries";
+import type { MenuItem } from "@/lib/public.functions";
 
 const primaryNav: { key: TKey; to: string }[] = [
   { key: "about", to: "/about" },
@@ -46,6 +47,14 @@ export function Header() {
   const tenant = useTenant();
   const orgName = loc(org, "organization_name") || (lang === "hi" && tenant.name_hi) || tenant.name;
   const [open, setOpen] = useState(false);
+  const menus = useQuery(menusQuery());
+  // Navigation: a header menu from the website builder replaces the defaults; builder pages marked "show in menu" are appended.
+  type NavItem = { label: string; to: string; children?: NavItem[] };
+  const mi = (m: MenuItem): NavItem => ({ label: lang === "hi" && m.label_hi ? m.label_hi : m.label, to: m.to, ...(m.children?.length ? { children: m.children.map(mi) } : {}) });
+  const extraPages: NavItem[] = (menus.data?.pages ?? []).map((p) => ({ label: lang === "hi" && p.title_hi ? p.title_hi : p.title, to: `/p/${p.slug}` }));
+  const custom = menus.data?.header ? menus.data.header.map(mi) : null;
+  const primary: NavItem[] = custom ? custom.filter((x) => !x.children).slice(0, 6) : primaryNav.map((i) => ({ label: t(i.key), to: i.to }));
+  const more: NavItem[] = custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...moreNav.map((i) => ({ label: t(i.key), to: i.to })), ...extraPages];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
@@ -69,14 +78,14 @@ export function Header() {
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
-          {primaryNav.map((item) => (
+          {primary.map((item) => (
             <Link
               key={item.to}
-              to={item.to}
+              to={item.to as "/"}
               className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ className: "bg-secondary text-foreground" }}
             >
-              {t(item.key)}
+              {item.label}
             </Link>
           ))}
           <DropdownMenu>
@@ -86,9 +95,9 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {moreNav.map((item) => (
+              {more.map((item) => (
                 <DropdownMenuItem key={item.to} asChild>
-                  <Link to={item.to}>{t(item.key)}</Link>
+                  <Link to={item.to as "/"}>{item.label}</Link>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -145,15 +154,15 @@ export function Header() {
                 <Link to="/" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
                   {t("home")}
                 </Link>
-                {[...primaryNav, ...moreNav].map((item) => (
+                {[...primary, ...more].map((item) => (
                   <Link
                     key={item.to}
-                    to={item.to}
+                    to={item.to as "/"}
                     onClick={() => setOpen(false)}
                     className="rounded-md px-3 py-2 text-sm hover:bg-secondary"
                     activeProps={{ className: "bg-secondary font-medium" }}
                   >
-                    {t(item.key)}
+                    {item.label}
                   </Link>
                 ))}
                 <Button asChild className="mt-3">
