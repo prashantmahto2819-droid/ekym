@@ -1,0 +1,3 @@
+install=success
+typecheck=success
+build=success
