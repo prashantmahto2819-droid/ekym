@@ -1763,6 +1763,325 @@ export type Database = {
         }
         Relationships: []
       }
+      fin_accounts: {
+        Row: {
+          bank_details: Json | null
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_bank: boolean
+          is_cash: boolean
+          is_group: boolean
+          name: string
+          name_hi: string | null
+          opening_balance: number
+          organization_id: string
+          parent_id: string | null
+          sort_order: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          bank_details?: Json | null
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_bank?: boolean
+          is_cash?: boolean
+          is_group?: boolean
+          name: string
+          name_hi?: string | null
+          opening_balance?: number
+          organization_id: string
+          parent_id?: string | null
+          sort_order?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          bank_details?: Json | null
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_bank?: boolean
+          is_cash?: boolean
+          is_group?: boolean
+          name?: string
+          name_hi?: string | null
+          opening_balance?: number
+          organization_id?: string
+          parent_id?: string | null
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "fin_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_lines: {
+        Row: {
+          account_id: string
+          credit: number
+          debit: number
+          id: string
+          note: string | null
+          organization_id: string
+          sort_order: number
+          voucher_id: string
+        }
+        Insert: {
+          account_id: string
+          credit?: number
+          debit?: number
+          id?: string
+          note?: string | null
+          organization_id: string
+          sort_order?: number
+          voucher_id: string
+        }
+        Update: {
+          account_id?: string
+          credit?: number
+          debit?: number
+          id?: string
+          note?: string | null
+          organization_id?: string
+          sort_order?: number
+          voucher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "fin_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_lines_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "fin_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_parties: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          gstin: string | null
+          id: string
+          kind: string
+          membership_id: string | null
+          name: string
+          organization_id: string
+          pan: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          gstin?: string | null
+          id?: string
+          kind?: string
+          membership_id?: string | null
+          name: string
+          organization_id: string
+          pan?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          gstin?: string | null
+          id?: string
+          kind?: string
+          membership_id?: string | null
+          name?: string
+          organization_id?: string
+          pan?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_parties_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "org_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_vouchers: {
+        Row: {
+          amount: number
+          cancel_reason: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          fy_id: string | null
+          id: string
+          instrument: Json
+          mode: string | null
+          narration: string | null
+          number: string | null
+          organization_id: string
+          party_id: string | null
+          party_name: string | null
+          posted_at: string | null
+          posted_by: string | null
+          reversal_of: string | null
+          reversed_by: string | null
+          source: string
+          source_id: string | null
+          status: string
+          type: string
+          updated_at: string
+          voucher_date: string
+        }
+        Insert: {
+          amount?: number
+          cancel_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          fy_id?: string | null
+          id?: string
+          instrument?: Json
+          mode?: string | null
+          narration?: string | null
+          number?: string | null
+          organization_id: string
+          party_id?: string | null
+          party_name?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          reversal_of?: string | null
+          reversed_by?: string | null
+          source?: string
+          source_id?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+          voucher_date?: string
+        }
+        Update: {
+          amount?: number
+          cancel_reason?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          fy_id?: string | null
+          id?: string
+          instrument?: Json
+          mode?: string | null
+          narration?: string | null
+          number?: string | null
+          organization_id?: string
+          party_id?: string | null
+          party_name?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          reversal_of?: string | null
+          reversed_by?: string | null
+          source?: string
+          source_id?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          voucher_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fin_vouchers_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "docs_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_vouchers_fy_id_fkey"
+            columns: ["fy_id"]
+            isOneToOne: false
+            referencedRelation: "fin_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_vouchers_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "fin_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_vouchers_reversal_of_fkey"
+            columns: ["reversal_of"]
+            isOneToOne: false
+            referencedRelation: "fin_vouchers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fin_vouchers_reversed_by_fkey"
+            columns: ["reversed_by"]
+            isOneToOne: false
+            referencedRelation: "fin_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fin_years: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          label: string
+          locked: boolean
+          locked_at: string | null
+          locked_by: string | null
+          organization_id: string
+          starts_on: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          label: string
+          locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          organization_id: string
+          starts_on: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          label?: string
+          locked?: boolean
+          locked_at?: string | null
+          locked_by?: string | null
+          organization_id?: string
+          starts_on?: string
+        }
+        Relationships: []
+      }
       galleries: {
         Row: {
           active: boolean
@@ -4786,6 +5105,94 @@ export type Database = {
           village_name: string
         }[]
       }
+      fin_cancel_voucher: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
+      fin_cashbook: {
+        Args: {
+          p_account?: string
+          p_from: string
+          p_org: string
+          p_to: string
+        }
+        Returns: {
+          account_name: string
+          narration: string
+          number: string
+          party_name: string
+          payment: number
+          receipt: number
+          type: string
+          voucher_date: string
+          voucher_id: string
+        }[]
+      }
+      fin_ensure_series: { Args: { p_org: string }; Returns: undefined }
+      fin_ensure_year: {
+        Args: { p_date: string; p_org: string }
+        Returns: string
+      }
+      fin_fy_label: { Args: { p_date: string }; Returns: string }
+      fin_import_paid_donations: { Args: { p_org: string }; Returns: number }
+      fin_ledger: {
+        Args: { p_account: string; p_from: string; p_to: string }
+        Returns: {
+          balance: number
+          credit: number
+          debit: number
+          narration: string
+          number: string
+          party_name: string
+          type: string
+          voucher_date: string
+          voucher_id: string
+        }[]
+      }
+      fin_lock_year: {
+        Args: { p_id: string; p_lock: boolean }
+        Returns: undefined
+      }
+      fin_post_donation: { Args: { p_donation: string }; Returns: string }
+      fin_post_voucher: { Args: { p_id: string }; Returns: Json }
+      fin_receipt_document: {
+        Args: { p_template?: string; p_voucher: string }
+        Returns: string
+      }
+      fin_receipts_payments: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          account_id: string
+          amount: number
+          code: string
+          name: string
+          name_hi: string
+          side: string
+        }[]
+      }
+      fin_reverse_voucher: {
+        Args: { p_date?: string; p_id: string; p_reason?: string }
+        Returns: string
+      }
+      fin_seed_accounts: { Args: { p_org: string }; Returns: number }
+      fin_trial_balance: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          account_id: string
+          closing: number
+          code: string
+          credit: number
+          debit: number
+          is_group: boolean
+          name: string
+          name_hi: string
+          opening: number
+          parent_id: string
+          type: string
+        }[]
+      }
+      fin_voucher_detail: { Args: { p_id: string }; Returns: Json }
+      fin_year_for: { Args: { p_date: string; p_org: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
       is_super: { Args: never; Returns: boolean }
