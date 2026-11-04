@@ -1,0 +1,7 @@
+PASS letterhead: pages=1 794x1123 ink=100 pdf=16589B
+PASS letter: pages=3 794x1123 ink=574 pdf=236461B
+PASS certificate: pages=1 1123x794 ink=754 pdf=88152B
+PASS receipt: pages=1 794x559 ink=200 pdf=25642B
+PASS id_card: pages=1 324x204 ink=283 pdf=8511B
+PASS shok_patra: pages=1 1050x1491 ink=16029 pdf=67980B
+PASS invitation: pages=1 559x794 ink=590 pdf=28108B
