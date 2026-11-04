@@ -21,7 +21,7 @@ function CommunityAdmin() {
   const org = tenant.organization_id;
   const { can } = useAuth();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"listings" | "matrimony" | "polls" | "people">("listings");
+  const [tab, setTab] = useState<"feed" | "listings" | "matrimony" | "polls" | "people">("feed");
   const [status, setStatus] = useState("pending");
   const listings = useQuery({ queryKey: ["cm_listings_admin", org, status], queryFn: async () => { let q = supabase.from("cm_listings").select("*").eq("organization_id", org).order("created_at", { ascending: false }).limit(300); if (status) q = q.eq("status", status); const { data } = await q; return (data ?? []) as unknown as Listing[]; } });
   const profiles = useQuery({ queryKey: ["cm_matri_admin", org], enabled: tab === "matrimony", queryFn: async () => { const { data } = await supabase.from("cm_matrimony_profiles").select("id,display_name,gender,birth_year,city,education,profession,created_for,verified_at,status,created_at").eq("organization_id", org).order("created_at", { ascending: false }); return (data ?? []) as { id: string; display_name: string; gender: string; birth_year: number; city: string | null; education: string | null; profession: string | null; created_for: string; verified_at: string | null; status: string; created_at: string }[]; } });
@@ -35,7 +35,9 @@ function CommunityAdmin() {
   return (
     <div className="space-y-4">
       <header><h1 className="font-display text-2xl font-semibold">Community</h1><p className="text-sm text-muted-foreground">Directory listings (business, professionals, jobs, scholarships, emergency help), matrimony verification and polls.</p></header>
-      <div className="flex w-fit rounded-md border border-border p-0.5 text-xs">{([["listings", "Listings"], ["matrimony", "Matrimony"], ["polls", "Polls"], ["people", "Contributors & testimonials"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
+      <div className="flex w-fit rounded-md border border-border p-0.5 text-xs">{([["feed", "Kalchuri One feed"], ["listings", "Listings"], ["matrimony", "Matrimony"], ["polls", "Polls"], ["people", "Contributors & testimonials"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
+
+      {tab === "feed" ? <FeedModeration org={org} /> : null}
 
       {tab === "listings" ? (
         <div className="space-y-2">
@@ -120,4 +122,28 @@ function OptionsApplier({ org, opts, onApplied }: { org: string; opts: string; o
   }
   if (!opts.trim()) return null;
   return <Button size="sm" onClick={apply} disabled={busy}>Apply these options to the newest poll</Button>;
+}
+
+type Report = { id: string; post_id: string | null; comment_id: string | null; reason: string; status: string; created_at: string };
+function FeedModeration({ org }: { org: string }) {
+  const qc = useQueryClient();
+  const reports = useQuery({ queryKey: ["cm_reports", org], queryFn: async () => { const { data } = await supabase.from("cm_post_reports").select("*").eq("organization_id", org).eq("status", "open").order("created_at", { ascending: false }); return (data ?? []) as Report[]; } });
+  const hidden = useQuery({ queryKey: ["cm_hidden", org], queryFn: async () => { const { data } = await supabase.from("cm_posts").select("id,body,status,created_at,link_url").eq("organization_id", org).in("status", ["hidden"]).order("created_at", { ascending: false }); return (data ?? []) as { id: string; body: string | null; status: string; created_at: string; link_url: string | null }[]; } });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["cm_reports", org] }); qc.invalidateQueries({ queryKey: ["cm_hidden", org] }); };
+  async function act(postId: string | null, status: string | null, reportId?: string, dismiss?: boolean) {
+    try {
+      if (dismiss && reportId) { await supabase.from("cm_post_reports").update({ status: "dismissed" } as never).eq("id", reportId); }
+      else if (postId && status) await rpc("k1_post_moderate", { p_post: postId, p_status: status, p_pinned: null });
+      refresh();
+    } catch (e) { toast.error((e as Error).message); }
+  }
+  return (
+    <div className="space-y-4 text-sm">
+      <p className="text-xs text-muted-foreground">Members post on <a href="/community" className="underline" target="_blank" rel="noreferrer">/community</a>. Reports land here; hide removes a post from the feed (restorable), remove deletes it from view permanently. Pin from the ⋯ menu on the feed.</p>
+      <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium">Open reports ({reports.data?.length ?? 0})</p>
+        <ul className="mt-2 divide-y divide-border">{(reports.data ?? []).map((r) => <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{r.reason} <span className="text-xs text-muted-foreground">· {new Date(r.created_at).toLocaleString("en-IN")}</span> {r.post_id ? <a className="ml-1 underline" href={`/community/${r.post_id}`} target="_blank" rel="noreferrer">view post</a> : null}</span><span className="flex gap-1">{r.post_id ? <><Button size="sm" variant="outline" onClick={() => act(r.post_id, "hidden")}>Hide post</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(r.post_id, "removed")}>Remove</Button></> : null}<Button size="sm" variant="ghost" onClick={() => act(null, null, r.id, true)}>Dismiss</Button></span></li>)}{reports.isSuccess && !reports.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul></div>
+      <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium">Hidden posts</p>
+        <ul className="mt-2 divide-y divide-border">{(hidden.data ?? []).map((p) => <li key={p.id} className="flex items-center justify-between gap-2 py-2"><span className="line-clamp-1">{p.body ?? p.link_url ?? "(photo)"} <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleDateString("en-IN")}</span></span><span className="flex gap-1"><Button size="sm" variant="outline" onClick={() => act(p.id, "active")}>Restore</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(p.id, "removed")}>Remove</Button></span></li>)}{hidden.isSuccess && !hidden.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul></div>
+    </div>
+  );
 }
