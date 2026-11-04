@@ -14,6 +14,206 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          clicks: number
+          created_at: string
+          created_by: string | null
+          creative_image: string | null
+          creative_text: string | null
+          creative_text_hi: string | null
+          ends_on: string | null
+          id: string
+          impressions: number
+          link_url: string | null
+          organization_id: string
+          party_id: string | null
+          price: number
+          slots: string[]
+          sponsor_email: string | null
+          sponsor_name: string
+          sponsor_phone: string | null
+          starts_on: string
+          status: string
+          title: string
+          updated_at: string
+          voucher_id: string | null
+          weight: number
+        }
+        Insert: {
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          creative_image?: string | null
+          creative_text?: string | null
+          creative_text_hi?: string | null
+          ends_on?: string | null
+          id?: string
+          impressions?: number
+          link_url?: string | null
+          organization_id: string
+          party_id?: string | null
+          price?: number
+          slots?: string[]
+          sponsor_email?: string | null
+          sponsor_name: string
+          sponsor_phone?: string | null
+          starts_on?: string
+          status?: string
+          title: string
+          updated_at?: string
+          voucher_id?: string | null
+          weight?: number
+        }
+        Update: {
+          clicks?: number
+          created_at?: string
+          created_by?: string | null
+          creative_image?: string | null
+          creative_text?: string | null
+          creative_text_hi?: string | null
+          ends_on?: string | null
+          id?: string
+          impressions?: number
+          link_url?: string | null
+          organization_id?: string
+          party_id?: string | null
+          price?: number
+          slots?: string[]
+          sponsor_email?: string | null
+          sponsor_name?: string
+          sponsor_phone?: string | null
+          starts_on?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          voucher_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "fin_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_campaigns_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "fin_vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_revenue: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: string
+          note: string | null
+          organization_id: string
+          source: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          month: string
+          note?: string | null
+          organization_id: string
+          source: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: string
+          note?: string | null
+          organization_id?: string
+          source?: string
+        }
+        Relationships: []
+      }
+      ad_settings: {
+        Row: {
+          ads_txt: string | null
+          adsense_client: string | null
+          adsense_slots: Json
+          consent_banner: boolean
+          consent_text: string | null
+          consent_text_hi: string | null
+          enabled: boolean
+          excluded_paths: string[]
+          organization_id: string
+          slots: Json
+          updated_at: string
+        }
+        Insert: {
+          ads_txt?: string | null
+          adsense_client?: string | null
+          adsense_slots?: Json
+          consent_banner?: boolean
+          consent_text?: string | null
+          consent_text_hi?: string | null
+          enabled?: boolean
+          excluded_paths?: string[]
+          organization_id: string
+          slots?: Json
+          updated_at?: string
+        }
+        Update: {
+          ads_txt?: string | null
+          adsense_client?: string | null
+          adsense_slots?: Json
+          consent_banner?: boolean
+          consent_text?: string | null
+          consent_text_hi?: string | null
+          enabled?: boolean
+          excluded_paths?: string[]
+          organization_id?: string
+          slots?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ad_stats: {
+        Row: {
+          campaign_id: string
+          clicks: number
+          day: string
+          impressions: number
+          organization_id: string
+          slot: string
+        }
+        Insert: {
+          campaign_id: string
+          clicks?: number
+          day?: string
+          impressions?: number
+          organization_id: string
+          slot: string
+        }
+        Update: {
+          campaign_id?: string
+          clicks?: number
+          day?: string
+          impressions?: number
+          organization_id?: string
+          slot?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_stats_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_regions: {
         Row: {
           admin_id: string
@@ -6193,6 +6393,29 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
       is_super: { Args: never; Returns: boolean }
+      k1_ad_campaign_paid: {
+        Args: {
+          p_campaign: string
+          p_date?: string
+          p_mode?: string
+          p_ref?: string
+        }
+        Returns: string
+      }
+      k1_ad_hit: {
+        Args: {
+          p_campaign: string
+          p_click?: boolean
+          p_org: string
+          p_slot: string
+        }
+        Returns: undefined
+      }
+      k1_ad_revenue: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: Json
+      }
+      k1_ads_for: { Args: { p_org: string; p_slot: string }; Returns: Json }
       k1_assign_role: {
         Args: { p_email: string; p_org: string; p_role_id: string }
         Returns: string

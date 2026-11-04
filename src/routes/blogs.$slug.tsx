@@ -6,6 +6,7 @@ import { siteName } from "@/core/seo";
 import { BlogCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
 import { SectionHeading } from "@/components/site/SectionHeading";
+import { AdSlot } from "@/components/site/Ads";
 import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { blogQuery } from "@/lib/queries";
@@ -70,6 +71,7 @@ function BlogDetail() {
           <div className="mt-8">
             <ShareButtons path={`/blogs/${blog.slug}`} title={blog.title} />
           </div>
+          <AdSlot slot="post_bottom" className="mt-8" />
           <Comments kind="blog" postId={blog.id} />
         </div>
       </article>

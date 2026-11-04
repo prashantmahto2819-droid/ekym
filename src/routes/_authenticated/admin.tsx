@@ -50,6 +50,7 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/volunteers", label: "Volunteer applications", group: "Operations" },
   { to: "/admin/interns", label: "Internship applications", group: "Operations" },
   { to: "/admin/messages", label: "Contact inbox", group: "Operations" },
+  { to: "/admin/ads", label: "Ads & revenue", group: "Administration" },
   { to: "/admin/payments", label: "Payment settings", group: "Administration" },
   { to: "/admin/settings", label: "Organization settings", group: "Administration" },
   { to: "/admin/users", label: "Users & roles", group: "Administration" },

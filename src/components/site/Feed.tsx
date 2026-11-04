@@ -4,6 +4,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-quer
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { AdSlot } from "@/components/site/Ads";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,7 @@ export function Feed({ postId }: { postId?: string }) {
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       {!postId ? (user ? (member.data ? <Composer org={org} onPosted={refresh} L={L} /> : member.isSuccess ? <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm">{L ? "पोस्ट करने के लिए संगठन का सदस्य बनें: " : "Become a member to post: "}<Link to="/join" className="underline">{L ? "सदस्यता फ़ॉर्म" : "membership form"}</Link></p> : null) : <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm"><Link to="/auth" className="underline">{L ? "लॉगिन करें" : "Sign in"}</Link>{L ? " — फिर पोस्ट, लाइक और टिप्पणी कर सकेंगे।" : " to post, like and comment."}</p>) : null}
-      {posts.map((p) => <PostCard key={p.id} p={p} L={L} signedIn={!!user} onChange={refresh} />)}
+      {posts.map((p, i) => <div key={p.id}><PostCard p={p} L={L} signedIn={!!user} onChange={refresh} />{i === 2 ? <AdSlot slot="feed" className="mt-4 surface-card p-3" /> : null}</div>)}
       {feed.isSuccess && !posts.length ? <p className="text-center text-sm text-muted-foreground">{L ? "अभी कोई पोस्ट नहीं — पहली पोस्ट आप करें!" : "No posts yet — be the first!"}</p> : null}
       {feed.hasNextPage ? <div className="text-center"><Button variant="outline" onClick={() => feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>{L ? "और देखें" : "Load more"}</Button></div> : null}
     </div>

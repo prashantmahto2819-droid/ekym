@@ -21,6 +21,7 @@ import { TenantProvider } from "@/core/tenant-context";
 import { LangProvider, type Lang } from "@/core/i18n";
 import type { Tenant } from "@/core/tenant.server";
 import { themeCss, type Branding } from "@/core/theme";
+import { AdSlot, ConsentBanner } from "@/components/site/Ads";
 
 import appCss from "../styles.css?url";
 
@@ -163,11 +164,14 @@ function RootComponent() {
           <AuthWatcher queryClient={queryClient} />
           <div className="flex min-h-screen flex-col">
             {chromeless ? null : <Header />}
+            {chromeless ? null : <AdSlot slot="header" className="container-page my-2" />}
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <main className="flex-1">
               <Outlet />
             </main>
+            {chromeless ? null : <AdSlot slot="footer" className="container-page my-2" />}
             {chromeless ? null : <Footer />}
+            {chromeless ? null : <ConsentBanner />}
           </div>
           <Toaster richColors position="top-center" />
         </LangProvider>

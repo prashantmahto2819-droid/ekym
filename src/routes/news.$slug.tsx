@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
+import { AdSlot } from "@/components/site/Ads";
 import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ function NewsDetail() {
           <div className="mt-8">
             <ShareButtons path={`/news/${item.slug}`} title={item.title} />
           </div>
+          <AdSlot slot="post_bottom" className="mt-8" />
           <Comments kind="news" postId={item.id} />
         </div>
       </article>
