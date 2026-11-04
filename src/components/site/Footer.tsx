@@ -130,6 +130,21 @@ export function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Platform credit: fixed for every organisation's site, not editable from org settings. */}
+      <div className="border-t border-sidebar-border">
+        <p className="container-page py-3 text-center text-xs opacity-70">
+          Designed &amp; Developed by{" "}
+          <a
+            href="https://vividbrandify.com"
+            target="_blank"
+            rel="noopener"
+            className="font-semibold underline-offset-2 hover:underline"
+          >
+            Vivid Brandify
+          </a>
+        </p>
+      </div>
     </footer>
   );
 }

@@ -36,6 +36,9 @@ flowchart LR
 
 सर्वर middleware `Host` header से `org_domains` पढ़कर `organization_id` तय करता है। हर public query उसी org पर filter होती है, और RLS दूसरी परत की सुरक्षा देता है।
 
+## 2a. भाषा
+वेबसाइट default **English** में है; header में **हिंदी** toggle। UI के शब्द `src/core/i18n` dictionary से आते हैं, content के लिए DB में `*_hi` fields (जैसे `name_hi`)। भाषा का चुनाव cookie में रहता है, ताकि SSR भी सही भाषा में render करे।
+
 ## 3. Code ढाँचा (module-wise)
 
 ```
