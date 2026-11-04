@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-04 — Phase 14 (Kalchuri One polish)
+- निर्णय: वीडियो upload नहीं बनेगा (owner) — सिर्फ़ links।
+- Migration `cm_04_notifications_search`: `cm_notifications` (like — एक पोस्ट के like एक ही unread row में जुड़ते हैं, comment, reply, moderation निर्णय), triggers; `k1_cm_notifications`, `k1_cm_notifications_read`; `k1_cm_appeal` (लेखक सीमित पोस्ट पर "समीक्षा का अनुरोध" → moderators को WhatsApp, `moderation.appeal`); hashtags: `cm_posts.tags[]` (trigger `trg_cm_post_tags`, Devanagari-safe regex) + gin, `pg_trgm` (`cm_04a_pg_trgm`), `k1_feed_search(q, tag)`, `k1_cm_tags` (30-दिन trending); comments पर भी promo heuristic: score ≥ threshold → `status='hidden'` + auto report (`trg_cm_comment_screen/report`)।
+- UI: feed पर search box (#टैग टाइप करने पर tag filter), trending tags, पोस्ट में #tags clickable, 🔔 सूचनाएँ (unread badge, खोलते ही read), सीमित पोस्ट पर "समीक्षा का अनुरोध करें"; admin flagged panel में appeal नोट; `/community/<id>` share link पर og:title/description/image (public posts)।
+- बाकी: @mentions (handles नहीं हैं), WhatsApp पर सूचनाएँ (जानबूझकर नहीं — spam), notifications का अलग पेज।
+
 ## 2026-11-04 — Phase 13 (Hardening)
 - **Security**: `sec_01_function_grants` — public schema की सभी functions से PUBLIC/anon EXECUTE हटाया (anon सिर्फ़ 17 public-page functions), internal helpers (ticks, digests, comms claim/result, fin_ensure_*) authenticated से भी हटे, trigger functions पूरी तरह बंद (trigger fire होने के लिए EXECUTE नहीं चाहिए — anon role से जाँचा), default privileges बदले, 3 functions पर search_path fix। Advisor anon-warnings 99 → 17 (सब जानबूझकर)।
 - **Performance**: `perf_01_fk_indexes` — 28 FK indexes।
