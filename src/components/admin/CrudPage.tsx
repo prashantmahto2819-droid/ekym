@@ -18,16 +18,47 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
+export type AdminOption = string | { value: string; label: string };
+
 export type AdminField = {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "date" | "checkbox" | "url" | "select";
+  type?: "text" | "textarea" | "number" | "date" | "datetime" | "checkbox" | "url" | "select";
   hint?: string;
   required?: boolean;
   full?: boolean;
   /** Allowed values for a select field; first option is used as the default. */
-  options?: string[];
+  options?: AdminOption[];
+  /** Select whose options come from another table of the same organization (value = id). */
+  fk?: { table: string; label: string; orderBy?: string };
+  /** Show this field only when creating / only when editing. */
+  only?: "create" | "edit";
 };
+
+function optValue(o: AdminOption) { return typeof o === "string" ? o : o.value; }
+function optLabel(o: AdminOption) { return typeof o === "string" ? o.replace(/_/g, " ") : o.label; }
+
+/** Options for a foreign-key select, scoped to the current organization. */
+function useFkOptions(fields: AdminField[], organizationId: string) {
+  const fks = fields.filter((f) => f.fk);
+  return useQuery({
+    queryKey: ["admin-fk", organizationId, fks.map((f) => f.fk!.table).join(",")],
+    enabled: fks.length > 0,
+    queryFn: async () => {
+      const out: Record<string, AdminOption[]> = {};
+      for (const f of fks) {
+        const { data } = await supabase
+          .from(f.fk!.table as any)
+          .select(`id,${f.fk!.label}`)
+          .eq("organization_id", organizationId)
+          .order(f.fk!.orderBy ?? f.fk!.label)
+          .limit(500);
+        out[f.key] = ((data ?? []) as any[]).map((r) => ({ value: r.id, label: String(r[f.fk!.label] ?? r.id) }));
+      }
+      return out;
+    },
+  });
+}
 
 export type AdminColumn = {
   key: string;
@@ -42,6 +73,13 @@ function errText(e: unknown, fallback: string) {
     if (typeof m === "string" && m.trim()) return m;
   }
   return fallback;
+}
+
+function toLocalInput(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function slugify(value: string) {
@@ -63,6 +101,9 @@ export function CrudPage({
   ascending = false,
   slugFrom,
   defaults = {},
+  filter,
+  onRowClick,
+  extraActions,
 }: {
   table: string;
   title: string;
@@ -73,21 +114,26 @@ export function CrudPage({
   ascending?: boolean;
   slugFrom?: string;
   defaults?: Record<string, unknown>;
+  /** Extra equality filter on the list (e.g. { meeting_id }). Also merged into new rows. */
+  filter?: Record<string, string>;
+  onRowClick?: (row: any) => void;
+  extraActions?: (row: any) => React.ReactNode;
 }) {
   const qc = useQueryClient();
   const tenant = useTenant();
   const [editing, setEditing] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
 
+  const fkOptions = useFkOptions(fields, tenant.organization_id);
   const list = useQuery({
-    queryKey: ["admin", table, tenant.organization_id],
+    queryKey: ["admin", table, tenant.organization_id, filter ?? null],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from(table as any)
         .select("*")
-        .eq("organization_id", tenant.organization_id)
-        .order(orderBy, { ascending })
-        .limit(500);
+        .eq("organization_id", tenant.organization_id);
+      for (const [k, v] of Object.entries(filter ?? {})) q = q.eq(k, v);
+      const { data, error } = await q.order(orderBy, { ascending }).limit(500);
       if (error) throw error;
       return data ?? [];
     },
@@ -95,7 +141,7 @@ export function CrudPage({
 
   const save = useMutation({
     mutationFn: async (values: Record<string, any>) => {
-      const payload: Record<string, any> = { ...defaults, ...values, organization_id: tenant.organization_id };
+      const payload: Record<string, any> = { ...defaults, ...(editing?.id ? {} : filter ?? {}), ...values, organization_id: tenant.organization_id };
       if (slugFrom && !payload["slug"] && payload[slugFrom]) {
         payload["slug"] = slugify(String(payload[slugFrom]));
       }
@@ -146,11 +192,16 @@ export function CrudPage({
     const form = new FormData(e.currentTarget);
     const values: Record<string, any> = {};
     for (const f of fields) {
+      if (f.only === "create" && editing?.id) continue;
+      if (f.only === "edit" && !editing?.id) continue;
       if (f.type === "checkbox") {
         values[f.key] = form.get(f.key) === "on";
       } else if (f.type === "number") {
         const v = form.get(f.key);
         values[f.key] = v === "" || v === null ? null : Number(v);
+      } else if (f.type === "datetime") {
+        const v = form.get(f.key) as string;
+        values[f.key] = v ? new Date(v).toISOString() : null;
       } else {
         values[f.key] = (form.get(f.key) as string) ?? "";
       }
@@ -196,13 +247,14 @@ export function CrudPage({
               </tr>
             ) : list.data?.length ? (
               list.data.map((row: any) => (
-                <tr key={row.id} className="border-t border-border">
+                <tr key={row.id} className={`border-t border-border ${onRowClick ? "cursor-pointer hover:bg-secondary/40" : ""}`}>
                   {columns.map((c) => (
-                    <td key={c.key} className="max-w-xs truncate px-4 py-3">
+                    <td key={c.key} className="max-w-xs truncate px-4 py-3" onClick={onRowClick ? () => onRowClick(row) : undefined}>
                       {c.render ? c.render(row) : String(row[c.key] ?? "—")}
                     </td>
                   ))}
                   <td className="whitespace-nowrap px-4 py-3 text-right">
+                    {extraActions ? extraActions(row) : null}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -253,7 +305,10 @@ export function CrudPage({
           </DialogHeader>
           <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
             {fields.map((f) => {
+              if (f.only === "create" && editing?.id) return null;
+              if (f.only === "edit" && !editing?.id) return null;
               const value = editing?.[f.key];
+              const options: AdminOption[] = f.fk ? (fkOptions.data?.[f.key] ?? []) : (f.options ?? []);
               if (f.type === "checkbox") {
                 return (
                   <label
@@ -275,24 +330,30 @@ export function CrudPage({
                 >
                   {f.type === "textarea" ? (
                     <Textarea name={f.key} rows={5} defaultValue={value ?? ""} required={f.required} />
-                  ) : f.type === "select" ? (
+                  ) : f.type === "select" || f.fk ? (
                     <select
                       name={f.key}
-                      defaultValue={value ?? f.options?.[0] ?? ""}
+                      defaultValue={value ?? (f.required ? optValue(options[0] ?? "") : "")}
+                      required={f.required}
                       className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm capitalize outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {(f.options ?? []).map((o) => (
-                        <option key={o} value={o}>
-                          {o.replace(/_/g, " ")}
+                      {!f.required ? <option value="">—</option> : null}
+                      {options.map((o) => (
+                        <option key={optValue(o)} value={optValue(o)}>
+                          {optLabel(o)}
                         </option>
                       ))}
                     </select>
                   ) : (
                     <Input
                       name={f.key}
-                      type={f.type === "number" ? "number" : f.type === "date" ? "date" : "text"}
+                      type={f.type === "number" ? "number" : f.type === "date" ? "date" : f.type === "datetime" ? "datetime-local" : "text"}
                       defaultValue={
-                        f.type === "date" && value ? String(value).slice(0, 10) : (value ?? "")
+                        f.type === "date" && value
+                          ? String(value).slice(0, 10)
+                          : f.type === "datetime" && value
+                            ? toLocalInput(String(value))
+                            : (value ?? "")
                       }
                       required={f.required}
                     />

@@ -312,3 +312,31 @@ export const getSitemapEntries = createServerFn({ method: "GET" }).handler(async
     campaigns: campaigns.data ?? [],
   };
 });
+
+export const getTeam = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const c = sb();
+  const [committees, positions] = await Promise.all([
+    c.from("gov_committees").select("id,name,name_hi,kind,tenure_from,tenure_to,display_order").eq("organization_id", org).eq("status", "active").order("display_order"),
+    c.from("gov_positions_public").select("*").eq("organization_id", org).order("rank"),
+  ]);
+  return {
+    committees: committees.data ?? [],
+    positions: (positions.data ?? []) as {
+      id: string; committee_id: string; person_name: string; person_name_hi: string | null; designation: string;
+      designation_hi: string | null; rank: number; phone: string | null; photo_path: string | null; city: string | null;
+    }[],
+  };
+});
+
+export const getAnnouncements = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const { data } = await sb()
+    .from("gov_announcements")
+    .select("id,title,title_hi,body,body_hi,pinned,publish_at")
+    .eq("organization_id", org)
+    .order("pinned", { ascending: false })
+    .order("publish_at", { ascending: false })
+    .limit(20);
+  return data ?? [];
+});

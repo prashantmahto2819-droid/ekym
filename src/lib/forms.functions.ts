@@ -255,3 +255,41 @@ export const submitMaterialDonation = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/* --------------------------- MEMBERSHIP --------------------------- */
+const membershipSchema = z.object({
+  full_name: req,
+  full_name_hi: optional,
+  father_name: optional,
+  mobile,
+  email,
+  gender: optional,
+  dob: optional,
+  village: optional,
+  city: optional,
+  district: optional,
+  state: optional,
+  pincode: optional,
+  address: optional,
+  occupation: optional,
+  education: optional,
+  blood_group: optional,
+  category: z.enum(["general", "life", "patron"]).default("general"),
+  consent: z.literal(true, { errorMap: () => ({ message: "Please accept the declaration" }) }),
+});
+export type MembershipInput = z.input<typeof membershipSchema>;
+
+export const submitMembership = createServerFn({ method: "POST" })
+  .inputValidator((d: MembershipInput) => parse(membershipSchema, d))
+  .handler(async ({ data }) => {
+    const { error } = await sb()
+      .from("org_memberships")
+      .insert({ ...clean(data), organization_id: await tenantId(), status: "applied" } as any);
+    if (error) {
+      if (error.message.toLowerCase().includes("duplicate")) {
+        throw new Error("An application or membership with this mobile number already exists.");
+      }
+      throw new Error(error.message);
+    }
+    return { ok: true };
+  });

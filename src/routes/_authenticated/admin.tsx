@@ -18,6 +18,12 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin", label: "Dashboard", group: "Overview" },
+  { to: "/admin/members", label: "Members", group: "Organization" },
+  { to: "/admin/committees", label: "Committees & office bearers", group: "Organization" },
+  { to: "/admin/meetings", label: "Meetings & resolutions", group: "Organization" },
+  { to: "/admin/tasks", label: "Tasks", group: "Organization" },
+  { to: "/admin/announcements", label: "Announcements", group: "Organization" },
+  { to: "/admin/documents", label: "Documents & history", group: "Organization" },
   { to: "/admin/homepage", label: "Homepage sections", group: "Content" },
   { to: "/admin/seva", label: "Seva projects", group: "Content" },
   { to: "/admin/blogs", label: "Blogs", group: "Content" },

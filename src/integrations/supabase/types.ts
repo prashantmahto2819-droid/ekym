@@ -1279,6 +1279,482 @@ export type Database = {
           },
         ]
       }
+      gov_agenda_items: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          item_no: number
+          meeting_id: string
+          organization_id: string
+          outcome: string | null
+          presenter: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          item_no?: number
+          meeting_id: string
+          organization_id: string
+          outcome?: string | null
+          presenter?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          item_no?: number
+          meeting_id?: string
+          organization_id?: string
+          outcome?: string | null
+          presenter?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_agenda_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "gov_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gov_announcements: {
+        Row: {
+          audience: string
+          body: string
+          body_hi: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          organization_id: string
+          pinned: boolean
+          publish_at: string
+          title: string
+          title_hi: string | null
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          body: string
+          body_hi?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          organization_id: string
+          pinned?: boolean
+          publish_at?: string
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          body?: string
+          body_hi?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          organization_id?: string
+          pinned?: boolean
+          publish_at?: string
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gov_committees: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          kind: string
+          name: string
+          name_hi: string | null
+          organization_id: string
+          status: string
+          tenure_from: string | null
+          tenure_to: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          kind?: string
+          name: string
+          name_hi?: string | null
+          organization_id: string
+          status?: string
+          tenure_from?: string | null
+          tenure_to?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          kind?: string
+          name?: string
+          name_hi?: string | null
+          organization_id?: string
+          status?: string
+          tenure_from?: string | null
+          tenure_to?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gov_departments_members: {
+        Row: {
+          created_at: string
+          department_id: string
+          id: string
+          membership_id: string | null
+          organization_id: string
+          person_name: string
+          role_title: string | null
+        }
+        Insert: {
+          created_at?: string
+          department_id: string
+          id?: string
+          membership_id?: string | null
+          organization_id: string
+          person_name: string
+          role_title?: string | null
+        }
+        Update: {
+          created_at?: string
+          department_id?: string
+          id?: string
+          membership_id?: string | null
+          organization_id?: string
+          person_name?: string
+          role_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_departments_members_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "org_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gov_meetings: {
+        Row: {
+          attendance: Json
+          committee_id: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          kind: string
+          minutes: string | null
+          minutes_approved_at: string | null
+          minutes_approved_by: string | null
+          minutes_status: string
+          notice_text: string | null
+          online_link: string | null
+          organization_id: string
+          scheduled_at: string
+          status: string
+          title: string
+          title_hi: string | null
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          attendance?: Json
+          committee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          minutes?: string | null
+          minutes_approved_at?: string | null
+          minutes_approved_by?: string | null
+          minutes_status?: string
+          notice_text?: string | null
+          online_link?: string | null
+          organization_id: string
+          scheduled_at: string
+          status?: string
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          attendance?: Json
+          committee_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          minutes?: string | null
+          minutes_approved_at?: string | null
+          minutes_approved_by?: string | null
+          minutes_status?: string
+          notice_text?: string | null
+          online_link?: string | null
+          organization_id?: string
+          scheduled_at?: string
+          status?: string
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_meetings_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "gov_committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gov_positions: {
+        Row: {
+          appointed_by: string
+          city: string | null
+          committee_id: string
+          created_at: string
+          designation: string
+          designation_hi: string | null
+          email: string | null
+          from_date: string | null
+          id: string
+          membership_id: string | null
+          organization_id: string
+          person_name: string
+          person_name_hi: string | null
+          phone: string | null
+          photo_path: string | null
+          rank: number
+          show_phone_public: boolean
+          show_public: boolean
+          to_date: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          appointed_by?: string
+          city?: string | null
+          committee_id: string
+          created_at?: string
+          designation: string
+          designation_hi?: string | null
+          email?: string | null
+          from_date?: string | null
+          id?: string
+          membership_id?: string | null
+          organization_id: string
+          person_name: string
+          person_name_hi?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          rank?: number
+          show_phone_public?: boolean
+          show_public?: boolean
+          to_date?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          appointed_by?: string
+          city?: string | null
+          committee_id?: string
+          created_at?: string
+          designation?: string
+          designation_hi?: string | null
+          email?: string | null
+          from_date?: string | null
+          id?: string
+          membership_id?: string | null
+          organization_id?: string
+          person_name?: string
+          person_name_hi?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          rank?: number
+          show_phone_public?: boolean
+          show_public?: boolean
+          to_date?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_positions_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "gov_committees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gov_positions_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "org_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gov_resolutions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          meeting_id: string | null
+          number: string | null
+          organization_id: string
+          proposer: string | null
+          resolved_on: string
+          result: string
+          seconder: string | null
+          text: string
+          title: string
+          updated_at: string
+          votes_abstain: number | null
+          votes_against: number | null
+          votes_for: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_id?: string | null
+          number?: string | null
+          organization_id: string
+          proposer?: string | null
+          resolved_on?: string
+          result?: string
+          seconder?: string | null
+          text: string
+          title: string
+          updated_at?: string
+          votes_abstain?: number | null
+          votes_against?: number | null
+          votes_for?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_id?: string | null
+          number?: string | null
+          organization_id?: string
+          proposer?: string | null
+          resolved_on?: string
+          result?: string
+          seconder?: string | null
+          text?: string
+          title?: string
+          updated_at?: string
+          votes_abstain?: number | null
+          votes_against?: number | null
+          votes_for?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_resolutions_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "gov_meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gov_tasks: {
+        Row: {
+          assignee_name: string | null
+          assignee_user_id: string | null
+          created_at: string
+          created_by: string | null
+          department_id: string | null
+          detail: string | null
+          done_at: string | null
+          due_date: string | null
+          id: string
+          meeting_id: string | null
+          organization_id: string
+          priority: string
+          resolution_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_name?: string | null
+          assignee_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          detail?: string | null
+          done_at?: string | null
+          due_date?: string | null
+          id?: string
+          meeting_id?: string | null
+          organization_id: string
+          priority?: string
+          resolution_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_name?: string | null
+          assignee_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          department_id?: string | null
+          detail?: string | null
+          done_at?: string | null
+          due_date?: string | null
+          id?: string
+          meeting_id?: string | null
+          organization_id?: string
+          priority?: string
+          resolution_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_tasks_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "gov_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gov_tasks_resolution_id_fkey"
+            columns: ["resolution_id"]
+            isOneToOne: false
+            referencedRelation: "gov_resolutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homepage_sections: {
         Row: {
           active: boolean
@@ -2130,6 +2606,234 @@ export type Database = {
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      org_documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          external_url: string | null
+          file_path: string | null
+          id: string
+          kind: string
+          organization_id: string
+          title: string
+          title_hi: string | null
+          updated_at: string
+          visibility: string
+          year: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          kind?: string
+          organization_id: string
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          visibility?: string
+          year?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          kind?: string
+          organization_id?: string
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          visibility?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      org_memberships: {
+        Row: {
+          address: string | null
+          admin_note: string | null
+          applied_at: string
+          blood_group: string | null
+          card_issued_at: string | null
+          category: string
+          city: string | null
+          consent: boolean
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          district: string | null
+          dob: string | null
+          education: string | null
+          email: string | null
+          father_name: string | null
+          full_name: string
+          full_name_hi: string | null
+          gender: string | null
+          id: string
+          member_no: string | null
+          mobile: string
+          occupation: string | null
+          organization_id: string
+          photo_path: string | null
+          pincode: string | null
+          state: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          valid_from: string | null
+          valid_to: string | null
+          village: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          admin_note?: string | null
+          applied_at?: string
+          blood_group?: string | null
+          card_issued_at?: string | null
+          category?: string
+          city?: string | null
+          consent?: boolean
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          district?: string | null
+          dob?: string | null
+          education?: string | null
+          email?: string | null
+          father_name?: string | null
+          full_name: string
+          full_name_hi?: string | null
+          gender?: string | null
+          id?: string
+          member_no?: string | null
+          mobile: string
+          occupation?: string | null
+          organization_id: string
+          photo_path?: string | null
+          pincode?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+          village?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          admin_note?: string | null
+          applied_at?: string
+          blood_group?: string | null
+          card_issued_at?: string | null
+          category?: string
+          city?: string | null
+          consent?: boolean
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          district?: string | null
+          dob?: string | null
+          education?: string | null
+          email?: string | null
+          father_name?: string | null
+          full_name?: string
+          full_name_hi?: string | null
+          gender?: string | null
+          id?: string
+          member_no?: string | null
+          mobile?: string
+          occupation?: string | null
+          organization_id?: string
+          photo_path?: string | null
+          pincode?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+          village?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      org_milestones: {
+        Row: {
+          body: string | null
+          body_hi: string | null
+          created_at: string
+          happened_on: string
+          id: string
+          image: string | null
+          kind: string
+          organization_id: string
+          show_public: boolean
+          title: string
+          title_hi: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          body_hi?: string | null
+          created_at?: string
+          happened_on: string
+          id?: string
+          image?: string | null
+          kind?: string
+          organization_id: string
+          show_public?: boolean
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          body_hi?: string | null
+          created_at?: string
+          happened_on?: string
+          id?: string
+          image?: string | null
+          kind?: string
+          organization_id?: string
+          show_public?: boolean
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      org_number_series: {
+        Row: {
+          id: string
+          kind: string
+          next_no: number
+          organization_id: string
+          pad: number
+          prefix: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          next_no?: number
+          organization_id: string
+          pad?: number
+          prefix?: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          next_no?: number
+          organization_id?: string
+          pad?: number
+          prefix?: string
         }
         Relationships: []
       }
@@ -3278,7 +3982,62 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      gov_positions_public: {
+        Row: {
+          city: string | null
+          committee_id: string | null
+          designation: string | null
+          designation_hi: string | null
+          from_date: string | null
+          id: string | null
+          organization_id: string | null
+          person_name: string | null
+          person_name_hi: string | null
+          phone: string | null
+          photo_path: string | null
+          rank: number | null
+          to_date: string | null
+        }
+        Insert: {
+          city?: string | null
+          committee_id?: string | null
+          designation?: string | null
+          designation_hi?: string | null
+          from_date?: string | null
+          id?: string | null
+          organization_id?: string | null
+          person_name?: string | null
+          person_name_hi?: string | null
+          phone?: never
+          photo_path?: string | null
+          rank?: number | null
+          to_date?: string | null
+        }
+        Update: {
+          city?: string | null
+          committee_id?: string | null
+          designation?: string | null
+          designation_hi?: string | null
+          from_date?: string | null
+          id?: string | null
+          organization_id?: string | null
+          person_name?: string | null
+          person_name_hi?: string | null
+          phone?: never
+          photo_path?: string | null
+          rank?: number | null
+          to_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gov_positions_committee_id_fkey"
+            columns: ["committee_id"]
+            isOneToOne: false
+            referencedRelation: "gov_committees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_origin_villages: {
@@ -3446,6 +4205,57 @@ export type Database = {
         Returns: string
       }
       k1_can: { Args: { p_org: string; p_perm: string }; Returns: boolean }
+      k1_claim_memberships: { Args: never; Returns: number }
+      k1_decide_membership: {
+        Args: {
+          p_approve: boolean
+          p_category?: string
+          p_id: string
+          p_note?: string
+        }
+        Returns: {
+          address: string | null
+          admin_note: string | null
+          applied_at: string
+          blood_group: string | null
+          card_issued_at: string | null
+          category: string
+          city: string | null
+          consent: boolean
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          district: string | null
+          dob: string | null
+          education: string | null
+          email: string | null
+          father_name: string | null
+          full_name: string
+          full_name_hi: string | null
+          gender: string | null
+          id: string
+          member_no: string | null
+          mobile: string
+          occupation: string | null
+          organization_id: string
+          photo_path: string | null
+          pincode: string | null
+          state: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          valid_from: string | null
+          valid_to: string | null
+          village: string | null
+          whatsapp: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "org_memberships"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_my_orgs: {
         Args: never
@@ -3457,6 +4267,10 @@ export type Database = {
           role_keys: string[]
           slug: string
         }[]
+      }
+      k1_next_number: {
+        Args: { p_kind: string; p_org: string }
+        Returns: string
       }
       k1_org_by_slug: {
         Args: { p_slug: string }
@@ -3480,6 +4294,7 @@ export type Database = {
           role_id: string
         }[]
       }
+      k1_org_stats: { Args: { p_org: string }; Returns: Json }
       k1_org_team: {
         Args: { p_org: string }
         Returns: {

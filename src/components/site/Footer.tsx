@@ -26,6 +26,8 @@ const sevaLinks: { key: TKey; to: string }[] = [
 ];
 
 const getInvolved: { key: TKey; to: string }[] = [
+  { key: "join", to: "/join" },
+  { key: "team", to: "/team" },
   { key: "volunteer", to: "/volunteer" },
   { key: "internship", to: "/internship" },
   { key: "donate", to: "/donate" },

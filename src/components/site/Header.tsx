@@ -26,6 +26,8 @@ const primaryNav: { key: TKey; to: string }[] = [
 ];
 
 const moreNav: { key: TKey; to: string }[] = [
+  { key: "team", to: "/team" },
+  { key: "join", to: "/join" },
   { key: "blogs", to: "/blogs" },
   { key: "news", to: "/news" },
   { key: "campaigns", to: "/campaigns" },

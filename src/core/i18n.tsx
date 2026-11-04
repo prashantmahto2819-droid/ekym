@@ -13,6 +13,7 @@ const dict = {
     privacy: "Privacy policy", terms: "Terms", refund: "Refund policy",
     admin_panel: "Admin panel", my_account: "My account", staff_sign_in: "Staff sign in",
     designed_by: "Designed & Developed by", switch_lang: "हिंदी", menu: "Menu",
+    team: "Our team", join: "Become a member", announcements: "Announcements",
   },
   hi: {
     home: "होम", about: "हमारे बारे में", seva: "सेवा प्रकल्प", blogs: "ब्लॉग", news: "समाचार", campaigns: "अभियान",
@@ -22,6 +23,7 @@ const dict = {
     privacy: "गोपनीयता नीति", terms: "नियम", refund: "रिफ़ंड नीति",
     admin_panel: "एडमिन पैनल", my_account: "मेरा खाता", staff_sign_in: "स्टाफ़ लॉगिन",
     designed_by: "डिज़ाइन एवं विकास", switch_lang: "English", menu: "मेनू",
+    team: "हमारी टीम", join: "सदस्य बनें", announcements: "सूचनाएँ",
   },
 } as const;
 
