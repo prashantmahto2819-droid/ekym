@@ -104,6 +104,9 @@ export function CrudPage({
   filter,
   onRowClick,
   extraActions,
+  createdBy,
+  toolbar,
+  rowClass,
 }: {
   table: string;
   title: string;
@@ -118,6 +121,11 @@ export function CrudPage({
   filter?: Record<string, string>;
   onRowClick?: (row: any) => void;
   extraActions?: (row: any) => React.ReactNode;
+  /** Set created_by = current user on insert (tables whose author policies need it). */
+  createdBy?: boolean;
+  /** Extra content rendered above the table (filters, counters). */
+  toolbar?: React.ReactNode;
+  rowClass?: (row: any) => string;
 }) {
   const qc = useQueryClient();
   const tenant = useTenant();
@@ -142,6 +150,7 @@ export function CrudPage({
   const save = useMutation({
     mutationFn: async (values: Record<string, any>) => {
       const payload: Record<string, any> = { ...defaults, ...(editing?.id ? {} : filter ?? {}), ...values, organization_id: tenant.organization_id };
+      if (!editing?.id && !payload["created_by"] && createdBy) payload["created_by"] = (await supabase.auth.getUser()).data.user?.id ?? null;
       if (slugFrom && !payload["slug"] && payload[slugFrom]) {
         payload["slug"] = slugify(String(payload[slugFrom]));
       }
@@ -225,6 +234,7 @@ export function CrudPage({
           <Plus className="size-4" /> New
         </Button>
       </div>
+      {toolbar ? <div className="mb-4">{toolbar}</div> : null}
 
       <div className="surface-card overflow-x-auto">
         <table className="w-full text-sm">
@@ -247,7 +257,7 @@ export function CrudPage({
               </tr>
             ) : list.data?.length ? (
               list.data.map((row: any) => (
-                <tr key={row.id} className={`border-t border-border ${onRowClick ? "cursor-pointer hover:bg-secondary/40" : ""}`}>
+                <tr key={row.id} className={`border-t border-border ${onRowClick ? "cursor-pointer hover:bg-secondary/40" : ""} ${rowClass?.(row) ?? ""}`}>
                   {columns.map((c) => (
                     <td key={c.key} className="max-w-xs truncate px-4 py-3" onClick={onRowClick ? () => onRowClick(row) : undefined}>
                       {c.render ? c.render(row) : String(row[c.key] ?? "—")}
