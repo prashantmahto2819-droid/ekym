@@ -23,6 +23,7 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/meetings", label: "Meetings & resolutions", group: "Organization" },
   { to: "/admin/tasks", label: "Tasks", group: "Organization" },
   { to: "/admin/announcements", label: "Announcements", group: "Organization" },
+  { to: "/admin/events", label: "Events & invitations", group: "Organization" },
   { to: "/admin/documents", label: "Documents & history", group: "Organization" },
   { to: "/admin/studio", label: "Design Studio", group: "Letters & documents" },
   { to: "/admin/letters", label: "Letters & certificates", group: "Letters & documents" },

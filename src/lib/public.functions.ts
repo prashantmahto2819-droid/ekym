@@ -412,3 +412,23 @@ export const getMenus = createServerFn({ method: "GET" }).handler(async () => {
   return out;
 });
 export type MenuItem = { label: string; label_hi?: string; to: string; children?: MenuItem[] };
+
+/* --------------------------- EVENTS (Phase 10) --------------------------- */
+export const getEvents = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const { data } = await sb().from("ev_events").select("id,slug,title,title_hi,kind,starts_at,ends_at,venue,venue_hi,cover_image,status,registration_open").eq("organization_id", org).in("status", ["published", "done"]).order("starts_at", { ascending: false }).limit(100);
+  return data ?? [];
+});
+export const getEvent = createServerFn({ method: "GET" })
+  .inputValidator((d: { slug: string }) => ({ slug: str(d?.slug) }))
+  .handler(async ({ data }) => {
+    const org = await tenantId();
+    const { data: ev } = await sb().from("ev_events").select("*").eq("organization_id", org).eq("slug", data.slug).in("status", ["published", "done"]).maybeSingle();
+    return ev;
+  });
+export const getRsvpInfo = createServerFn({ method: "GET" })
+  .inputValidator((d: { token: string }) => ({ token: str(d?.token) }))
+  .handler(async ({ data }) => {
+    const { data: info } = await sb().rpc("k1_rsvp_info", { p_token: data.token } as never);
+    return (info ?? null) as null | { guest: { name: string; seats: number; rsvp: string; rsvp_note: string | null; checked_in: boolean }; event: { title: string; title_hi: string | null; starts_at: string; ends_at: string | null; venue: string | null; venue_hi: string | null; map_url: string | null; cover_image: string | null; status: string; slug: string }; org: { name: string; name_hi: string | null } };
+  });
