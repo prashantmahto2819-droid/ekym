@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-04 — Phase 4 (Universal Design Studio + दस्तावेज़ workflow)
+- `src/design-engine/`: शोकपत्र के studio-engine का TypeScript port + विस्तार: mm page presets (A4/A5/Letter/ID card/square/story/शोकपत्र), master (letterhead) layers हर पेज पर, `flow` layer (body text अपने आप अगले पेज पर), merge fields (`{{org.name}}`, `{{doc.date|date}}`, `|inr`, `|words` = रुपये शब्दों में, `|upper`), QR layer, table layer, `lastPageOnly` (हस्ताक्षर/QR आख़िरी पेज पर), image-PDF export (हिंदी सही), PNG।
+- Starter templates: लेटरहेड, सामान्य पत्र, प्रमाणपत्र, रसीद, सदस्यता कार्ड (`STARTER_TEMPLATES`)।
+- Admin → Design Studio: templates (संगठन के + साझा), starter से बनाना, editor (drag/resize/snap, layers, properties, undo/redo, letterhead/page/last-page toggles, sample data), thumbnail, default/archive।
+- Admin → Letters & certificates: दस्तावेज़ draft → submit → approve/send back → **issue** (नंबर `EKYM/L/0001`, verify code) → PDF (bucket `documents/<org>/<id>.pdf`) → dispatch record (जावक रजिस्टर में entry) → cancel। RLS: issued दस्तावेज़ बदले नहीं जा सकते।
+- Admin → Inward/outward register (`docs_register`, auto entry numbers)।
+- Public `/verify/<code>`: QR से दस्तावेज़ की सच्चाई (जारीकर्ता, नंबर, तारीख, स्थिति)।
+- CI में नया smoke test: headless Chromium में पाँचों templates render + PDF + pagination जाँच (`scripts/smoke-engine.mjs`, PNG logs में)। Runner `ubuntu-24.04`।
+- बाकी (अगले phases): Razorpay auto-receipt अभी पुराने pdf-lib रास्ते पर है (Phase 7 में engine पर आएगा); WhatsApp/email से भेजना Phase 5; शोकपत्र designs का import Phase 6; दस्तावेज़ upload UI।
+
 ## 2026-11-04 — Phase 3 (संगठन प्रबंधन)
 - टेबल (public schema, `org_`/`gov_` prefix): `org_memberships` (आवेदन → स्वीकृति → सदस्य संख्या, पहला फ़ैसला मान्य, मोबाइल normalise), `org_number_series` + `k1_next_number()` (गैप-रहित शृंखला: सदस्य `EKYM/M/0001`, प्रस्ताव `EKYM/R/0001`), `gov_committees`, `gov_positions` (+ public view बिना फ़ोन), `gov_meetings` (agenda, उपस्थिति, कार्यवृत्त draft→submitted→approved, approved होने पर lock), `gov_agenda_items`, `gov_resolutions` (auto-number), `gov_tasks`, `gov_announcements` (public/members/team), `org_documents`, `org_milestones`, bucket `org-files`।
 - RPC: `k1_decide_membership`, `k1_claim_memberships` (लॉगिन के बाद मोबाइल से आवेदन जोड़ना), `k1_org_stats`।
