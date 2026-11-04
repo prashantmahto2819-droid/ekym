@@ -1,0 +1,545 @@
+$ vite build
+[33mThe plugin "vite-tsconfig-paths" is detected. Vite now supports tsconfig paths resolution natively via the [1mresolve.tsconfigPaths[22m option. You can remove the plugin and set [1mresolve.tsconfigPaths: true[22m in your Vite config instead.[39m
+[36mvite v8.1.5 [32mbuilding client environment for production...[36m[39m
+[2Ktransforming...[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/volunteer-docs.functions.ts:25:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/volunteer-docs.functions.ts:102:41 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:115:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:166:24 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:199:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:222:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:344:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:68:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:97:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:131:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:163:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:193:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:221:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:251:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:282:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:63:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:200:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:234:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:285:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:322:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:339:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:37:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:59:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:82:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:154:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:client] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:172:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+✓ 2399 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/public/assets/styles-243LgzBf.css                 89.57 kB │ gzip:  15.16 kB
+.output/public/assets/invariant-DEEwAagU.js                0.06 kB │ gzip:   0.08 kB
+.output/public/assets/route-gn3N4dAU.js                    0.14 kB │ gzip:   0.14 kB
+.output/public/assets/useRouter-XuoAylIt.js                0.17 kB │ gzip:   0.15 kB
+.output/public/assets/verify.volunteer._ref--Fld17N1.js    0.18 kB │ gzip:   0.17 kB
+.output/public/assets/matchContext-eZpU_Zo8.js             0.19 kB │ gzip:   0.15 kB
+.output/public/assets/verify.volunteer._ref-DGGO4Uc2.js    0.19 kB │ gzip:   0.18 kB
+.output/public/assets/droplet-jf6LCZmw.js                  0.21 kB │ gzip:   0.19 kB
+.output/public/assets/log-out-CeF7JmlN.js                  0.23 kB │ gzip:   0.19 kB
+.output/public/assets/download-CxeoPPQx.js                 0.23 kB │ gzip:   0.19 kB
+.output/public/assets/copy-DoTyqnAo.js                     0.23 kB │ gzip:   0.21 kB
+.output/public/assets/message-circle-Cvg46pD6.js           0.24 kB │ gzip:   0.21 kB
+.output/public/assets/book-open-BfO8CvUU.js                0.27 kB │ gzip:   0.20 kB
+.output/public/assets/users-BTjq6jwA.js                    0.30 kB │ gzip:   0.22 kB
+.output/public/assets/auth-middleware-JDjVgB0Q.js          0.33 kB │ gzip:   0.19 kB
+.output/public/assets/graduation-cap-B7sBsA91.js           0.33 kB │ gzip:   0.24 kB
+.output/public/assets/trash-2-BmVzPrWF.js                  0.42 kB │ gzip:   0.25 kB
+.output/public/assets/useServerFn-CfwxIWkc.js              0.43 kB │ gzip:   0.29 kB
+.output/public/assets/circle-x-BSixNCZN.js                 0.47 kB │ gzip:   0.28 kB
+.output/public/assets/seva.index-BUOyUf5n.js               0.49 kB │ gzip:   0.34 kB
+.output/public/assets/redirect-Dhm19zUi.js                 0.50 kB │ gzip:   0.31 kB
+.output/public/assets/qss-B4cMWIbE.js                      0.50 kB │ gzip:   0.31 kB
+.output/public/assets/textarea-ByHR8VVL.js                 0.54 kB │ gzip:   0.37 kB
+.output/public/assets/input-lXQwGvYr.js                    0.64 kB │ gzip:   0.40 kB
+.output/public/assets/admin.messages-BItyWn6H.js           0.72 kB │ gzip:   0.43 kB
+.output/public/assets/videos-DQRnvwWM.js                   0.73 kB │ gzip:   0.44 kB
+.output/public/assets/news.index-DgEEgkWd.js               0.74 kB │ gzip:   0.44 kB
+.output/public/assets/campaigns.index-B2Q9uNKt.js          0.75 kB │ gzip:   0.44 kB
+.output/public/assets/reels-C0fq3RZw.js                    0.75 kB │ gzip:   0.44 kB
+.output/public/assets/admin.interns-D77kcSMq.js            0.76 kB │ gzip:   0.42 kB
+.output/public/assets/donations.functions-CaNLW9nF.js      0.77 kB │ gzip:   0.45 kB
+.output/public/assets/admin.homepage-C2GVUTif.js           0.80 kB │ gzip:   0.43 kB
+.output/public/assets/badge-CSBzyv-Y.js                    0.83 kB │ gzip:   0.43 kB
+.output/public/assets/PageHeader-CMjFTQdy.js               0.92 kB │ gzip:   0.47 kB
+.output/public/assets/admin.tasks-CR01KlmV.js              0.95 kB │ gzip:   0.47 kB
+.output/public/assets/jsx-runtime-BkSabwWG.js              0.96 kB │ gzip:   0.55 kB
+.output/public/assets/SectionHeading-CDeWhTal.js           0.97 kB │ gzip:   0.52 kB
+.output/public/assets/admin.news-DjJ1lBmE.js               0.98 kB │ gzip:   0.49 kB
+.output/public/assets/admin.library-k8icMD_R.js            1.11 kB │ gzip:   0.50 kB
+.output/public/assets/admin.seva-BrOY55wW.js               1.11 kB │ gzip:   0.53 kB
+.output/public/assets/blogs.index-DDv0QFNv.js              1.11 kB │ gzip:   0.64 kB
+.output/public/assets/admin.blogs-DFP9b6D7.js              1.11 kB │ gzip:   0.51 kB
+.output/public/assets/admin.campaigns-4t-Ng8K9.js          1.15 kB │ gzip:   0.53 kB
+.output/public/assets/admin.announcements-BJKhh49D.js      1.20 kB │ gzip:   0.58 kB
+.output/public/assets/Field-DI1ij-LF.js                    1.21 kB │ gzip:   0.57 kB
+.output/public/assets/createLucideIcon-DHcxS5XI.js         1.22 kB │ gzip:   0.70 kB
+.output/public/assets/refund-policy-CtsgpKXt.js            1.29 kB │ gzip:   0.64 kB
+.output/public/assets/model-yJRJ0CBD.js                    1.39 kB │ gzip:   0.73 kB
+.output/public/assets/terms-DEEANLUL.js                    1.43 kB │ gzip:   0.73 kB
+.output/public/assets/news._slug-BVS-EKe6.js               1.46 kB │ gzip:   0.78 kB
+.output/public/assets/admin.register-C6jFZKni.js           1.53 kB │ gzip:   0.58 kB
+.output/public/assets/admin.meetings-O4uA21pK.js           1.53 kB │ gzip:   0.79 kB
+.output/public/assets/routes-B0oMqidb.js                   1.67 kB │ gzip:   0.65 kB
+.output/public/assets/privacy-policy-BUbYdCuY.js           1.70 kB │ gzip:   0.81 kB
+.output/public/assets/ShareButtons-OiwwUfOo.js             1.71 kB │ gzip:   0.85 kB
+.output/public/assets/blogs._slug-ChQ_o7mV.js              1.72 kB │ gzip:   0.80 kB
+.output/public/assets/admin.volunteers-0Hlhpe56.js         1.76 kB │ gzip:   0.95 kB
+.output/public/assets/gallery-Dgj3WfPl.js                  1.79 kB │ gzip:   0.84 kB
+.output/public/assets/campaigns._slug-CVqq5pT4.js          1.86 kB │ gzip:   0.90 kB
+.output/public/assets/admin.documents-DztveJT4.js          1.93 kB │ gzip:   0.83 kB
+.output/public/assets/admin.index-DC8_8-Li.js              1.93 kB │ gzip:   0.88 kB
+.output/public/assets/verify.volunteer._ref-Cb_HA8Bm.js    1.94 kB │ gzip:   0.66 kB
+.output/public/assets/dialog-DVaolKfb.js                   2.11 kB │ gzip:   0.84 kB
+.output/public/assets/admin.community-DPrI7qGk.js          2.15 kB │ gzip:   0.70 kB
+.output/public/assets/team-CkocS3V8.js                     2.19 kB │ gzip:   0.98 kB
+.output/public/assets/verify.receipt._code-DyoYvt4n.js     2.22 kB │ gzip:   0.94 kB
+.output/public/assets/verify._code-5uDvAwng.js             2.35 kB │ gzip:   0.84 kB
+.output/public/assets/useMutation-4C5i_0j7.js              2.39 kB │ gzip:   1.00 kB
+.output/public/assets/admin.blood-BYEmj3WS.js              2.50 kB │ gzip:   1.10 kB
+.output/public/assets/PhotoUpload-BOOpVms6.js              2.61 kB │ gzip:   1.43 kB
+.output/public/assets/donation-status-AYkrtvlf.js          2.70 kB │ gzip:   1.20 kB
+.output/public/assets/admin.media-CbyqKwf_.js              2.76 kB │ gzip:   0.72 kB
+.output/public/assets/seva._slug-B4HVuXr6.js               2.92 kB │ gzip:   1.13 kB
+.output/public/assets/admin.committees-Bi0anGH1.js         3.25 kB │ gzip:   1.29 kB
+.output/public/assets/donations-BrdiRwj0.js                3.28 kB │ gzip:   1.28 kB
+.output/public/assets/about-DCkdw68C.js                    3.43 kB │ gzip:   1.62 kB
+.output/public/assets/admin.settings-DZ4qE--i.js           3.51 kB │ gzip:   1.50 kB
+.output/public/assets/tabs-DB6I4YO1.js                     3.58 kB │ gzip:   1.51 kB
+.output/public/assets/account-C2LHxibW.js                  3.59 kB │ gzip:   1.21 kB
+.output/public/assets/contact-CIT3bINP.js                  3.60 kB │ gzip:   1.48 kB
+.output/public/assets/ReviewPage-B2jUaTog.js               3.64 kB │ gzip:   1.55 kB
+.output/public/assets/admin.payments-D2bddHmn.js           3.88 kB │ gzip:   1.45 kB
+.output/public/assets/react-dom-5dstqT8D.js                3.89 kB │ gzip:   1.41 kB
+.output/public/assets/auth-d5QF60zb.js                     4.11 kB │ gzip:   1.51 kB
+.output/public/assets/link-B0AALXik.js                     4.45 kB │ gzip:   2.18 kB
+.output/public/assets/checkbox-CCxRdgWN.js                 4.61 kB │ gzip:   1.94 kB
+.output/public/assets/admin.letters-DkY8C9bb.js            4.62 kB │ gzip:   1.81 kB
+.output/public/assets/admin-5KuRWTMO.js                    4.80 kB │ gzip:   1.57 kB
+.output/public/assets/volunteer-Cm5AnNX_.js                4.88 kB │ gzip:   2.00 kB
+.output/public/assets/internship-CU1PzkHE.js               5.37 kB │ gzip:   2.05 kB
+.output/public/assets/join-qrHVVJR1.js                     5.61 kB │ gzip:   2.23 kB
+.output/public/assets/admin.meetings._id-f3dbxRcx.js       5.87 kB │ gzip:   2.18 kB
+.output/public/assets/library-s4Gcrtkt.js                  6.02 kB │ gzip:   2.28 kB
+.output/public/assets/admin.donations-C05kpX10.js          6.46 kB │ gzip:   2.34 kB
+.output/public/assets/admin.members-DcZNlC2o.js            6.69 kB │ gzip:   2.50 kB
+.output/public/assets/CrudPage-DVI084mK.js                 6.89 kB │ gzip:   2.86 kB
+.output/public/assets/dist-Yp_sR5wX.js                     7.62 kB │ gzip:   2.99 kB
+.output/public/assets/removable-B6myy66x.js                7.62 kB │ gzip:   3.00 kB
+.output/public/assets/react-BiuhUkGL.js                    7.87 kB │ gzip:   3.00 kB
+.output/public/assets/blood-BbF56_4B.js                   11.77 kB │ gzip:   3.76 kB
+.output/public/assets/donate-CYTNt2Ut.js                  12.90 kB │ gzip:   4.48 kB
+.output/public/assets/useBaseQuery-BmJVMICK.js            15.68 kB │ gzip:   5.26 kB
+.output/public/assets/admin.studio-C6dVc5nk.js            15.88 kB │ gzip:   4.72 kB
+.output/public/assets/useStore-f1i66JJU.js                19.12 kB │ gzip:   6.88 kB
+.output/public/assets/admin.studio._id-BG88sfE-.js        21.11 kB │ gzip:   6.32 kB
+.output/public/assets/admin.users-BWFm7kVj.js             27.30 kB │ gzip:   9.16 kB
+.output/public/assets/utils-B1jnSE_M.js                   30.85 kB │ gzip:  10.05 kB
+.output/public/assets/forms.functions-CH0Gkbiy.js         37.15 kB │ gzip:  13.80 kB
+.output/public/assets/createServerFn-BCCbz6Q0.js          39.72 kB │ gzip:  13.21 kB
+.output/public/assets/merge-data-BUn8RIsh.js              42.54 kB │ gzip:  16.47 kB
+.output/public/assets/sections-GT0AO9BK.js                49.69 kB │ gzip:  16.02 kB
+.output/public/assets/admin.letters._id-C66cchjR.js      431.38 kB │ gzip: 179.31 kB
+.output/public/assets/index-CJhVE_Dr.js                  747.97 kB │ gzip: 214.35 kB
+
+[33m[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
+  - vite-tsconfig-paths (44%)
+  - tanstack-start-core:import-protection-transform-cache (32%)
+  - tanstack-start-core:import-protection (19%)
+  - tanstack-router:code-splitter:compile-reference-file (3%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+[39m
+[33m[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 4.90s[39m
+[36mvite v8.1.5 [32mbuilding ssr environment for production...[36m[39m
+[2Ktransforming...[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts?tss-serverfn-split:115:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts?tss-serverfn-split:166:24 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts?tss-serverfn-split:199:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts?tss-serverfn-split:222:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts?tss-serverfn-split:344:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/volunteer-docs.functions.ts?tss-serverfn-split:25:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/volunteer-docs.functions.ts?tss-serverfn-split:102:41 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts?tss-serverfn-split:63:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts?tss-serverfn-split:200:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts?tss-serverfn-split:234:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts?tss-serverfn-split:285:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts?tss-serverfn-split:322:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts?tss-serverfn-split:339:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts?tss-serverfn-split:37:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts?tss-serverfn-split:59:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts?tss-serverfn-split:82:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts?tss-serverfn-split:154:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts?tss-serverfn-split:172:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:68:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:97:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:131:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:163:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:193:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:221:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:251:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts?tss-serverfn-split:282:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/volunteer-docs.functions.ts:25:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/volunteer-docs.functions.ts:102:41 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:115:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:166:24 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:199:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:222:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/public.functions.ts:344:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:37:37 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:59:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:82:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:154:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/photos.functions.ts:172:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:63:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:200:38 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:234:31 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:285:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:322:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/donations.functions.ts:339:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:68:30 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:97:28 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:131:34 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:163:32 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:193:29 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:221:35 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:251:39 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+[33m[plugin tanstack-start-core::server-fn:ssr] /home/runner/work/ekym/ekym/src/lib/forms.functions.ts:282:33 createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.[39m
+✓ 253 modules transformed.
+rendering chunks...
+computing gzip size...
+node_modules/.nitro/vite/services/ssr/assets/styles-243LgzBf.css                                89.57 kB │ gzip: 15.16 kB
+node_modules/.nitro/vite/services/ssr/assets/utils-C_uf36nf.js                                   0.18 kB │ gzip:  0.15 kB
+node_modules/.nitro/vite/services/ssr/assets/seo-BmwMPIaa.js                                     0.20 kB │ gzip:  0.17 kB
+node_modules/.nitro/vite/services/ssr/assets/empty-plugin-adapters-D9UWiqvJ.js                   0.22 kB │ gzip:  0.16 kB
+node_modules/.nitro/vite/services/ssr/assets/route-Di7iQBCH.js                                   0.26 kB │ gzip:  0.19 kB
+node_modules/.nitro/vite/services/ssr/assets/verify.volunteer._ref-B27YvB0f.js                   0.32 kB │ gzip:  0.24 kB
+node_modules/.nitro/vite/services/ssr/assets/verify.volunteer._ref-pv-_EzR-.js                   0.33 kB │ gzip:  0.25 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.studio._id-Dy0TsBFW.js                        0.38 kB │ gzip:  0.24 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.letters._id-Be6yGUiq.js                       0.39 kB │ gzip:  0.24 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.meetings._id-CCIvCwwo.js                      0.39 kB │ gzip:  0.24 kB
+node_modules/.nitro/vite/services/ssr/assets/createServerRpc-B90ckaqP.js                         0.40 kB │ gzip:  0.27 kB
+node_modules/.nitro/vite/services/ssr/assets/tenant-context-Do1THufQ.js                          0.60 kB │ gzip:  0.34 kB
+node_modules/.nitro/vite/services/ssr/assets/createSsrRpc-m8pXCl6b.js                            0.60 kB │ gzip:  0.36 kB
+node_modules/.nitro/vite/services/ssr/assets/useServerFn-CrZF2pjq.js                             0.63 kB │ gzip:  0.35 kB
+node_modules/.nitro/vite/services/ssr/assets/team-BcISz471.js                                    0.64 kB │ gzip:  0.39 kB
+node_modules/.nitro/vite/services/ssr/assets/textarea-kko37XEX.js                                0.66 kB │ gzip:  0.42 kB
+node_modules/.nitro/vite/services/ssr/assets/tenant.functions-Crr_ahmt.js                        0.70 kB │ gzip:  0.38 kB
+node_modules/.nitro/vite/services/ssr/assets/input-B8Q2ztVi.js                                   0.75 kB │ gzip:  0.45 kB
+node_modules/.nitro/vite/services/ssr/assets/seva.index-BdQNQgFH.js                              0.79 kB │ gzip:  0.46 kB
+node_modules/.nitro/vite/services/ssr/assets/lang.functions-CoDpwvRO.js                          0.81 kB │ gzip:  0.43 kB
+node_modules/.nitro/vite/services/ssr/assets/createMiddleware-B_4t7rW1.js                        0.83 kB │ gzip:  0.32 kB
+node_modules/.nitro/vite/services/ssr/assets/verify._code-DvI3-pfC.js                            0.83 kB │ gzip:  0.47 kB
+node_modules/.nitro/vite/services/ssr/assets/verify.receipt._code-Dc8IWCiE.js                    0.97 kB │ gzip:  0.46 kB
+node_modules/.nitro/vite/services/ssr/assets/badge-D1Dupn2y.js                                   0.98 kB │ gzip:  0.50 kB
+node_modules/.nitro/vite/services/ssr/assets/checkbox-kt6FvQcE.js                                1.01 kB │ gzip:  0.51 kB
+node_modules/.nitro/vite/services/ssr/assets/volunteer-docs.functions-NZm5lxMF.js                1.04 kB │ gzip:  0.57 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-B5Z7zqqP.js                                    1.07 kB │ gzip:  0.53 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.messages-BxEYBGMn.js                          1.09 kB │ gzip:  0.54 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.interns-DSZ7tPzV.js                           1.13 kB │ gzip:  0.53 kB
+node_modules/.nitro/vite/services/ssr/assets/videos-DgefiYvq.js                                  1.15 kB │ gzip:  0.57 kB
+node_modules/.nitro/vite/services/ssr/assets/news.index-Ca_QVsem.js                              1.16 kB │ gzip:  0.58 kB
+node_modules/.nitro/vite/services/ssr/assets/reels-Bg4yX8ig.js                                   1.18 kB │ gzip:  0.58 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.homepage-BjmniWal.js                          1.18 kB │ gzip:  0.53 kB
+node_modules/.nitro/vite/services/ssr/assets/campaigns.index-Cr2HyVyY.js                         1.21 kB │ gzip:  0.59 kB
+node_modules/.nitro/vite/services/ssr/assets/SectionHeading-Dz4lsQ6B.js                          1.24 kB │ gzip:  0.56 kB
+node_modules/.nitro/vite/services/ssr/assets/news._slug-CPUa30xq.js                              1.29 kB │ gzip:  0.63 kB
+node_modules/.nitro/vite/services/ssr/assets/blogs._slug-B9IPj4DI.js                             1.31 kB │ gzip:  0.65 kB
+node_modules/.nitro/vite/services/ssr/assets/campaigns._slug-OW79VSBA.js                         1.32 kB │ gzip:  0.63 kB
+node_modules/.nitro/vite/services/ssr/assets/seva._slug-DDvzr_Mo.js                              1.36 kB │ gzip:  0.65 kB
+node_modules/.nitro/vite/services/ssr/assets/donate-iSOrAd9b.js                                  1.38 kB │ gzip:  0.67 kB
+node_modules/.nitro/vite/services/ssr/assets/PageHeader-CoVPHIS3.js                              1.39 kB │ gzip:  0.60 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.tasks-Dl3mHRDO.js                             1.44 kB │ gzip:  0.59 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.news-DSgd6r3W.js                              1.48 kB │ gzip:  0.61 kB
+node_modules/.nitro/vite/services/ssr/assets/verify.volunteer._ref-D-BlfsNs.js                   1.49 kB │ gzip:  0.60 kB
+node_modules/.nitro/vite/services/ssr/assets/blogs.index-mLmWo2BN.js                             1.63 kB │ gzip:  0.79 kB
+node_modules/.nitro/vite/services/ssr/assets/tabs-CCJRliUM.js                                    1.63 kB │ gzip:  0.60 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.seva-7Jb89qXr.js                              1.64 kB │ gzip:  0.63 kB
+node_modules/.nitro/vite/services/ssr/assets/button-Bq5vK6RO.js                                  1.65 kB │ gzip:  0.77 kB
+node_modules/.nitro/vite/services/ssr/assets/refund-policy-W9Nk-Etx.js                           1.66 kB │ gzip:  0.74 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.blogs-Dr6K7jwU.js                             1.67 kB │ gzip:  0.63 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.library-BxC1PVdB.js                           1.68 kB │ gzip:  0.61 kB
+node_modules/.nitro/vite/services/ssr/assets/Field-Z6_-7Tr9.js                                   1.70 kB │ gzip:  0.69 kB
+node_modules/.nitro/vite/services/ssr/assets/client.server-KzwUIAkW.js                           1.73 kB │ gzip:  0.78 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.announcements-BL8G5GiW.js                     1.73 kB │ gzip:  0.70 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.campaigns-OZ8G0SzC.js                         1.73 kB │ gzip:  0.65 kB
+node_modules/.nitro/vite/services/ssr/assets/tenant.server-C1zM0CyA.js                           1.74 kB │ gzip:  0.86 kB
+node_modules/.nitro/vite/services/ssr/assets/terms-Dl6qehhZ.js                                   1.79 kB │ gzip:  0.82 kB
+node_modules/.nitro/vite/services/ssr/assets/start-CFTj2XpI.js                                   2.05 kB │ gzip:  0.88 kB
+node_modules/.nitro/vite/services/ssr/assets/format-RO6571_0.js                                  2.07 kB │ gzip:  0.89 kB
+node_modules/.nitro/vite/services/ssr/assets/model-B0u_Gzpx.js                                   2.08 kB │ gzip:  0.95 kB
+node_modules/.nitro/vite/services/ssr/assets/privacy-policy-DXYF0NFh.js                          2.11 kB │ gzip:  0.91 kB
+node_modules/.nitro/vite/services/ssr/assets/news._slug-C3qZKETX.js                              2.18 kB │ gzip:  0.93 kB
+node_modules/.nitro/vite/services/ssr/assets/razorpay.server-B6w9f_wZ.js                         2.29 kB │ gzip:  1.02 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.register-Bwey5u_1.js                          2.33 kB │ gzip:  0.70 kB
+node_modules/.nitro/vite/services/ssr/assets/request-response-BEPp1C2k.js                        2.38 kB │ gzip:  0.88 kB
+node_modules/.nitro/vite/services/ssr/assets/ShareButtons-Bay5bsMm.js                            2.39 kB │ gzip:  1.02 kB
+node_modules/.nitro/vite/services/ssr/assets/createCsrfMiddleware-jzif2P7h.js                    2.45 kB │ gzip:  0.86 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.meetings-C2x1Okxo.js                          2.47 kB │ gzip:  0.95 kB
+node_modules/.nitro/vite/services/ssr/assets/queries-d8I3Hmpg.js                                 2.50 kB │ gzip:  0.66 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-middleware-BpbeoxIM.js                         2.67 kB │ gzip:  1.09 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.volunteers-D6PPYMR5.js                        2.75 kB │ gzip:  1.19 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.index-DJpTAn-A.js                             2.78 kB │ gzip:  1.11 kB
+node_modules/.nitro/vite/services/ssr/assets/photos.functions-SJ8C2SxT.js                        2.81 kB │ gzip:  1.17 kB
+node_modules/.nitro/vite/services/ssr/assets/blogs._slug-C6VKSIdz.js                             2.85 kB │ gzip:  1.10 kB
+node_modules/.nitro/vite/services/ssr/assets/gallery-DB6QwrSE.js                                 2.86 kB │ gzip:  1.09 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.documents-CNovf-Kn.js                         2.92 kB │ gzip:  0.96 kB
+node_modules/.nitro/vite/services/ssr/assets/client-BC4aPFCf.js                                  2.94 kB │ gzip:  1.09 kB
+node_modules/.nitro/vite/services/ssr/assets/verify.volunteer._ref-ycCumyh5.js                   3.00 kB │ gzip:  0.84 kB
+node_modules/.nitro/vite/services/ssr/assets/routes-vO6Ozdzb.js                                  3.02 kB │ gzip:  0.93 kB
+node_modules/.nitro/vite/services/ssr/assets/dialog-CzUx__WV.js                                  3.02 kB │ gzip:  0.98 kB
+node_modules/.nitro/vite/services/ssr/assets/PhotoUpload-BIy4E6uC.js                             3.12 kB │ gzip:  1.40 kB
+node_modules/.nitro/vite/services/ssr/assets/use-auth-B7E5vE38.js                                3.13 kB │ gzip:  1.29 kB
+node_modules/.nitro/vite/services/ssr/assets/campaigns._slug-Bc8Y3Hjj.js                         3.16 kB │ gzip:  1.22 kB
+node_modules/.nitro/vite/services/ssr/assets/i18n-Ibym__c4.js                                    3.23 kB │ gzip:  1.52 kB
+node_modules/.nitro/vite/services/ssr/assets/team-DkXRxp0E.js                                    3.26 kB │ gzip:  1.22 kB
+node_modules/.nitro/vite/services/ssr/assets/verify._code-B7lDVl-_.js                            3.40 kB │ gzip:  1.01 kB
+node_modules/.nitro/vite/services/ssr/assets/verify.receipt._code-BRKTl956.js                    3.41 kB │ gzip:  1.18 kB
+node_modules/.nitro/vite/services/ssr/assets/donations.functions-D62IlR5v.js                     3.71 kB │ gzip:  1.60 kB
+node_modules/.nitro/vite/services/ssr/assets/public.functions-BfkPDJuu.js                        3.79 kB │ gzip:  1.47 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.community-uHYeME-n.js                         3.84 kB │ gzip:  0.90 kB
+node_modules/.nitro/vite/services/ssr/assets/donation-status-BoYS4Cbf.js                         4.16 kB │ gzip:  1.48 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.blood-CdloeW9U.js                             4.36 kB │ gzip:  1.42 kB
+node_modules/.nitro/vite/services/ssr/assets/about-CXgvUjcT.js                                   4.53 kB │ gzip:  1.67 kB
+node_modules/.nitro/vite/services/ssr/index.js                                                   4.61 kB │ gzip:  1.92 kB
+node_modules/.nitro/vite/services/ssr/assets/volunteer-docs.functions-7xfjyuxr.js                4.64 kB │ gzip:  1.84 kB
+node_modules/.nitro/vite/services/ssr/assets/seva._slug-CLHMcx8S.js                              4.71 kB │ gzip:  1.46 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.committees-CrzpGBW9.js                        5.12 kB │ gzip:  1.55 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.settings-CzCHVGs1.js                          5.13 kB │ gzip:  1.86 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.media-CmOQOQcQ.js                             5.15 kB │ gzip:  0.92 kB
+node_modules/.nitro/vite/services/ssr/assets/donations-CE-qy1eo.js                               5.31 kB │ gzip:  1.65 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.payments-CuI4Hmnn.js                          5.81 kB │ gzip:  1.78 kB
+node_modules/.nitro/vite/services/ssr/assets/account-C26OELmD.js                                 5.86 kB │ gzip:  1.60 kB
+node_modules/.nitro/vite/services/ssr/assets/contact-DncHPjFh.js                                 5.97 kB │ gzip:  1.91 kB
+node_modules/.nitro/vite/services/ssr/assets/ReviewPage-DGyGRLdW.js                              6.09 kB │ gzip:  2.03 kB
+node_modules/.nitro/vite/services/ssr/assets/admin-BPKmoE9R.js                                   6.66 kB │ gzip:  1.88 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.letters-BwRrJnn2.js                           6.81 kB │ gzip:  2.20 kB
+node_modules/.nitro/vite/services/ssr/assets/auth-Clngm7Yu.js                                    6.93 kB │ gzip:  1.95 kB
+node_modules/.nitro/vite/services/ssr/assets/payments.server-1x_VLrCz.js                         7.44 kB │ gzip:  2.44 kB
+node_modules/.nitro/vite/services/ssr/assets/photos.functions-BDXnZxgE.js                        7.96 kB │ gzip:  2.17 kB
+node_modules/.nitro/vite/services/ssr/assets/volunteer-Dpw7C6Yl.js                               8.09 kB │ gzip:  2.51 kB
+node_modules/.nitro/vite/services/ssr/assets/internship-hiyg1iRD.js                              8.33 kB │ gzip:  2.30 kB
+node_modules/.nitro/vite/services/ssr/assets/join-CrWXkx_i.js                                    8.81 kB │ gzip:  2.67 kB
+node_modules/.nitro/vite/services/ssr/assets/__23tanstack-start-server-fn-resolver-DYCpzHYX.js   8.86 kB │ gzip:  2.60 kB
+node_modules/.nitro/vite/services/ssr/assets/pdf.server-BJjYuvqO.js                              9.23 kB │ gzip:  2.68 kB
+node_modules/.nitro/vite/services/ssr/assets/library-B6PG4oNU.js                                 9.39 kB │ gzip:  2.83 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.donations-C8TljvZj.js                         9.59 kB │ gzip:  2.75 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.meetings._id-CmcnttzO.js                      9.74 kB │ gzip:  2.64 kB
+node_modules/.nitro/vite/services/ssr/assets/createServerFn-CIHAFgYl.js                          9.82 kB │ gzip:  2.99 kB
+node_modules/.nitro/vite/services/ssr/assets/forms.functions-j2DTpEU0.js                        10.64 kB │ gzip:  2.72 kB
+node_modules/.nitro/vite/services/ssr/assets/CrudPage-Bn-NI20T.js                               10.70 kB │ gzip:  3.46 kB
+node_modules/.nitro/vite/services/ssr/assets/forms.functions-BXwPbmIq.js                        10.76 kB │ gzip:  3.68 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.members-xO9z-SwZ.js                          10.96 kB │ gzip:  3.11 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.users-CZRd20nE.js                            11.38 kB │ gzip:  3.17 kB
+node_modules/.nitro/vite/services/ssr/assets/donations.functions-CChJODfR.js                    12.02 kB │ gzip:  3.53 kB
+node_modules/.nitro/vite/services/ssr/assets/public.functions-qN5XsOVd.js                       17.79 kB │ gzip:  3.54 kB
+node_modules/.nitro/vite/services/ssr/assets/blood-tt6VNXAf.js                                  17.96 kB │ gzip:  4.44 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.letters._id-KWX4e3ky.js                      18.20 kB │ gzip:  4.96 kB
+node_modules/.nitro/vite/services/ssr/assets/donate-B-yZwo6S.js                                 19.61 kB │ gzip:  5.14 kB
+node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-CXMIq7TW.js             20.22 kB │ gzip:  2.96 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.studio-BjR39GY2.js                           23.92 kB │ gzip:  5.52 kB
+node_modules/.nitro/vite/services/ssr/assets/merge-data-F__33ZHq.js                             31.19 kB │ gzip: 10.19 kB
+node_modules/.nitro/vite/services/ssr/assets/admin.studio._id-DgasZKWd.js                       34.04 kB │ gzip:  7.40 kB
+node_modules/.nitro/vite/services/ssr/assets/sections-20WUaGtk.js                               35.58 kB │ gzip:  7.18 kB
+node_modules/.nitro/vite/services/ssr/assets/server-gFGZw0Im.js                                 50.95 kB │ gzip: 13.15 kB
+node_modules/.nitro/vite/services/ssr/assets/router-B7DImLSU.js                                 72.75 kB │ gzip: 13.90 kB
+
+[32m✓ built in 2.58s[39m
+[start] [nitro] Building [[35mNitro[39m] [2m(preset: `cloudflare-module`, compatibility: `2026-11-04`)[22m
+[success] [nitro] Generated public [36m.output/public[39m
+[36mvite v8.1.5 [32mbuilding nitro environment for production...[36m[39m
+[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
+[2Ktransforming...✓ 2431 modules transformed.
+rendering chunks...
+computing gzip size...
+.output/server/_ssr/empty-plugin-adapters-D9UWiqvJ.mjs               0.23 kB │ gzip:   0.16 kB
+.output/server/_ssr/seo-BmwMPIaa.mjs                                 0.24 kB │ gzip:   0.21 kB
+.output/server/_ssr/utils-C_uf36nf.mjs                               0.29 kB │ gzip:   0.21 kB
+.output/server/_libs/radix-ui__number.mjs                            0.32 kB │ gzip:   0.24 kB
+.output/server/_ssr/createServerRpc-B90ckaqP.mjs                     0.40 kB │ gzip:   0.27 kB
+.output/server/_ssr/route-Di7iQBCH.mjs                               0.41 kB │ gzip:   0.27 kB
+.output/server/_ssr/admin.studio._id-Dy0TsBFW.mjs                    0.44 kB │ gzip:   0.28 kB
+.output/server/_ssr/admin.letters._id-Be6yGUiq.mjs                   0.44 kB │ gzip:   0.29 kB
+.output/server/_ssr/admin.meetings._id-CCIvCwwo.mjs                  0.45 kB │ gzip:   0.28 kB
+.output/server/_ssr/verify.volunteer._ref-B27YvB0f.mjs               0.46 kB │ gzip:   0.31 kB
+.output/server/_ssr/verify.volunteer._ref-pv-_EzR-.mjs               0.47 kB │ gzip:   0.32 kB
+.output/server/_chunks/ssr-renderer.mjs                              0.60 kB │ gzip:   0.36 kB
+.output/server/_ssr/createSsrRpc-m8pXCl6b.mjs                        0.61 kB │ gzip:   0.38 kB
+.output/server/_ssr/team-BcISz471.mjs                                0.72 kB │ gzip:   0.45 kB
+.output/server/_ssr/tenant.functions-Crr_ahmt.mjs                    0.72 kB │ gzip:   0.41 kB
+.output/server/_libs/radix-ui__react-direction.mjs                   0.81 kB │ gzip:   0.43 kB
+.output/server/_ssr/createMiddleware-B_4t7rW1.mjs                    0.83 kB │ gzip:   0.33 kB
+.output/server/_ssr/useServerFn-CrZF2pjq.mjs                         0.83 kB │ gzip:   0.45 kB
+.output/server/_ssr/lang.functions-CoDpwvRO.mjs                      0.84 kB │ gzip:   0.46 kB
+.output/server/_ssr/verify._code-DvI3-pfC.mjs                        0.90 kB │ gzip:   0.52 kB
+.output/server/_ssr/tenant-context-Do1THufQ.mjs                      0.94 kB │ gzip:   0.48 kB
+.output/server/_ssr/textarea-kko37XEX.mjs                            0.98 kB │ gzip:   0.53 kB
+.output/server/_ssr/seva.index-BdQNQgFH.mjs                          1.01 kB │ gzip:   0.53 kB
+.output/server/_ssr/verify.receipt._code-Dc8IWCiE.mjs                1.04 kB │ gzip:   0.51 kB
+.output/server/_ssr/input-B8Q2ztVi.mjs                               1.07 kB │ gzip:   0.57 kB
+.output/server/_ssr/volunteer-docs.functions-NZm5lxMF.mjs            1.16 kB │ gzip:   0.63 kB
+.output/server/_libs/hookable.mjs                                    1.17 kB │ gzip:   0.52 kB
+.output/server/_ssr/auth-B5Z7zqqP.mjs                                1.19 kB │ gzip:   0.59 kB
+.output/server/_ssr/badge-D1Dupn2y.mjs                               1.20 kB │ gzip:   0.56 kB
+.output/server/_ssr/admin.messages-BxEYBGMn.mjs                      1.24 kB │ gzip:   0.61 kB
+.output/server/_ssr/admin.interns-DSZ7tPzV.mjs                       1.25 kB │ gzip:   0.59 kB
+.output/server/_ssr/admin.homepage-BjmniWal.mjs                      1.31 kB │ gzip:   0.58 kB
+.output/server/_ssr/checkbox-kt6FvQcE.mjs                            1.34 kB │ gzip:   0.60 kB
+.output/server/_ssr/news._slug-CPUa30xq.mjs                          1.37 kB │ gzip:   0.68 kB
+.output/server/_ssr/blogs._slug-B9IPj4DI.mjs                         1.39 kB │ gzip:   0.70 kB
+.output/server/_ssr/campaigns._slug-OW79VSBA.mjs                     1.40 kB │ gzip:   0.68 kB
+.output/server/_ssr/seva._slug-DDvzr_Mo.mjs                          1.44 kB │ gzip:   0.71 kB
+.output/server/_ssr/donate-iSOrAd9b.mjs                              1.45 kB │ gzip:   0.72 kB
+.output/server/_ssr/videos-DgefiYvq.mjs                              1.46 kB │ gzip:   0.65 kB
+.output/server/_ssr/news.index-Ca_QVsem.mjs                          1.47 kB │ gzip:   0.66 kB
+.output/server/_ssr/reels-Bg4yX8ig.mjs                               1.49 kB │ gzip:   0.66 kB
+.output/server/_runtime.mjs                                          1.49 kB │ gzip:   0.73 kB
+.output/server/_ssr/campaigns.index-Cr2HyVyY.mjs                     1.52 kB │ gzip:   0.66 kB
+.output/server/_ssr/admin.tasks-Dl3mHRDO.mjs                         1.56 kB │ gzip:   0.65 kB
+.output/server/_ssr/verify.volunteer._ref-D-BlfsNs.mjs               1.56 kB │ gzip:   0.65 kB
+.output/server/_ssr/SectionHeading-Dz4lsQ6B.mjs                      1.57 kB │ gzip:   0.65 kB
+.output/server/_ssr/admin.news-DSgd6r3W.mjs                          1.61 kB │ gzip:   0.67 kB
+.output/server/_ssr/admin.seva-7Jb89qXr.mjs                          1.77 kB │ gzip:   0.69 kB
+.output/server/_ssr/PageHeader-CoVPHIS3.mjs                          1.79 kB │ gzip:   0.68 kB
+.output/server/_ssr/admin.blogs-Dr6K7jwU.mjs                         1.80 kB │ gzip:   0.69 kB
+.output/server/_ssr/admin.library-BxC1PVdB.mjs                       1.80 kB │ gzip:   0.67 kB
+.output/server/_ssr/client.server-KzwUIAkW.mjs                       1.83 kB │ gzip:   0.83 kB
+.output/server/_libs/radix-ui__primitive.mjs                         1.83 kB │ gzip:   0.72 kB
+.output/server/_ssr/admin.announcements-BL8G5GiW.mjs                 1.85 kB │ gzip:   0.75 kB
+.output/server/_ssr/admin.campaigns-OZ8G0SzC.mjs                     1.86 kB │ gzip:   0.72 kB
+.output/server/_ssr/tenant.server-C1zM0CyA.mjs                       1.87 kB │ gzip:   0.92 kB
+.output/server/_ssr/start-CFTj2XpI.mjs                               1.95 kB │ gzip:   0.86 kB
+.output/server/_ssr/button-Bq5vK6RO.mjs                              1.96 kB │ gzip:   0.88 kB
+.output/server/_ssr/tabs-CCJRliUM.mjs                                2.02 kB │ gzip:   0.72 kB
+.output/server/_ssr/refund-policy-W9Nk-Etx.mjs                       2.07 kB │ gzip:   0.82 kB
+.output/server/_ssr/format-RO6571_0.mjs                              2.11 kB │ gzip:   0.92 kB
+.output/server/_ssr/model-B0u_Gzpx.mjs                               2.12 kB │ gzip:   0.98 kB
+.output/server/_ssr/blogs.index-mLmWo2BN.mjs                         2.13 kB │ gzip:   0.92 kB
+.output/server/_ssr/terms-Dl6qehhZ.mjs                               2.20 kB │ gzip:   0.90 kB
+.output/server/_ssr/Field-Z6_-7Tr9.mjs                               2.22 kB │ gzip:   0.82 kB
+.output/server/_ssr/request-response-BEPp1C2k.mjs                    2.42 kB │ gzip:   0.92 kB
+.output/server/_ssr/razorpay.server-B6w9f_wZ.mjs                     2.44 kB │ gzip:   1.08 kB
+.output/server/_ssr/createCsrfMiddleware-jzif2P7h.mjs                2.45 kB │ gzip:   0.86 kB
+.output/server/_ssr/admin.register-Bwey5u_1.mjs                      2.50 kB │ gzip:   0.75 kB
+.output/server/_ssr/queries-d8I3Hmpg.mjs                             2.56 kB │ gzip:   0.70 kB
+.output/server/_ssr/privacy-policy-DXYF0NFh.mjs                      2.57 kB │ gzip:   0.98 kB
+.output/server/_ssr/news._slug-C3qZKETX.mjs                          2.63 kB │ gzip:   1.02 kB
+.output/server/_ssr/admin.meetings-C2x1Okxo.mjs                      2.66 kB │ gzip:   1.02 kB
+.output/server/_ssr/auth-middleware-BpbeoxIM.mjs                     2.77 kB │ gzip:   1.13 kB
+.output/server/_ssr/photos.functions-SJ8C2SxT.mjs                    2.92 kB │ gzip:   1.22 kB
+.output/server/_ssr/ShareButtons-Bay5bsMm.mjs                        2.94 kB │ gzip:   1.18 kB
+.output/server/_ssr/client-BC4aPFCf.mjs                              3.04 kB │ gzip:   1.15 kB
+.output/server/_ssr/admin.index-DJpTAn-A.mjs                         3.08 kB │ gzip:   1.18 kB
+.output/server/_ssr/admin.documents-CNovf-Kn.mjs                     3.09 kB │ gzip:   1.02 kB
+.output/server/_libs/embla-carousel-react+[...].mjs                  3.12 kB │ gzip:   1.02 kB
+.output/server/_ssr/admin.volunteers-D6PPYMR5.mjs                    3.16 kB │ gzip:   1.31 kB
+.output/server/_libs/class-variance-authority+clsx.mjs               3.17 kB │ gzip:   1.24 kB
+.output/server/_ssr/use-auth-B7E5vE38.mjs                            3.42 kB │ gzip:   1.43 kB
+.output/server/_ssr/blogs._slug-C6VKSIdz.mjs                         3.45 kB │ gzip:   1.18 kB
+.output/server/_ssr/gallery-DB6QwrSE.mjs                             3.56 kB │ gzip:   1.22 kB
+.output/server/_ssr/routes-vO6Ozdzb.mjs                              3.58 kB │ gzip:   1.01 kB
+.output/server/_ssr/i18n-Ibym__c4.mjs                                3.58 kB │ gzip:   1.66 kB
+.output/server/_ssr/verify.volunteer._ref-ycCumyh5.mjs               3.65 kB │ gzip:   0.91 kB
+.output/server/_ssr/PhotoUpload-BIy4E6uC.mjs                         3.66 kB │ gzip:   1.53 kB
+.output/server/_ssr/dialog-CzUx__WV.mjs                              3.67 kB │ gzip:   1.13 kB
+.output/server/_libs/dijkstrajs.mjs                                  3.70 kB │ gzip:   1.54 kB
+.output/server/_ssr/campaigns._slug-Bc8Y3Hjj.mjs                     3.78 kB │ gzip:   1.31 kB
+.output/server/_ssr/team-DkXRxp0E.mjs                                3.81 kB │ gzip:   1.30 kB
+.output/server/_ssr/public.functions-BfkPDJuu.mjs                    3.84 kB │ gzip:   1.51 kB
+.output/server/_ssr/donations.functions-D62IlR5v.mjs                 3.93 kB │ gzip:   1.67 kB
+.output/server/_ssr/admin.community-uHYeME-n.mjs                     4.13 kB │ gzip:   0.96 kB
+.output/server/_ssr/verify.receipt._code-BRKTl956.mjs                4.13 kB │ gzip:   1.27 kB
+.output/server/_ssr/verify._code-B7lDVl-_.mjs                        4.23 kB │ gzip:   1.09 kB
+.output/server/_ssr/ssr.mjs                                          4.55 kB │ gzip:   1.92 kB
+.output/server/_ssr/volunteer-docs.functions-7xfjyuxr.mjs            4.83 kB │ gzip:   1.92 kB
+.output/server/_ssr/admin.blood-CdloeW9U.mjs                         4.85 kB │ gzip:   1.52 kB
+.output/server/_ssr/donation-status-BoYS4Cbf.mjs                     5.07 kB │ gzip:   1.62 kB
+.output/server/_ssr/about-CXgvUjcT.mjs                               5.36 kB │ gzip:   1.77 kB
+.output/server/_ssr/admin.media-CmOQOQcQ.mjs                         5.51 kB │ gzip:   0.97 kB
+.output/server/_ssr/admin.settings-CzCHVGs1.mjs                      5.54 kB │ gzip:   1.93 kB
+.output/server/_ssr/admin.committees-CrzpGBW9.mjs                    5.58 kB │ gzip:   1.66 kB
+.output/server/_ssr/seva._slug-CLHMcx8S.mjs                          5.70 kB │ gzip:   1.55 kB
+.output/server/_libs/radix-ui__react-tabs.mjs                        6.25 kB │ gzip:   1.79 kB
+.output/server/_ssr/donations-CE-qy1eo.mjs                           6.29 kB │ gzip:   1.75 kB
+.output/server/_ssr/admin.payments-CuI4Hmnn.mjs                      6.72 kB │ gzip:   1.89 kB
+.output/server/_ssr/account-C26OELmD.mjs                             7.00 kB │ gzip:   1.70 kB
+.output/server/_ssr/ReviewPage-DGyGRLdW.mjs                          7.02 kB │ gzip:   2.17 kB
+.output/server/_ssr/contact-DncHPjFh.mjs                             7.22 kB │ gzip:   2.05 kB
+.output/server/_ssr/admin-BPKmoE9R.mjs                               7.53 kB │ gzip:   1.96 kB
+.output/server/_ssr/payments.server-1x_VLrCz.mjs                     7.54 kB │ gzip:   2.48 kB
+.output/server/_ssr/admin.letters-BwRrJnn2.mjs                       7.95 kB │ gzip:   2.35 kB
+.output/server/_ssr/photos.functions-BDXnZxgE.mjs                    8.10 kB │ gzip:   2.23 kB
+.output/server/_ssr/auth-Clngm7Yu.mjs                                8.26 kB │ gzip:   2.09 kB
+.output/server/__23tanstack-start-server-fn-resolver-DYCpzHYX.mjs    9.17 kB │ gzip:   2.65 kB
+.output/server/_ssr/createServerFn-CIHAFgYl.mjs                      9.39 kB │ gzip:   2.99 kB
+.output/server/_ssr/pdf.server-BJjYuvqO.mjs                          9.44 kB │ gzip:   2.78 kB
+.output/server/_ssr/volunteer-Dpw7C6Yl.mjs                           9.58 kB │ gzip:   2.66 kB
+.output/server/_libs/h3-v2+rou3+srvx.mjs                             9.89 kB │ gzip:   3.06 kB
+.output/server/_ssr/internship-hiyg1iRD.mjs                         10.10 kB │ gzip:   2.46 kB
+.output/server/_ssr/join-CrWXkx_i.mjs                               10.39 kB │ gzip:   2.81 kB
+.output/server/_ssr/admin.meetings._id-CmcnttzO.mjs                 10.78 kB │ gzip:   2.77 kB
+.output/server/_ssr/forms.functions-j2DTpEU0.mjs                    10.94 kB │ gzip:   2.82 kB
+.output/server/_ssr/library-B6PG4oNU.mjs                            11.17 kB │ gzip:   2.99 kB
+.output/server/_ssr/admin.donations-C8TljvZj.mjs                    11.24 kB │ gzip:   2.88 kB
+.output/server/_ssr/forms.functions-BXwPbmIq.mjs                    11.47 kB │ gzip:   3.85 kB
+.output/server/_ssr/CrudPage-Bn-NI20T.mjs                           12.08 kB │ gzip:   3.61 kB
+.output/server/_libs/tanstack__history.mjs                          12.09 kB │ gzip:   3.48 kB
+.output/server/_ssr/donations.functions-CChJODfR.mjs                12.23 kB │ gzip:   3.61 kB
+.output/server/_ssr/admin.members-xO9z-SwZ.mjs                      12.49 kB │ gzip:   3.25 kB
+.output/server/_ssr/admin.users-CZRd20nE.mjs                        13.17 kB │ gzip:   3.37 kB
+.output/server/_libs/supabase__functions-js+tslib.mjs               13.23 kB │ gzip:   3.66 kB
+.output/server/_libs/h3+rou3+srvx.mjs                               17.31 kB │ gzip:   4.99 kB
+.output/server/_ssr/public.functions-qN5XsOVd.mjs                   17.89 kB │ gzip:   3.60 kB
+.output/server/_libs/radix-ui__react-collection.mjs                 20.15 kB │ gzip:   4.51 kB
+.output/server/_tanstack-start-manifest_v-CXMIq7TW.mjs              20.27 kB │ gzip:   2.99 kB
+.output/server/_ssr/admin.letters._id-KWX4e3ky.mjs                  20.33 kB │ gzip:   5.10 kB
+.output/server/_ssr/blood-tt6VNXAf.mjs                              21.04 kB │ gzip:   4.60 kB
+.output/server/_libs/tanstack__react-query.mjs                      21.54 kB │ gzip:   5.98 kB
+.output/server/_ssr/donate-B-yZwo6S.mjs                             22.68 kB │ gzip:   5.31 kB
+.output/server/_ssr/admin.studio-BjR39GY2.mjs                       24.65 kB │ gzip:   5.59 kB
+.output/server/_libs/@floating-ui/dom+[...].mjs                     25.38 kB │ gzip:   6.57 kB
+.output/server/_libs/@floating-ui/core+[...].mjs                    25.55 kB │ gzip:   6.32 kB
+.output/server/_ssr/merge-data-F__33ZHq.mjs                         31.60 kB │ gzip:  10.28 kB
+.output/server/_libs/@floating-ui/react-dom+[...].mjs               32.68 kB │ gzip:   8.25 kB
+.output/server/_libs/@radix-ui/react-checkbox+[...].mjs             34.07 kB │ gzip:   8.11 kB
+.output/server/index.mjs                                            37.60 kB │ gzip:   9.15 kB
+.output/server/_libs/lucide-react.mjs                               37.63 kB │ gzip:   7.91 kB
+.output/server/_libs/supabase__supabase-js.mjs                      37.87 kB │ gzip:  11.18 kB
+.output/server/_ssr/admin.studio._id-DgasZKWd.mjs                   38.48 kB │ gzip:   7.64 kB
+.output/server/_ssr/sections-20WUaGtk.mjs                           41.91 kB │ gzip:   7.44 kB
+.output/server/_libs/embla-carousel.mjs                             43.12 kB │ gzip:  10.75 kB
+.output/server/_libs/pdf-lib__upng.mjs                              45.32 kB │ gzip:  12.02 kB
+.output/server/_libs/@radix-ui/react-select+[...].mjs               47.77 kB │ gzip:  10.02 kB
+.output/server/_ssr/server-gFGZw0Im.mjs                             49.93 kB │ gzip:  13.08 kB
+.output/server/_libs/supabase__phoenix.mjs                          50.54 kB │ gzip:  12.76 kB
+.output/server/_libs/sonner.mjs                                     53.58 kB │ gzip:  12.11 kB
+.output/server/_libs/pngjs.mjs                                      56.43 kB │ gzip:  11.71 kB
+.output/server/_libs/@radix-ui/react-dropdown-menu+[...].mjs        58.69 kB │ gzip:  11.61 kB
+.output/server/_libs/@radix-ui/react-dialog+[...].mjs               68.58 kB │ gzip:  16.06 kB
+.output/server/_ssr/router-B7DImLSU.mjs                             73.51 kB │ gzip:  13.98 kB
+.output/server/_libs/qrcode.mjs                                     75.64 kB │ gzip:  18.41 kB
+.output/server/_libs/supabase__realtime-js+unenv.mjs                82.09 kB │ gzip:  20.98 kB
+.output/server/_libs/react-hook-form.mjs                            84.25 kB │ gzip:  18.84 kB
+.output/server/_libs/tailwind-merge.mjs                             88.92 kB │ gzip:  15.71 kB
+.output/server/_libs/zod.mjs                                       100.40 kB │ gzip:  17.39 kB
+.output/server/_libs/supabase__postgrest-js.mjs                    110.46 kB │ gzip:  23.20 kB
+.output/server/_libs/@supabase/storage-js+[...].mjs                127.52 kB │ gzip:  23.94 kB
+.output/server/_libs/@tanstack/router-core+[...].mjs               136.60 kB │ gzip:  31.27 kB
+.output/server/_libs/tanstack__query-core.mjs                      143.36 kB │ gzip:  34.04 kB
+.output/server/_libs/pako+pdf-lib__standard-fonts.mjs              241.65 kB │ gzip: 122.17 kB
+.output/server/_libs/supabase__auth-js+tslib.mjs                   319.92 kB │ gzip:  64.90 kB
+.output/server/_libs/pdf-lib+tslib.mjs                             618.35 kB │ gzip: 118.07 kB
+.output/server/_libs/@tanstack/react-router+[...].mjs              677.28 kB │ gzip: 142.15 kB
+
+[32m✓ built in 1.36s[39m
+[info] Generated [36m.output/server/wrangler.json[39m
+[info] Generated [36m.wrangler/deploy/config.json[39m
+[info] Generated [36m.output/public/_headers[39m
+[info] Generated [36m.output/nitro.json[39m
+[success] [nitro] You can preview this build using `npx vite preview`
+[success] [nitro] You can deploy this build using `npx nitro deploy --prebuilt`
