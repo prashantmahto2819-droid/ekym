@@ -1,12 +1,14 @@
 // Community admin: listings moderation, matrimony verification, polls, contributors & testimonials.
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { CrudPage } from "@/components/admin/CrudPage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,11 +141,60 @@ function FeedModeration({ org }: { org: string }) {
   }
   return (
     <div className="space-y-4 text-sm">
-      <p className="text-xs text-muted-foreground">Members post on <a href="/community" className="underline" target="_blank" rel="noreferrer">/community</a>. Reports land here; hide removes a post from the feed (restorable), remove deletes it from view permanently. Pin from the ⋯ menu on the feed.</p>
+      <p className="text-xs text-muted-foreground">Members post on <a href="/community" className="underline" target="_blank" rel="noreferrer">/community</a>. Every post is screened for advertising / promotion (keywords instantly, AI on text + images when configured): flagged posts get limited reach (only the author and moderators see them) and you get a WhatsApp alert. Paid sponsors appear on <a href="/sponsored" className="underline" target="_blank" rel="noreferrer">/sponsored</a> (Admin → Ads & revenue). Reports land here; hide removes a post from the feed (restorable), remove deletes it from view permanently.</p>
+      <Flagged org={org} />
       <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium">Open reports ({reports.data?.length ?? 0})</p>
         <ul className="mt-2 divide-y divide-border">{(reports.data ?? []).map((r) => <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{r.reason} <span className="text-xs text-muted-foreground">· {new Date(r.created_at).toLocaleString("en-IN")}</span> {r.post_id ? <a className="ml-1 underline" href={`/community/${r.post_id}`} target="_blank" rel="noreferrer">view post</a> : null}</span><span className="flex gap-1">{r.post_id ? <><Button size="sm" variant="outline" onClick={() => act(r.post_id, "hidden")}>Hide post</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(r.post_id, "removed")}>Remove</Button></> : null}<Button size="sm" variant="ghost" onClick={() => act(null, null, r.id, true)}>Dismiss</Button></span></li>)}{reports.isSuccess && !reports.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul></div>
+      <ModerationSettings org={org} />
       <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium">Hidden posts</p>
         <ul className="mt-2 divide-y divide-border">{(hidden.data ?? []).map((p) => <li key={p.id} className="flex items-center justify-between gap-2 py-2"><span className="line-clamp-1">{p.body ?? p.link_url ?? "(photo)"} <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleDateString("en-IN")}</span></span><span className="flex gap-1"><Button size="sm" variant="outline" onClick={() => act(p.id, "active")}>Restore</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(p.id, "removed")}>Remove</Button></span></li>)}{hidden.isSuccess && !hidden.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul></div>
     </div>
+  );
+}
+
+type Flag = { id: string; author_name: string; body: string | null; link_url: string | null; media: { path: string }[]; moderation: { heuristic?: { score: number; hits: string[] }; ai?: { promotional: boolean; confidence: number; category: string; reason: string; model: string } }; moderation_status: string; reach: string; created_at: string };
+function Flagged({ org }: { org: string }) {
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["cm_flagged", org], queryFn: async () => (await rpc("k1_cm_flagged", { p_org: org })) as Flag[] });
+  async function review(id: string, action: "allow" | "limit" | "remove") {
+    if (action === "remove" && !confirm("Remove this post?")) return;
+    try { await rpc("k1_cm_review", { p_post: id, p_action: action }); qc.invalidateQueries({ queryKey: ["cm_flagged", org] }); qc.invalidateQueries({ queryKey: ["feed"] }); } catch (e) { toast.error((e as Error).message); }
+  }
+  return (
+    <div className="rounded-lg border border-amber-300 bg-amber-50/40 p-3 dark:border-amber-800 dark:bg-amber-950/20"><p className="font-medium">Promotional posts — limited reach ({q.data?.length ?? 0})</p>
+      <ul className="mt-2 divide-y divide-border">{(q.data ?? []).map((p) => {
+        const ai = p.moderation?.ai, h = p.moderation?.heuristic;
+        return <li key={p.id} className="flex flex-wrap items-start justify-between gap-2 py-2">
+          <div className="min-w-0 flex-1">
+            <p><b>{p.author_name}</b> <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleString("en-IN")}</span> <a className="ml-1 text-xs underline" href={`/community/${p.id}`} target="_blank" rel="noreferrer">view</a></p>
+            <p className="line-clamp-2">{p.body ?? p.link_url ?? "(photo)"}</p>
+            {p.media?.length ? <div className="mt-1 flex gap-1">{p.media.slice(0, 4).map((m, i) => <img key={i} src={supabase.storage.from("community").getPublicUrl(m.path).data.publicUrl} alt="" className="h-12 w-12 rounded object-cover" />)}</div> : null}
+            <p className="text-xs text-muted-foreground">{ai?.reason ? `AI (${ai.category}, ${Math.round(ai.confidence * 100)}%): ${ai.reason}` : ai?.model ? `AI: ${ai.model}` : "AI: pending"}{h?.hits?.length ? ` · keywords: ${h.hits.join(", ")} (score ${h.score})` : ""}</p>
+          </div>
+          <span className="flex gap-1"><Button size="sm" onClick={() => review(p.id, "allow")}>Allow (full reach)</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => review(p.id, "remove")}>Remove</Button></span>
+        </li>; })}{q.isSuccess && !q.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul>
+    </div>
+  );
+}
+
+type CmSettings = { organization_id: string; auto_limit: boolean; threshold: number; ai_min_confidence: number; keywords: string[]; notify_moderators: boolean };
+function ModerationSettings({ org }: { org: string }) {
+  const q = useQuery({ queryKey: ["cm_settings", org], queryFn: async () => { const { data } = await supabase.from("cm_settings").select("*").eq("organization_id", org).maybeSingle(); return (data as unknown as CmSettings | null) ?? null; } });
+  const [s, setS] = useState<CmSettings | null>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => { if (q.isSuccess && !s) setS(q.data ?? { organization_id: org, auto_limit: true, threshold: 3, ai_min_confidence: 0.6, keywords: [], notify_moderators: true }); }, [q.isSuccess, q.data, s, org]);
+  async function save() { if (!s) return; const { error } = await supabase.from("cm_settings").upsert(s as never, { onConflict: "organization_id" }); if (error) toast.error(error.message); else toast.success("Saved"); }
+  if (!s) return null;
+  return (
+    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="rounded-lg border border-border bg-background p-3"><summary className="cursor-pointer font-medium">Promotion filter settings</summary>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <label className="flex items-center gap-2"><input type="checkbox" checked={s.auto_limit} onChange={(e) => setS({ ...s, auto_limit: e.target.checked })} /> Limit reach automatically (off = only flag for review)</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={s.notify_moderators} onChange={(e) => setS({ ...s, notify_moderators: e.target.checked })} /> WhatsApp alert to moderators</label>
+        <label className="block"><span className="text-xs text-muted-foreground">Keyword score to flag (phone number = 2, % off = 2, each keyword = 1)</span><Input type="number" value={s.threshold} onChange={(e) => setS({ ...s, threshold: Number(e.target.value) })} /></label>
+        <label className="block"><span className="text-xs text-muted-foreground">AI confidence needed (0–1)</span><Input type="number" step="0.05" min="0" max="1" value={s.ai_min_confidence} onChange={(e) => setS({ ...s, ai_min_confidence: Number(e.target.value) })} /></label>
+        <label className="block sm:col-span-2"><span className="text-xs text-muted-foreground">Keywords (comma separated; empty = built-in Hindi + English list)</span><Textarea rows={3} value={s.keywords.join(", ")} onChange={(e) => setS({ ...s, keywords: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} /></label>
+        <div className="sm:col-span-2"><Button size="sm" onClick={save}>Save</Button> <span className="ml-2 text-xs text-muted-foreground">Image + text AI needs the secret GEMINI_API_KEY on the cm-moderate function (Supabase → Edge Functions → Secrets).</span></div>
+      </div>
+    </details>
   );
 }

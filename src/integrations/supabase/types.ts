@@ -1346,8 +1346,12 @@ export type Database = {
           link_kind: string | null
           link_url: string | null
           media: Json
+          moderated_at: string | null
+          moderation: Json
+          moderation_status: string
           organization_id: string
           pinned: boolean
+          reach: string
           share_count: number
           status: string
           updated_at: string
@@ -1363,8 +1367,12 @@ export type Database = {
           link_kind?: string | null
           link_url?: string | null
           media?: Json
+          moderated_at?: string | null
+          moderation?: Json
+          moderation_status?: string
           organization_id: string
           pinned?: boolean
+          reach?: string
           share_count?: number
           status?: string
           updated_at?: string
@@ -1380,12 +1388,46 @@ export type Database = {
           link_kind?: string | null
           link_url?: string | null
           media?: Json
+          moderated_at?: string | null
+          moderation?: Json
+          moderation_status?: string
           organization_id?: string
           pinned?: boolean
+          reach?: string
           share_count?: number
           status?: string
           updated_at?: string
           visibility?: string
+        }
+        Relationships: []
+      }
+      cm_settings: {
+        Row: {
+          ai_min_confidence: number
+          auto_limit: boolean
+          keywords: string[]
+          notify_moderators: boolean
+          organization_id: string
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          ai_min_confidence?: number
+          auto_limit?: boolean
+          keywords?: string[]
+          notify_moderators?: boolean
+          organization_id: string
+          threshold?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_min_confidence?: number
+          auto_limit?: boolean
+          keywords?: string[]
+          notify_moderators?: boolean
+          organization_id?: string
+          threshold?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -6188,6 +6230,7 @@ export type Database = {
         Returns: boolean
       }
       claim_admin_families: { Args: never; Returns: number }
+      cm_moderate_tick: { Args: never; Returns: undefined }
       comms_tick: { Args: never; Returns: undefined }
       create_letter_recipients: {
         Args: {
@@ -6393,6 +6436,19 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
       is_super: { Args: never; Returns: boolean }
+      k1_ad_board: {
+        Args: { p_org: string }
+        Returns: {
+          ends_on: string
+          id: string
+          image: string
+          link: string
+          sponsor: string
+          text_en: string
+          text_hi: string
+          title: string
+        }[]
+      }
       k1_ad_campaign_paid: {
         Args: {
           p_campaign: string
@@ -6481,6 +6537,48 @@ export type Database = {
         }[]
       }
       k1_claim_memberships: { Args: never; Returns: number }
+      k1_cm_default_keywords: { Args: never; Returns: string[] }
+      k1_cm_flagged: {
+        Args: { p_org: string }
+        Returns: {
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          link_url: string
+          media: Json
+          moderation: Json
+          moderation_status: string
+          reach: string
+        }[]
+      }
+      k1_cm_moderation_result: {
+        Args: { p_ai: Json; p_post: string }
+        Returns: undefined
+      }
+      k1_cm_notify_moderators: {
+        Args: { p_body: string; p_org: string; p_ref: string }
+        Returns: number
+      }
+      k1_cm_pending_posts: {
+        Args: { p_limit?: number }
+        Returns: {
+          body: string
+          id: string
+          link_url: string
+          media: Json
+          moderation: Json
+          organization_id: string
+        }[]
+      }
+      k1_cm_promo_score: {
+        Args: { p_link?: string; p_org: string; p_text: string }
+        Returns: Json
+      }
+      k1_cm_review: {
+        Args: { p_action: string; p_post: string }
+        Returns: undefined
+      }
       k1_comms_channel_runtime: {
         Args: { p_channel: string }
         Returns: {
@@ -6722,7 +6820,9 @@ export type Database = {
           link_url: string
           media: Json
           mine: boolean
+          moderation_status: string
           pinned: boolean
+          reach: string
           share_count: number
           visibility: string
         }[]
