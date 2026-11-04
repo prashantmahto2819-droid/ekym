@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { useLang } from "@/core/i18n";
@@ -18,8 +17,7 @@ export const Route = createFileRoute("/team")({
 });
 
 function TeamPage() {
-  const initial = Route.useLoaderData();
-  const { data } = useQuery({ queryKey: ["team"], queryFn: () => getTeam(), initialData: initial });
+  const data = Route.useLoaderData();
   const { lang, loc } = useLang();
   const hi = lang === "hi";
 

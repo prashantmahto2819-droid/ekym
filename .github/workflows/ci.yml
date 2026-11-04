@@ -28,14 +28,6 @@ jobs:
           set -o pipefail
           bun install 2>&1 | tee ci-out/install.log
 
-      - name: Typecheck
-        id: typecheck
-        if: steps.install.outcome == 'success'
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          bunx tsc --noEmit -p . 2>&1 | tee ci-out/typecheck.log
-
       - name: Build
         id: build
         if: steps.install.outcome == 'success'
@@ -46,6 +38,15 @@ jobs:
           ls -R .output 2>/dev/null | head -80 > ci-out/output-tree.txt || true
           ls -la dist 2>/dev/null >> ci-out/output-tree.txt || true
           cp .output/server/wrangler.json ci-out/generated-wrangler.json 2>/dev/null || true
+          cp src/routeTree.gen.ts ci-out/routeTree.gen.ts 2>/dev/null || true
+
+      - name: Typecheck
+        id: typecheck
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bunx tsc --noEmit -p . 2>&1 | tee ci-out/typecheck.log
 
       - name: Diagnostics
         if: always()

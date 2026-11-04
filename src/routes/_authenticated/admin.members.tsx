@@ -63,8 +63,8 @@ function MembersPage() {
       const { data, error } = await supabase.rpc("k1_decide_membership", {
         p_id: id,
         p_approve: approve,
-        p_category: approve ? category : null,
-        p_note: note || null,
+        p_category: approve ? category : undefined,
+        p_note: note || undefined,
       });
       if (error) throw error;
       return data as unknown as Membership;
