@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { enqueueMessage, kickWorker, normPhone } from "@/lib/comms";
 
 export const Route = createFileRoute("/_authenticated/admin/meetings/$id")({
   component: MeetingDetail,
@@ -32,6 +33,28 @@ function MeetingDetail() {
   const qc = useQueryClient();
   const [minutes, setMinutes] = useState("");
   const [attendance, setAttendance] = useState("");
+  const [notifying, setNotifying] = useState(false);
+
+  /** Queue a WhatsApp notice for this meeting to every active member who has a number (team members included). */
+  async function notify(m: Meeting) {
+    const when = new Date(m.scheduled_at).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" });
+    const text = prompt("Notice text (sent to all active members with a WhatsApp number)", `${tenant.name}\nMeeting: ${m.title}\nDate: ${when}${m.venue ? `\nVenue: ${m.venue}` : ""}\nAll members are requested to attend.`);
+    if (!text) return;
+    setNotifying(true);
+    try {
+      const { data } = await supabase.from("org_memberships").select("full_name,whatsapp").eq("organization_id", tenant.organization_id).eq("status", "active").not("whatsapp", "is", null).limit(5000);
+      const rows = (data ?? []) as { full_name: string; whatsapp: string | null }[];
+      const list = rows.map((r) => ({ to: normPhone(r.whatsapp ?? ""), name: r.full_name })).filter((r) => r.to.length >= 12);
+      if (!list.length) { toast.error("No active member has a WhatsApp number"); return; }
+      if (!confirm(`Queue the notice to ${list.length} member(s)?`)) return;
+      let ok = 0;
+      for (const r of list) {
+        try { await enqueueMessage({ org: tenant.organization_id, kind: "whatsapp", to: r.to, name: r.name, body: text, refTable: "gov_meetings", refId: m.id }); ok++; } catch (e) { console.warn(e); }
+      }
+      kickWorker();
+      toast.success(`${ok} notice(s) queued — see Messaging for delivery status`);
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setNotifying(false); }
+  }
 
   const meeting = useQuery({
     queryKey: ["admin", "gov_meetings", tenant.organization_id, id],
@@ -88,9 +111,12 @@ function MeetingDetail() {
             {m.venue ? ` · ${m.venue}` : ""} · {m.status}
           </p>
         </div>
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/admin/meetings">Close</Link>
-        </Button>
+        <div className="flex gap-2">
+          {can("gov.meeting.manage") ? <Button size="sm" variant="outline" disabled={notifying} onClick={() => notify(m)}>{notifying ? "Queuing…" : "WhatsApp notice to members"}</Button> : null}
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/admin/meetings">Close</Link>
+          </Button>
+        </div>
       </div>
 
       <CrudPage

@@ -36,6 +36,7 @@ function JoinPage() {
   const [done, setDone] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
+  const [commsConsent, setCommsConsent] = useState(true);
   const form = useForm<MembershipInput>({ defaultValues: { category: "general" } });
   const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
 
@@ -46,7 +47,7 @@ function JoinPage() {
       return;
     }
     try {
-      await submitMembership({ data: { ...values, consent: true } });
+      await submitMembership({ data: { ...values, consent: true, comms_consent: commsConsent } });
       setDone(true);
       toast.success(hi ? "आवेदन भेज दिया गया" : "Application submitted");
     } catch (e) {
@@ -135,6 +136,14 @@ function JoinPage() {
                   {hi
                     ? `मैं घोषणा करता/करती हूँ कि ऊपर दी गई जानकारी सही है और मैं ${orgName} के नियमों का पालन करूँगा/करूँगी। संगठन मेरी जानकारी सदस्यता के लिए सुरक्षित रख सकता है।`
                     : `I declare that the details above are correct and that I will follow the rules of ${orgName}. The organization may keep my details for membership purposes.`}
+                </span>
+              </label>
+              <label className="flex items-start gap-3 text-sm sm:col-span-2">
+                <Checkbox checked={commsConsent} onCheckedChange={(v) => setCommsConsent(v === true)} />
+                <span className="text-muted-foreground">
+                  {hi
+                    ? `${orgName} मुझे WhatsApp / ईमेल पर सूचनाएँ, निमंत्रण और अभियान की जानकारी भेज सकता है। (जवाब में STOP लिखकर कभी भी बंद कर सकते हैं।)`
+                    : `${orgName} may send me notices, invitations and campaign updates on WhatsApp / email. (Reply STOP at any time to opt out.)`}
                 </span>
               </label>
               <div className="sm:col-span-2">

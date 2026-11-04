@@ -12,6 +12,7 @@ import { useTenant } from "@/core/tenant-context";
 import { download, pageCount, toPdfBytes, type DesignDoc } from "@/design-engine";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { enqueueMessage, kickWorker, looksLikeEmail, normPhone } from "@/lib/comms";
 import { organizationQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/admin/letters/$id")({
@@ -106,6 +107,39 @@ function DocumentComposer() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  /** Queue the issued PDF to the recipient over WhatsApp or email through the communication engine. */
+  async function sendDoc(kind: "whatsapp" | "email") {
+    if (!d || !template) return;
+    const r = d.recipient as { name?: string; phone?: string; email?: string };
+    const raw = kind === "email" ? (r.email ?? (looksLikeEmail(r.phone ?? "") ? r.phone : "")) : (looksLikeEmail(r.phone ?? "") ? "" : r.phone);
+    const to = prompt(kind === "email" ? "Send to email" : "Send to WhatsApp number", raw ?? "");
+    if (!to) return;
+    setBusy("send");
+    try {
+      let path = d.pdf_path;
+      if (!path) {
+        const bytes = await toPdfBytes(template.design, merge);
+        path = `${tenant.organization_id}/${d.id}.pdf`;
+        const { error } = await supabase.storage.from("documents").upload(path, new Blob([bytes as BlobPart], { type: "application/pdf" }), { upsert: true, contentType: "application/pdf" });
+        if (error) throw error;
+        const { error: e2 } = await supabase.rpc("k1_set_document_pdf", { p_id: d.id, p_path: path });
+        if (e2) throw e2;
+      }
+      const orgName = tenant.name;
+      const subject = d.subject ?? d.title;
+      const body = kind === "email"
+        ? `Dear ${r.name ?? "Sir/Madam"},\n\nPlease find attached ${subject}${d.ref_no ? ` (Ref. ${d.ref_no})` : ""} from ${orgName}.${d.verify_code ? `\nVerify online: ${siteUrl}/verify/${d.verify_code}` : ""}\n\nRegards,\n${orgName}`
+        : `${orgName}\n${subject}${d.ref_no ? `\nRef. ${d.ref_no}` : ""}${d.verify_code ? `\nVerify: ${siteUrl}/verify/${d.verify_code}` : ""}`;
+      await enqueueMessage({ org: tenant.organization_id, kind, to: kind === "email" ? to.trim() : normPhone(to), name: r.name ?? null, subject: kind === "email" ? `${subject}${d.ref_no ? ` · ${d.ref_no}` : ""}` : null, body, media: [{ type: "document", bucket: "documents", path, filename: `${(d.ref_no ?? d.title).replace(/[^\w.-]+/g, "_")}.pdf` }], refTable: "docs_documents", refId: d.id });
+      await supabase.from("docs_dispatches").insert({ organization_id: tenant.organization_id, document_id: d.id, channel: kind, to_name: r.name ?? null, to_contact: kind === "email" ? to.trim() : normPhone(to), note: "queued via messaging engine" } as never);
+      await supabase.from("docs_register").insert({ organization_id: tenant.organization_id, direction: "outward", entry_date: new Date().toISOString().slice(0, 10), ref_no: d.ref_no, from_to: r.name ?? to, subject, document_id: d.id, note: `via ${kind}` } as never);
+      kickWorker();
+      toast.success("Queued — it is sent within a minute; see Messaging for the delivery status.");
+      qc.invalidateQueries({ queryKey: ["admin", "docs_dispatches", id] });
+      qc.invalidateQueries({ queryKey: ["admin", "docs_documents"] });
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Could not queue"); } finally { setBusy(null); }
+  }
+
   if (!d || !form) return <p className="text-sm text-muted-foreground">Loading…</p>;
   const set = (k: keyof Doc, v: unknown) => setForm((f) => ({ ...f, [k]: v }));
   const setField = (k: string, v: string) => setForm((f) => ({ ...f, fields: { ...((f?.fields as Record<string, unknown>) ?? {}), [k]: v } }));
@@ -192,13 +226,15 @@ function DocumentComposer() {
         <section className="space-y-2 text-sm">
           <h3 className="font-display font-semibold">Dispatch</h3>
           <div className="flex flex-wrap gap-2">
-            {["whatsapp", "email", "hand", "post", "courier"].map((c) => <Button key={c} size="sm" variant="outline" onClick={() => logDispatch.mutate(c)} disabled={!can("docs.letter.dispatch")}>Record: {c}</Button>)}
+            <Button size="sm" onClick={() => sendDoc("whatsapp")} disabled={!can("docs.letter.dispatch") || !!busy || !template}>Send by WhatsApp</Button>
+            <Button size="sm" onClick={() => sendDoc("email")} disabled={!can("docs.letter.dispatch") || !!busy || !template}>Send by email</Button>
+            {["hand", "post", "courier"].map((c) => <Button key={c} size="sm" variant="outline" onClick={() => logDispatch.mutate(c)} disabled={!can("docs.letter.dispatch")}>Record: {c}</Button>)}
             {d.verify_code ? <span className="self-center text-xs text-muted-foreground">Verify link: {siteUrl}/verify/{d.verify_code}</span> : null}
           </div>
           <ul className="text-xs text-muted-foreground">
             {(dispatches.data ?? []).map((x) => <li key={x.id}>{new Date(x.sent_at).toLocaleString("en-IN")} · {x.channel} · {x.to_name ?? ""} {x.to_contact ?? ""} · {x.status}</li>)}
           </ul>
-          <p className="text-xs text-muted-foreground">Sending by WhatsApp/email from here arrives with the communication engine (Phase 5); for now, download the PDF and record the dispatch.</p>
+          <p className="text-xs text-muted-foreground">WhatsApp/email sends use the channels set up under Messaging; the PDF is stored with the document and attached automatically.</p>
         </section>
       ) : null}
     </div>

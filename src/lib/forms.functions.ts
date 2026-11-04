@@ -276,20 +276,30 @@ const membershipSchema = z.object({
   blood_group: optional,
   category: z.enum(["general", "life", "patron"]).default("general"),
   consent: z.literal(true, { errorMap: () => ({ message: "Please accept the declaration" }) }),
+  comms_consent: z.boolean().optional(),
 });
 export type MembershipInput = z.input<typeof membershipSchema>;
 
 export const submitMembership = createServerFn({ method: "POST" })
   .inputValidator((d: MembershipInput) => parse(membershipSchema, d))
   .handler(async ({ data }) => {
+    const org = await tenantId();
+    const { comms_consent, ...rest } = data;
     const { error } = await sb()
       .from("org_memberships")
-      .insert({ ...clean(data), organization_id: await tenantId(), status: "applied" } as any);
+      .insert({ ...clean(rest), organization_id: org, status: "applied" } as any);
     if (error) {
       if (error.message.toLowerCase().includes("duplicate")) {
         throw new Error("An application or membership with this mobile number already exists.");
       }
       throw new Error(error.message);
+    }
+    // Communication consent (WhatsApp/email notices; marketing only when ticked). Best effort.
+    const purposes = comms_consent ? ["utility", "marketing"] : ["utility"];
+    const contacts = [data.mobile, data.email].filter((c): c is string => !!c && c.trim().length > 0);
+    for (const contact of contacts) {
+      // anon may only insert; an existing consent row (same contact) is left as it is
+      await sb().from("comms_consents").insert({ organization_id: org, contact: contact.includes("@") ? contact.trim().toLowerCase() : contact.replace(/\D/g, "").replace(/^(\d{10})$/, "91$1"), name: data.full_name, purposes, source: "form" } as any);
     }
     return { ok: true };
   });
