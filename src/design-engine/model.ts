@@ -38,7 +38,7 @@ type Base = {
   x: number;
   y: number;
   w: number;
-  h: number;
+  h?: number;                // optional for text/line (computed)
   rot?: number;
   opacity?: number;
   hidden?: boolean;
@@ -88,6 +88,9 @@ export type TableLayer = Base & {
 };
 
 export type Layer = TextLayer | FlowLayer | RectLayer | LineLayer | FrameLayer | ArtLayer | ImageLayer | QrLayer | TableLayer;
+
+/** Omit that distributes over the Layer union (keeps the discriminant). */
+export type LayerInput = Layer extends infer L ? (L extends Layer ? Omit<L, "id"> : never) : never;
 
 export type Page = { id: string; layers: Layer[] };
 

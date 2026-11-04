@@ -187,7 +187,7 @@ function drawFrame(ctx: CanvasRenderingContext2D, L: FrameLayer) {
 /** Splits a flow layer's text into per-page line groups. Returns lines for page 0..n. */
 function paginateFlow(ctx: CanvasRenderingContext2D, L: FlowLayer, text: string): Line[][] {
   const lh = lhOf(L);
-  const perPage = Math.max(1, Math.floor(L.h / lh));
+  const perPage = Math.max(1, Math.floor((L.h ?? 0) / lh));
   const lines = textLines(ctx, L, text);
   const pages: Line[][] = [];
   for (let i = 0; i < lines.length; i += perPage) pages.push(lines.slice(i, i + perPage));
@@ -274,8 +274,9 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
   const out: RenderedLayer[] = [];
   const drawOne = (L: Layer, flowLines?: Line[]) => {
     if (L.hidden) { out.push({ layer: L, bounds: null, page: pageIndex }); return; }
+    const Lh = L.h ?? 0;
     ctx.save(); ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.globalAlpha = L.opacity ?? 1;
-    let bw = L.w || 0, bh = L.h || 0;
+    let bw = L.w || 0, bh = Lh;
     let bounds: Bounds;
     if (L.type === "line") { bh = Math.max(L.lw || 2, 8); bounds = { x: L.x, y: L.y - bh / 2, w: bw, h: bh }; }
     else bounds = { x: L.x, y: L.y, w: bw, h: bh };
@@ -283,7 +284,7 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
     switch (L.type) {
       case "frame": drawFrame(ctx, L); break;
       case "rect":
-        rr(ctx, L.x, L.y, L.w, L.h, L.radius || 0);
+        rr(ctx, L.x, L.y, L.w, Lh, L.radius || 0);
         if (L.fill) { ctx.fillStyle = L.fill; ctx.fill(); }
         if (L.lw) { ctx.strokeStyle = L.color || "#111"; ctx.lineWidth = L.lw; ctx.stroke(); }
         break;
@@ -292,24 +293,24 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
         if (L.dash) ctx.setLineDash([(L.lw || 2) * 0.8, (L.lw || 2) * 2.4]);
         ctx.beginPath(); ctx.moveTo(L.x, L.y); ctx.lineTo(L.x + L.w, L.y); ctx.stroke();
         break;
-      case "art": ctx.translate(L.x, L.y); drawArt(ctx, L.art, L.w, L.h, L.color); break;
+      case "art": ctx.translate(L.x, L.y); drawArt(ctx, L.art, L.w, Lh, L.color); break;
       case "image": {
         const img = images.get(L.id);
         if (img) {
           ctx.save();
-          if (L.shape === "circle") { ctx.beginPath(); ctx.ellipse(L.x + L.w / 2, L.y + L.h / 2, L.w / 2, L.h / 2, 0, 0, Math.PI * 2); ctx.clip(); }
-          else { rr(ctx, L.x, L.y, L.w, L.h, L.radius || 0); ctx.clip(); }
-          const s = L.fit === "contain" ? Math.min(L.w / img.width, L.h / img.height) : Math.max(L.w / img.width, L.h / img.height);
-          ctx.drawImage(img, L.x + L.w / 2 - (img.width * s) / 2, L.y + L.h / 2 - (img.height * s) / 2, img.width * s, img.height * s);
+          if (L.shape === "circle") { ctx.beginPath(); ctx.ellipse(L.x + L.w / 2, L.y + Lh / 2, L.w / 2, Lh / 2, 0, 0, Math.PI * 2); ctx.clip(); }
+          else { rr(ctx, L.x, L.y, L.w, Lh, L.radius || 0); ctx.clip(); }
+          const s = L.fit === "contain" ? Math.min(L.w / img.width, Lh / img.height) : Math.max(L.w / img.width, Lh / img.height);
+          ctx.drawImage(img, L.x + L.w / 2 - (img.width * s) / 2, L.y + Lh / 2 - (img.height * s) / 2, img.width * s, img.height * s);
           ctx.restore();
-          if (L.ring) { ctx.strokeStyle = L.color || "#111"; ctx.lineWidth = L.ring; ctx.beginPath(); if (L.shape === "circle") ctx.ellipse(L.x + L.w / 2, L.y + L.h / 2, L.w / 2, L.h / 2, 0, 0, Math.PI * 2); else rr(ctx, L.x, L.y, L.w, L.h, L.radius || 0); ctx.stroke(); }
-        } else { ctx.fillStyle = "#e6e9ef"; ctx.fillRect(L.x, L.y, L.w, L.h); ctx.fillStyle = "#9aa3b2"; ctx.font = fstr("manrope", 500, Math.min(14, L.h / 3)); ctx.textAlign = "center"; ctx.fillText("image", L.x + L.w / 2, L.y + L.h / 2); }
+          if (L.ring) { ctx.strokeStyle = L.color || "#111"; ctx.lineWidth = L.ring; ctx.beginPath(); if (L.shape === "circle") ctx.ellipse(L.x + L.w / 2, L.y + Lh / 2, L.w / 2, Lh / 2, 0, 0, Math.PI * 2); else rr(ctx, L.x, L.y, L.w, Lh, L.radius || 0); ctx.stroke(); }
+        } else { ctx.fillStyle = "#e6e9ef"; ctx.fillRect(L.x, L.y, L.w, Lh); ctx.fillStyle = "#9aa3b2"; ctx.font = fstr("manrope", 500, Math.min(14, Lh / 3)); ctx.textAlign = "center"; ctx.fillText("image", L.x + L.w / 2, L.y + Lh / 2); }
         break;
       }
       case "qr": {
         const q = qrs.get(L.id);
-        if (q) ctx.drawImage(q, L.x, L.y, L.w, L.h);
-        else { ctx.strokeStyle = "#9aa3b2"; ctx.setLineDash([3, 3]); ctx.strokeRect(L.x, L.y, L.w, L.h); }
+        if (q) ctx.drawImage(q, L.x, L.y, L.w, (L.h ?? L.w));
+        else { ctx.strokeStyle = "#9aa3b2"; ctx.setLineDash([3, 3]); ctx.strokeRect(L.x, L.y, L.w, (L.h ?? L.w)); }
         break;
       }
       case "table": {
@@ -334,13 +335,13 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
           y += rowH;
         };
         drawRow(cols.map((c) => c.label), true, L.headerFill || "#f1f3f6");
-        for (const r of rows) { if (y + rowH > L.y + L.h) break; drawRow(cols.map((c) => String(r[c.key] ?? "")), false); }
-        bounds.h = Math.max(L.h, y - L.y);
+        for (const r of rows) { if (y + rowH > L.y + (Lh)) break; drawRow(cols.map((c) => String(r[c.key] ?? "")), false); }
+        bounds.h = Math.max(Lh, y - L.y);
         break;
       }
       case "text": {
         const text = mergeText(L.text, data);
-        if (o.guides && /\{\{/.test(L.text) && !text.trim()) { ctx.setLineDash([3, 4]); ctx.strokeStyle = "#9aa3b2"; ctx.strokeRect(L.x, L.y, L.w, L.h || (L.size || 16) * 1.45); ctx.setLineDash([]); }
+        if (o.guides && /\{\{/.test(L.text) && !text.trim()) { ctx.setLineDash([3, 4]); ctx.strokeStyle = "#9aa3b2"; ctx.strokeRect(L.x, L.y, L.w, (L.h ?? (L.size || 16) * 1.45)); ctx.setLineDash([]); }
         let size = L.size || 16;
         let Lx: TextLayer = L;
         if (L.fit) {

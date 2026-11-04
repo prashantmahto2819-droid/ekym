@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { cleanDoc, FONTS, PAGE_PRESETS, pageCount, uid, mm, type DesignDoc, type Layer, type MergeData, type ArtName, type FontKey } from "@/design-engine";
+import { cleanDoc, FONTS, PAGE_PRESETS, pageCount, uid, mm, type DesignDoc, type Layer, type LayerInput, type MergeData, type ArtName, type FontKey } from "@/design-engine";
 
 import { DesignCanvas } from "./DesignCanvas";
 
@@ -55,7 +55,7 @@ export function StudioEditor({ initial, data, onSave, saving }: { initial: Desig
   function setLayers(fn: (ls: Layer[]) => Layer[]) {
     setDoc((d) => (onMaster ? { ...d, master: fn(d.master) } : { ...d, pages: d.pages.map((p, i) => (i === page ? { ...p, layers: fn(p.layers) } : p)) }));
   }
-  function add(l: Omit<Layer, "id">) {
+  function add(l: LayerInput) {
     const L = { ...l, id: uid() } as Layer;
     setLayers((ls) => [...ls, L]);
     setSelected(L.id);
@@ -210,7 +210,7 @@ export function StudioEditor({ initial, data, onSave, saving }: { initial: Desig
             <Prop label="Name"><Input value={layer.name ?? ""} onChange={(e) => updateLayer(layer.id, { name: e.target.value }, false)} /></Prop>
             <div className="grid grid-cols-4 gap-1">
               {(["x", "y", "w", "h"] as const).map((k) => (
-                <Prop key={k} label={k.toUpperCase()}><Input type="number" value={Math.round((layer as Record<string, number>)[k] ?? 0)} onChange={(e) => updateLayer(layer.id, { [k]: Number(e.target.value) } as Partial<Layer>, false)} /></Prop>
+                <Prop key={k} label={k.toUpperCase()}><Input type="number" value={Math.round((layer as unknown as Record<string, number>)[k] ?? 0)} onChange={(e) => updateLayer(layer.id, { [k]: Number(e.target.value) } as Partial<Layer>, false)} /></Prop>
               ))}
             </div>
             <div className="grid grid-cols-2 gap-1">
