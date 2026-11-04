@@ -1,0 +1,13 @@
+// Cloudflare Worker settings for Kalchuri One. nitro merges this into the generated
+// .output/server/wrangler.json at build time. Secrets are NOT stored here: set
+// SUPABASE_SERVICE_ROLE_KEY, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
+// with `wrangler secret put` or in the Cloudflare dashboard (see docs/kalchuri-one/DEPLOYMENT_GUIDE.md).
+{
+  "name": "kalchuri-one",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "SUPABASE_URL": "https://udxdxkyfrqlgdwwqaucu.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_KzSzDcvJpg5HBQp5-ka6mQ_bKzJ3T8N",
+    "PUBLIC_SITE_URL": "https://kalchuri-one.workers.dev"
+  }
+}
