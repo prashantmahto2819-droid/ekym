@@ -124,6 +124,9 @@ export type Database = {
       blogs: {
         Row: {
           author_id: string | null
+          author_name: string | null
+          category_id: string | null
+          central_status: string
           city: string | null
           content: string | null
           content_hi: string | null
@@ -131,6 +134,7 @@ export type Database = {
           created_by: string | null
           excerpt: string | null
           excerpt_hi: string | null
+          featured: boolean
           featured_image: string | null
           gallery: Json
           id: string
@@ -139,20 +143,29 @@ export type Database = {
           og_title: string | null
           organization_id: string
           published_at: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           seo_description: string | null
           seo_title: string | null
           seva_project_id: string | null
           slug: string
           state: string | null
           status: Database["public"]["Enums"]["content_status"]
+          submitted_at: string | null
+          tags: string[]
           title: string
           title_hi: string | null
           updated_at: string
           updated_by: string | null
           video_url: string | null
+          views: number
         }
         Insert: {
           author_id?: string | null
+          author_name?: string | null
+          category_id?: string | null
+          central_status?: string
           city?: string | null
           content?: string | null
           content_hi?: string | null
@@ -160,6 +173,7 @@ export type Database = {
           created_by?: string | null
           excerpt?: string | null
           excerpt_hi?: string | null
+          featured?: boolean
           featured_image?: string | null
           gallery?: Json
           id?: string
@@ -168,20 +182,29 @@ export type Database = {
           og_title?: string | null
           organization_id: string
           published_at?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seo_description?: string | null
           seo_title?: string | null
           seva_project_id?: string | null
           slug: string
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          submitted_at?: string | null
+          tags?: string[]
           title: string
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url?: string | null
+          views?: number
         }
         Update: {
           author_id?: string | null
+          author_name?: string | null
+          category_id?: string | null
+          central_status?: string
           city?: string | null
           content?: string | null
           content_hi?: string | null
@@ -189,6 +212,7 @@ export type Database = {
           created_by?: string | null
           excerpt?: string | null
           excerpt_hi?: string | null
+          featured?: boolean
           featured_image?: string | null
           gallery?: Json
           id?: string
@@ -197,19 +221,32 @@ export type Database = {
           og_title?: string | null
           organization_id?: string
           published_at?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seo_description?: string | null
           seo_title?: string | null
           seva_project_id?: string | null
           slug?: string
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          submitted_at?: string | null
+          tags?: string[]
           title?: string
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url?: string | null
+          views?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "blogs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "cms_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "blogs_seva_project_id_fkey"
             columns: ["seva_project_id"]
@@ -686,6 +723,78 @@ export type Database = {
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      cms_categories: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          name_hi: string | null
+          organization_id: string | null
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          name_hi?: string | null
+          organization_id?: string | null
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          name_hi?: string | null
+          organization_id?: string | null
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      cms_comments: {
+        Row: {
+          body: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          organization_id: string
+          post_id: string
+          post_kind: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          post_id: string
+          post_kind: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          post_id?: string
+          post_kind?: string
+          status?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3452,69 +3561,116 @@ export type Database = {
       }
       news: {
         Row: {
+          author_name: string | null
+          breaking: boolean
+          category_id: string | null
+          central_status: string
+          content: string | null
+          content_hi: string | null
           created_at: string
           created_by: string | null
           description: string | null
           description_hi: string | null
           display_homepage: boolean
           external_url: string | null
+          featured: boolean
           id: string
           organization_id: string
           published_at: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           seo_description: string | null
           seo_title: string | null
           slug: string
           source_name: string | null
           status: Database["public"]["Enums"]["content_status"]
+          submitted_at: string | null
+          tags: string[]
           thumbnail: string | null
           title: string
           title_hi: string | null
           updated_at: string
           updated_by: string | null
+          views: number
         }
         Insert: {
+          author_name?: string | null
+          breaking?: boolean
+          category_id?: string | null
+          central_status?: string
+          content?: string | null
+          content_hi?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           description_hi?: string | null
           display_homepage?: boolean
           external_url?: string | null
+          featured?: boolean
           id?: string
           organization_id: string
           published_at?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug: string
           source_name?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          submitted_at?: string | null
+          tags?: string[]
           thumbnail?: string | null
           title: string
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
+          views?: number
         }
         Update: {
+          author_name?: string | null
+          breaking?: boolean
+          category_id?: string | null
+          central_status?: string
+          content?: string | null
+          content_hi?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           description_hi?: string | null
           display_homepage?: boolean
           external_url?: string | null
+          featured?: boolean
           id?: string
           organization_id?: string
           published_at?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
           source_name?: string | null
           status?: Database["public"]["Enums"]["content_status"]
+          submitted_at?: string | null
+          tags?: string[]
           thumbnail?: string | null
           title?: string
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
+          views?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "news_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "cms_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       org_documents: {
         Row: {
@@ -4172,6 +4328,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pub_issues: {
+        Row: {
+          access: string
+          cover_path: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          issue_date: string
+          issue_no: string | null
+          organization_id: string
+          pages: Json
+          pdf_path: string | null
+          slug: string
+          status: string
+          title: string
+          title_hi: string | null
+          updated_at: string
+          views: number
+        }
+        Insert: {
+          access?: string
+          cover_path?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          issue_date?: string
+          issue_no?: string | null
+          organization_id: string
+          pages?: Json
+          pdf_path?: string | null
+          slug: string
+          status?: string
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          views?: number
+        }
+        Update: {
+          access?: string
+          cover_path?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          issue_date?: string
+          issue_no?: string | null
+          organization_id?: string
+          pages?: Json
+          pdf_path?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          views?: number
+        }
+        Relationships: []
       }
       reels: {
         Row: {
@@ -5240,6 +5456,26 @@ export type Database = {
         }
       }
       k1_cancel_message: { Args: { p_id: string }; Returns: undefined }
+      k1_central_decide: {
+        Args: { p_approve: boolean; p_id: string; p_kind: string }
+        Returns: undefined
+      }
+      k1_central_feed: {
+        Args: { p_limit?: number; p_org: string; p_status?: string }
+        Returns: {
+          central_status: string
+          excerpt: string
+          id: string
+          image: string
+          kind: string
+          org_name: string
+          org_slug: string
+          organization_id: string
+          published_at: string
+          slug: string
+          title: string
+        }[]
+      }
       k1_claim_memberships: { Args: never; Returns: number }
       k1_comms_channel_runtime: {
         Args: { p_channel: string }
@@ -5480,6 +5716,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_issue_view: { Args: { p_id: string }; Returns: undefined }
       k1_my_orgs: {
         Args: never
         Returns: {
@@ -5500,9 +5737,11 @@ export type Database = {
         Args: { p_slug: string }
         Returns: {
           branding: Json
+          child_count: number
           name: string
           name_hi: string
           organization_id: string
+          parent_id: string
           short_name: string
           slug: string
         }[]
@@ -5536,14 +5775,37 @@ export type Database = {
         Args: { p_kind: string; p_org: string }
         Returns: string
       }
+      k1_post_decide: {
+        Args: {
+          p_decision: string
+          p_id: string
+          p_kind: string
+          p_note?: string
+        }
+        Returns: undefined
+      }
+      k1_post_nominate: {
+        Args: { p_id: string; p_kind: string; p_nominate?: boolean }
+        Returns: undefined
+      }
+      k1_post_submit: {
+        Args: { p_id: string; p_kind: string }
+        Returns: undefined
+      }
+      k1_post_view: {
+        Args: { p_id: string; p_kind: string }
+        Returns: undefined
+      }
       k1_remove_role: { Args: { p_assignment: string }; Returns: undefined }
       k1_resolve_host: {
         Args: { p_host: string }
         Returns: {
           branding: Json
+          child_count: number
           name: string
           name_hi: string
           organization_id: string
+          parent_id: string
           short_name: string
           slug: string
         }[]

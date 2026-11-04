@@ -17,6 +17,9 @@ import {
   getSevaProject,
   getSevaProjects,
   getVideos,
+  getCentralFeed,
+  getIssues,
+  getIssue,
 } from "./public.functions";
 
 export const organizationQuery = () =>
@@ -62,3 +65,7 @@ export const libraryQuery = () =>
 
 export const internshipQuery = () =>
   queryOptions({ queryKey: ["internship-programs"], queryFn: () => getInternshipPrograms() });
+
+export const centralFeedQuery = () => queryOptions({ queryKey: ["central-feed"], queryFn: () => getCentralFeed() });
+export const issuesQuery = () => queryOptions({ queryKey: ["issues"], queryFn: () => getIssues() });
+export const issueQuery = (slug: string) => queryOptions({ queryKey: ["issue", slug], queryFn: () => getIssue({ data: { slug } }) });

@@ -12,3 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+
+# Sitemap is served at /sitemap.xml on every organization's domain

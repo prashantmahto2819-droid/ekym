@@ -1,5 +1,4 @@
 -- tenant wrappers also return parent_id and number of sub-organizations (for the central feed / nomination UI)
--- NOTE: not yet applied to the live DB (needs owner confirmation for the drop/recreate).
 drop function if exists public.k1_resolve_host(text);
 drop function if exists public.k1_org_by_slug(text);
 create function public.k1_resolve_host(p_host text)

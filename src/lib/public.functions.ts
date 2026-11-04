@@ -348,3 +348,38 @@ export const verifyDocument = createServerFn({ method: "GET" })
     const first = (rows ?? [])[0];
     return (first as { kind: string; ref_no: string; doc_date: string; title: string; status: string; organization: string; recipient_name: string | null; issued_at: string | null } | undefined) ?? null;
   });
+
+/* --------------------------- PUBLISHING (Phase 8) --------------------------- */
+export const getCentralFeed = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const { data } = await sb().rpc("k1_central_feed", { p_org: org, p_limit: 60, p_status: "approved" } as never);
+  return (data ?? []) as { kind: string; id: string; organization_id: string; org_name: string; org_slug: string; title: string; slug: string; excerpt: string | null; image: string | null; published_at: string | null }[];
+});
+
+export const getIssues = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const { data } = await sb().from("pub_issues").select("id,title,title_hi,slug,issue_no,issue_date,description,cover_path,access,status,views").eq("organization_id", org).eq("status", "published").order("issue_date", { ascending: false }).limit(100);
+  return data ?? [];
+});
+
+export const getIssue = createServerFn({ method: "GET" })
+  .inputValidator((d: { slug: string }) => ({ slug: str(d?.slug) }))
+  .handler(async ({ data }) => {
+    const org = await tenantId();
+    const { data: issue } = await sb().from("pub_issues").select("*").eq("organization_id", org).eq("slug", data.slug).eq("status", "published").maybeSingle();
+    return issue;
+  });
+
+/** Everything the sitemap / RSS need, in one call. */
+export const getSitemapData = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const c = sb();
+  const [blogs, news, seva, campaigns, issues] = await Promise.all([
+    c.from("blogs").select("slug,updated_at,published_at,title,excerpt").eq("organization_id", org).eq("status", "published").order("published_at", { ascending: false }).limit(1000),
+    c.from("news").select("slug,updated_at,published_at,title,description").eq("organization_id", org).eq("status", "published").order("published_at", { ascending: false }).limit(1000),
+    c.from("seva_projects").select("slug,updated_at").eq("organization_id", org).eq("active", true).limit(500),
+    c.from("campaigns").select("slug,updated_at").eq("organization_id", org).eq("status", "published").limit(500),
+    c.from("pub_issues").select("slug,updated_at").eq("organization_id", org).eq("status", "published").eq("access", "public").limit(500),
+  ]);
+  return { blogs: blogs.data ?? [], news: news.data ?? [], seva: seva.data ?? [], campaigns: campaigns.data ?? [], issues: issues.data ?? [] };
+});
