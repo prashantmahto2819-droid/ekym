@@ -805,6 +805,258 @@ export type Database = {
           },
         ]
       }
+      docs_dispatches: {
+        Row: {
+          channel: string
+          created_by: string | null
+          document_id: string
+          id: string
+          message_id: string | null
+          note: string | null
+          organization_id: string
+          sent_at: string
+          status: string
+          to_contact: string | null
+          to_name: string | null
+        }
+        Insert: {
+          channel: string
+          created_by?: string | null
+          document_id: string
+          id?: string
+          message_id?: string | null
+          note?: string | null
+          organization_id: string
+          sent_at?: string
+          status?: string
+          to_contact?: string | null
+          to_name?: string | null
+        }
+        Update: {
+          channel?: string
+          created_by?: string | null
+          document_id?: string
+          id?: string
+          message_id?: string | null
+          note?: string | null
+          organization_id?: string
+          sent_at?: string
+          status?: string
+          to_contact?: string | null
+          to_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "docs_dispatches_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "docs_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      docs_documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          body: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          doc_date: string
+          fields: Json
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          kind: string
+          organization_id: string
+          pdf_path: string | null
+          recipient: Json
+          ref_no: string | null
+          signatories: Json
+          source_id: string | null
+          source_table: string | null
+          status: string
+          subject: string | null
+          submitted_at: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          verify_code: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          body?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_date?: string
+          fields?: Json
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          kind: string
+          organization_id: string
+          pdf_path?: string | null
+          recipient?: Json
+          ref_no?: string | null
+          signatories?: Json
+          source_id?: string | null
+          source_table?: string | null
+          status?: string
+          subject?: string | null
+          submitted_at?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string
+          verify_code?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          body?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_date?: string
+          fields?: Json
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          kind?: string
+          organization_id?: string
+          pdf_path?: string | null
+          recipient?: Json
+          ref_no?: string | null
+          signatories?: Json
+          source_id?: string | null
+          source_table?: string | null
+          status?: string
+          subject?: string | null
+          submitted_at?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+          verify_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "docs_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "docs_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      docs_register: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          direction: string
+          document_id: string | null
+          entry_date: string
+          entry_no: string | null
+          external_url: string | null
+          file_path: string | null
+          from_to: string
+          id: string
+          note: string | null
+          organization_id: string
+          ref_no: string | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          direction: string
+          document_id?: string | null
+          entry_date?: string
+          entry_no?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          from_to: string
+          id?: string
+          note?: string | null
+          organization_id: string
+          ref_no?: string | null
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          document_id?: string | null
+          entry_date?: string
+          entry_no?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          from_to?: string
+          id?: string
+          note?: string | null
+          organization_id?: string
+          ref_no?: string | null
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "docs_register_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "docs_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      docs_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          design: Json
+          id: string
+          is_default: boolean
+          kind: string
+          name: string
+          name_hi: string | null
+          organization_id: string | null
+          status: string
+          thumbnail: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          design: Json
+          id?: string
+          is_default?: boolean
+          kind: string
+          name: string
+          name_hi?: string | null
+          organization_id?: string | null
+          status?: string
+          thumbnail?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          design?: Json
+          id?: string
+          is_default?: boolean
+          kind?: string
+          name?: string
+          name_hi?: string | null
+          organization_id?: string | null
+          status?: string
+          thumbnail?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       donation_receipts: {
         Row: {
           amount: number
@@ -4205,7 +4457,83 @@ export type Database = {
         Returns: string
       }
       k1_can: { Args: { p_org: string; p_perm: string }; Returns: boolean }
+      k1_cancel_document: {
+        Args: { p_id: string; p_reason: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          body: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          doc_date: string
+          fields: Json
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          kind: string
+          organization_id: string
+          pdf_path: string | null
+          recipient: Json
+          ref_no: string | null
+          signatories: Json
+          source_id: string | null
+          source_table: string | null
+          status: string
+          subject: string | null
+          submitted_at: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          verify_code: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "docs_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       k1_claim_memberships: { Args: never; Returns: number }
+      k1_decide_document: {
+        Args: { p_approve: boolean; p_id: string; p_note?: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          body: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          doc_date: string
+          fields: Json
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          kind: string
+          organization_id: string
+          pdf_path: string | null
+          recipient: Json
+          ref_no: string | null
+          signatories: Json
+          source_id: string | null
+          source_table: string | null
+          status: string
+          subject: string | null
+          submitted_at: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          verify_code: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "docs_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       k1_decide_membership: {
         Args: {
           p_approve: boolean
@@ -4257,6 +4585,44 @@ export type Database = {
         }
       }
       k1_is_platform_admin: { Args: never; Returns: boolean }
+      k1_issue_document: {
+        Args: { p_id: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          body: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          doc_date: string
+          fields: Json
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          kind: string
+          organization_id: string
+          pdf_path: string | null
+          recipient: Json
+          ref_no: string | null
+          signatories: Json
+          source_id: string | null
+          source_table: string | null
+          status: string
+          subject: string | null
+          submitted_at: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          verify_code: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "docs_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       k1_my_orgs: {
         Args: never
         Returns: {
@@ -4318,6 +4684,61 @@ export type Database = {
           organization_id: string
           short_name: string
           slug: string
+        }[]
+      }
+      k1_set_document_pdf: {
+        Args: { p_id: string; p_path: string }
+        Returns: undefined
+      }
+      k1_submit_document: {
+        Args: { p_id: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          body: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          doc_date: string
+          fields: Json
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          kind: string
+          organization_id: string
+          pdf_path: string | null
+          recipient: Json
+          ref_no: string | null
+          signatories: Json
+          source_id: string | null
+          source_table: string | null
+          status: string
+          subject: string | null
+          submitted_at: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+          verify_code: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "docs_documents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      k1_verify_document: {
+        Args: { p_code: string }
+        Returns: {
+          doc_date: string
+          issued_at: string
+          kind: string
+          organization: string
+          recipient_name: string
+          ref_no: string
+          status: string
+          title: string
         }[]
       }
       lineage_roots: {

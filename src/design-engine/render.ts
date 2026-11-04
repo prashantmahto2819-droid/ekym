@@ -172,7 +172,7 @@ export function drawArt(ctx: CanvasRenderingContext2D, name: ArtLayer["art"], w:
 }
 
 function drawFrame(ctx: CanvasRenderingContext2D, L: FrameLayer) {
-  const { x, y, w, h } = L, lw = L.lw || 3, st = L.style || "single";
+  const { x, y, w } = L, h = L.h ?? 0, lw = L.lw || 3, st = L.style || "single";
   ctx.strokeStyle = L.color || "#111"; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.fillStyle = L.color || "#111";
   ctx.lineWidth = lw; rr(ctx, x, y, w, h, st === "rounded" ? 30 : (L.radius ?? 12)); ctx.stroke();
   if (st === "double" || st === "ornate") { ctx.lineWidth = Math.max(0.8, lw * 0.3); rr(ctx, x + lw * 2.8, y + lw * 2.8, w - lw * 5.6, h - lw * 5.6, Math.max(3, (L.radius ?? 12) - 4)); ctx.stroke(); }
