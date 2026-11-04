@@ -83,6 +83,7 @@ docs/kalchuri-one/     यह documentation
 | `ads` | slots, campaigns, creatives, stats |
 | `public` | मौजूदा shokpatra + ekym टेबल (अभी यहीं रहेंगी, Phase 6 के बाद move होंगी) |
 
+> नोट (Phase 3 से): Data API सिर्फ़ `public` दिखाता है, इसलिए नई टेबलें `public` में `org_`/`gov_`/`docs_`/`fin_` prefix के साथ बन रही हैं और `core` schema को `public.k1_*` wrappers से इस्तेमाल किया जाता है। अलग schemas का विकल्प तब खुलेगा जब
 > ज़रूरी: नई schemas को Supabase API में दिखाने के लिए Dashboard → Settings → Data API → "Exposed schemas" में जोड़ना होगा (यह काम आपको करना है, steps DEPLOYMENT_GUIDE में होंगे)।
 
 ## 5. सुरक्षा का ढाँचा

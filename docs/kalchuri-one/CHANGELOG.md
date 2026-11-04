@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-04 — Phase 3 (संगठन प्रबंधन)
+- टेबल (public schema, `org_`/`gov_` prefix): `org_memberships` (आवेदन → स्वीकृति → सदस्य संख्या, पहला फ़ैसला मान्य, मोबाइल normalise), `org_number_series` + `k1_next_number()` (गैप-रहित शृंखला: सदस्य `EKYM/M/0001`, प्रस्ताव `EKYM/R/0001`), `gov_committees`, `gov_positions` (+ public view बिना फ़ोन), `gov_meetings` (agenda, उपस्थिति, कार्यवृत्त draft→submitted→approved, approved होने पर lock), `gov_agenda_items`, `gov_resolutions` (auto-number), `gov_tasks`, `gov_announcements` (public/members/team), `org_documents`, `org_milestones`, bucket `org-files`।
+- RPC: `k1_decide_membership`, `k1_claim_memberships` (लॉगिन के बाद मोबाइल से आवेदन जोड़ना), `k1_org_stats`।
+- Admin: Members (आवेदन स्वीकृति + सदस्य सूची), Committees & office bearers, Meetings (सूची + विवरण पेज), Tasks, Announcements, Documents & history। `CrudPage` में foreign-key select, filter, datetime, row-click।
+- Public: `/join` (द्विभाषी सदस्यता फ़ॉर्म), `/team` (समितियाँ व पदाधिकारी)। Header/footer में लिंक।
+- Tests: `supabase/tests/org_management_test.sql` (11 checks पास)।
+- CI अब build के बाद typecheck चलाता है (route tree ताज़ा रहे) और `routeTree.gen.ts` logs में देता है।
+- अभी बाकी (अगले phases में): सदस्यता कार्ड PDF (Design Studio), बैठक notice WhatsApp से (Comms engine), दस्तावेज़ upload UI, विभाग-वार सदस्य, चुनाव/मतदान।
+
 ## 2026-11-04 — Phase 2 (वेबसाइट multi-organization + भाषा)
 - वेबसाइट की सभी 30 टेबलों में `organization_id` (पुरानी पंक्तियाँ EKYM से जुड़ीं); slug अब हर संगठन में अलग; सारी RLS `core.can()` पर।
 - Tenant: server host से संगठन पहचानता है (`core.org_domains` → `<slug>.PUBLIC_BASE_DOMAIN` → `DEFAULT_ORG_SLUG`=ekym)। हर public query, फ़ॉर्म, दान और admin पेज उसी संगठन तक सीमित।
