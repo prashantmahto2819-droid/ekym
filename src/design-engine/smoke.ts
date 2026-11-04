@@ -7,6 +7,8 @@ const data = {
   org: { name: "Ekatm Kalar Yuva Manch", name_hi: "एकात्म कलार युवा मंच", tagline: "Youth united", address: "Raipur, Chhattisgarh", phone: "+91 98xxxxxx10", email: "info@ekym.org", website: "ekym.org", logo: "" },
   doc: { ref_no: "EKYM/L/0001", date: "2026-11-04", subject: "Smoke test letter", salutation: "Respected Sir,", closing: "Yours sincerely,", title: "Donation Receipt", certificate_type: "Appreciation", verify_url: "https://example.org/verify/ABC123", body: Array.from({ length: 40 }, (_, i) => `Paragraph ${i + 1}: यह एक परीक्षण पंक्ति है जो **बोल्ड** शब्दों के साथ कई पंक्तियों में फैलती है, ताकि body text का pagination जाँचा जा सके।`).join("\n\n") },
   recipient: { name: "श्री रमेश कुमार", designation: "President", organization: "Kalchuri Samaj", address: "Main Road, Raipur", father_line: "(पिता: श्री मोहन लाल)", village: "कुसमुण्डा" },
+  event: { title_hi: "वार्षिक स्नेह मिलन", date: "15-12-2026", time: "सुबह 10 बजे", venue_hi: "सामुदायिक भवन, रायपुर", message: "आप सपरिवार सादर आमंत्रित हैं।", organizer: "आयोजन समिति", contact: "98xxxxxx10" },
+  guest: { name: "श्री रमेश कुमार", group: "कुसमुण्डा", rsvp_url: "https://example.org/rsvp/abc" },
   shok: { deceased: "श्री संतोष कुमार कश्यप", death_date: "2026-11-01", ceremony_date: "2026-11-11", venue: "नगर पालिका सामुदायिक भवन, आदर्श नगर, कुसमुण्डा", family: "कश्यप परिवार, कुसमुण्डा" },
   signatory: { name: "Prashant Mahto", designation: "Secretary" },
   receipt: { payer_name: "Ramesh Kumar", amount: 1100.5, purpose: "General donation", mode: "UPI", instrument: "TXN1", payer_mobile: "98xxxxxx10", payer_address: "Raipur", payer_pan: "", footer_note: "Computer generated." },

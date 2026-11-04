@@ -188,6 +188,39 @@ export function shokPatraTemplate(b: Brand): DesignDoc {
   return doc;
 }
 
+
+/** निमंत्रण (invitation) — portrait story size, QR per guest for check-in / RSVP. */
+export function invitationTemplate(b: Brand): DesignDoc {
+  const accent = b.color ?? "#b8924a";
+  const doc = newDoc("a5p", "#fffaf0");
+  const W = Math.round(mm(148)), H = Math.round(mm(210)), m = mm(10);
+  doc.master = [
+    { id: uid(), type: "frame", name: "Border", style: "ornate", x: m, y: m, w: W - 2 * m, h: H - 2 * m, color: accent, lw: 2.5, radius: 12 },
+    { id: uid(), type: "art", name: "Ornament", art: "ornament", x: W / 2 - mm(10), y: mm(16), w: mm(20), h: mm(20), color: accent },
+  ];
+  doc.pages[0]!.layers = [
+    { id: uid(), type: "text", name: "Shubh", text: "॥ शुभ निमंत्रण ॥", x: m, y: mm(38), w: W - 2 * m, size: 22, weight: 700, font: "tiro", color: accent, align: "center", lh: 30 },
+    { id: uid(), type: "text", name: "Org", text: "{{org.name_hi}}", x: m, y: mm(50), w: W - 2 * m, size: 13, font: "mukta", color: ink, align: "center", lh: 18 },
+    { id: uid(), type: "text", name: "Title", text: "{{event.title_hi}}", x: m + mm(6), y: mm(62), w: W - 2 * m - mm(12), h: mm(22), size: 30, weight: 700, font: "tiro", color: ink, align: "center", lh: 38, fit: true },
+    { id: uid(), type: "text", name: "When", text: "दिनांक: **{{event.date}}** · समय: **{{event.time}}**", x: m, y: mm(90), w: W - 2 * m, size: 13, font: "mukta", color: ink, align: "center", lh: 19 },
+    { id: uid(), type: "text", name: "Venue", text: "स्थान: {{event.venue_hi}}", x: m + mm(6), y: mm(100), w: W - 2 * m - mm(12), size: 13, font: "mukta", color: ink, align: "center", lh: 19 },
+    { id: uid(), type: "text", name: "Body", text: "{{event.message}}", x: m + mm(8), y: mm(118), w: W - 2 * m - mm(16), size: 12, font: "mukta", color: "#374151", align: "center", lh: 18 },
+    { id: uid(), type: "rect", name: "Guest box", x: m + mm(10), y: mm(150), w: W - 2 * m - mm(20), h: mm(22), radius: 8, lw: 1.2, color: accent, fill: "#fff7e6" },
+    { id: uid(), type: "text", name: "Guest", text: "सादर आमंत्रित: **{{guest.name}}**\n{{guest.group}}", x: m + mm(12), y: mm(153), w: W - 2 * m - mm(44), h: mm(16), size: 14, font: "tiro", color: ink, lh: 20, fit: true },
+    { id: uid(), type: "qr", name: "Check-in QR", data: "{{guest.rsvp_url}}", x: W - m - mm(30), y: mm(152), w: mm(18), h: mm(18), color: ink },
+    { id: uid(), type: "text", name: "Footer", text: "{{event.organizer}} · {{event.contact}}", x: m, y: H - mm(26), w: W - 2 * m, size: 10, font: "mukta", color: "#6b7280", align: "center", lh: 14 },
+  ];
+  doc.fields = [
+    { key: "event.title_hi", label: "Event title", label_hi: "आयोजन", sample: "वार्षिक स्नेह मिलन" },
+    { key: "event.date", label: "Date", label_hi: "दिनांक", sample: "15-12-2026" },
+    { key: "event.time", label: "Time", label_hi: "समय", sample: "सुबह 10 बजे" },
+    { key: "event.venue_hi", label: "Venue", label_hi: "स्थान", sample: "सामुदायिक भवन, रायपुर" },
+    { key: "event.message", label: "Message", label_hi: "संदेश", sample: "आप सपरिवार सादर आमंत्रित हैं।" },
+    { key: "guest.name", label: "Guest name (per person)", label_hi: "अतिथि", sample: "श्री रमेश कुमार" },
+  ];
+  return doc;
+}
+
 export const STARTER_TEMPLATES: { kind: string; name: string; name_hi: string; make: (b: Brand) => DesignDoc }[] = [
   { kind: "letterhead", name: "Official letterhead", name_hi: "आधिकारिक लेटरहेड", make: letterheadTemplate },
   { kind: "letter", name: "General letter", name_hi: "सामान्य पत्र", make: letterTemplate },
@@ -195,4 +228,5 @@ export const STARTER_TEMPLATES: { kind: string; name: string; name_hi: string; m
   { kind: "receipt", name: "Receipt", name_hi: "रसीद", make: receiptTemplate },
   { kind: "id_card", name: "Membership card", name_hi: "सदस्यता कार्ड", make: idCardTemplate },
   { kind: "shok_patra", name: "Condolence letter (शोकपत्र)", name_hi: "शोकपत्र", make: shokPatraTemplate },
+  { kind: "invitation", name: "Invitation (निमंत्रण)", name_hi: "निमंत्रण", make: invitationTemplate },
 ];

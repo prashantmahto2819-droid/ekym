@@ -1785,6 +1785,173 @@ export type Database = {
           },
         ]
       }
+      ev_events: {
+        Row: {
+          capacity: number | null
+          contact_phone: string | null
+          cover_image: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          description_hi: string | null
+          ends_at: string | null
+          id: string
+          invitation_template_id: string | null
+          kind: string
+          map_url: string | null
+          organization_id: string
+          organizer: string | null
+          registration_open: boolean
+          slug: string
+          starts_at: string
+          status: string
+          title: string
+          title_hi: string | null
+          updated_at: string
+          venue: string | null
+          venue_hi: string | null
+        }
+        Insert: {
+          capacity?: number | null
+          contact_phone?: string | null
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_hi?: string | null
+          ends_at?: string | null
+          id?: string
+          invitation_template_id?: string | null
+          kind?: string
+          map_url?: string | null
+          organization_id: string
+          organizer?: string | null
+          registration_open?: boolean
+          slug: string
+          starts_at: string
+          status?: string
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          venue?: string | null
+          venue_hi?: string | null
+        }
+        Update: {
+          capacity?: number | null
+          contact_phone?: string | null
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_hi?: string | null
+          ends_at?: string | null
+          id?: string
+          invitation_template_id?: string | null
+          kind?: string
+          map_url?: string | null
+          organization_id?: string
+          organizer?: string | null
+          registration_open?: boolean
+          slug?: string
+          starts_at?: string
+          status?: string
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          venue?: string | null
+          venue_hi?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ev_events_invitation_template_id_fkey"
+            columns: ["invitation_template_id"]
+            isOneToOne: false
+            referencedRelation: "docs_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ev_guests: {
+        Row: {
+          checkin_at: string | null
+          checkin_by: string | null
+          created_at: string
+          email: string | null
+          event_id: string
+          group_name: string | null
+          id: string
+          invited_at: string | null
+          membership_id: string | null
+          name: string
+          organization_id: string
+          phone: string | null
+          reminded_at: string | null
+          rsvp: string
+          rsvp_at: string | null
+          rsvp_note: string | null
+          seats: number
+          source: string
+          token: string
+        }
+        Insert: {
+          checkin_at?: string | null
+          checkin_by?: string | null
+          created_at?: string
+          email?: string | null
+          event_id: string
+          group_name?: string | null
+          id?: string
+          invited_at?: string | null
+          membership_id?: string | null
+          name: string
+          organization_id: string
+          phone?: string | null
+          reminded_at?: string | null
+          rsvp?: string
+          rsvp_at?: string | null
+          rsvp_note?: string | null
+          seats?: number
+          source?: string
+          token?: string
+        }
+        Update: {
+          checkin_at?: string | null
+          checkin_by?: string | null
+          created_at?: string
+          email?: string | null
+          event_id?: string
+          group_name?: string | null
+          id?: string
+          invited_at?: string | null
+          membership_id?: string | null
+          name?: string
+          organization_id?: string
+          phone?: string | null
+          reminded_at?: string | null
+          rsvp?: string
+          rsvp_at?: string | null
+          rsvp_note?: string | null
+          seats?: number
+          source?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ev_guests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "ev_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ev_guests_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "org_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       families: {
         Row: {
           admin_note: string | null
@@ -5780,6 +5947,24 @@ export type Database = {
         }
         Returns: string
       }
+      k1_event_checkin: {
+        Args: { p_token: string; p_undo?: boolean }
+        Returns: Json
+      }
+      k1_event_import_members: {
+        Args: { p_event: string; p_filter?: string }
+        Returns: number
+      }
+      k1_event_register: {
+        Args: {
+          p_event: string
+          p_name: string
+          p_phone: string
+          p_seats?: number
+        }
+        Returns: string
+      }
+      k1_event_stats: { Args: { p_event: string }; Returns: Json }
       k1_families: {
         Args: { p_limit?: number; p_q?: string; p_status?: string }
         Returns: {
@@ -5956,6 +6141,16 @@ export type Database = {
           slug: string
         }[]
       }
+      k1_rsvp: {
+        Args: {
+          p_answer: string
+          p_note?: string
+          p_seats?: number
+          p_token: string
+        }
+        Returns: undefined
+      }
+      k1_rsvp_info: { Args: { p_token: string }; Returns: Json }
       k1_set_branding: {
         Args: { p_branding: Json; p_org: string }
         Returns: Json

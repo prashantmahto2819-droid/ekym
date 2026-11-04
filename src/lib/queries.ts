@@ -23,6 +23,9 @@ import {
   getPage,
   getHomePage,
   getMenus,
+  getEvents,
+  getEvent,
+  getRsvpInfo,
 } from "./public.functions";
 
 export const organizationQuery = () =>
@@ -76,3 +79,7 @@ export const issueQuery = (slug: string) => queryOptions({ queryKey: ["issue", s
 export const pageQuery = (slug: string) => queryOptions({ queryKey: ["page", slug], queryFn: () => getPage({ data: { slug } }) });
 export const homePageQuery = () => queryOptions({ queryKey: ["home-page"], queryFn: () => getHomePage() });
 export const menusQuery = () => queryOptions({ queryKey: ["menus"], queryFn: () => getMenus(), staleTime: 60_000 });
+
+export const eventsQuery = () => queryOptions({ queryKey: ["events"], queryFn: () => getEvents() });
+export const eventQuery = (slug: string) => queryOptions({ queryKey: ["event", slug], queryFn: () => getEvent({ data: { slug } }) });
+export const rsvpQuery = (token: string) => queryOptions({ queryKey: ["rsvp", token], queryFn: () => getRsvpInfo({ data: { token } }) });

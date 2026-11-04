@@ -32,6 +32,7 @@ const moreNav: { key: TKey; to: string }[] = [
   { key: "blogs", to: "/blogs" },
   { key: "news", to: "/news" },
   { key: "magazine", to: "/magazine" },
+  { key: "events", to: "/events" },
   { key: "campaigns", to: "/campaigns" },
   { key: "gallery", to: "/gallery" },
   { key: "videos", to: "/videos" },
