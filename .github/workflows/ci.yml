@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: ["ci-logs/**"]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.1
+
+      - name: Install
+        id: install
+        continue-on-error: true
+        run: |
+          mkdir -p ci-out
+          set -o pipefail
+          bun install 2>&1 | tee ci-out/install.log
+
+      - name: Typecheck
+        id: typecheck
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bunx tsc --noEmit -p . 2>&1 | tee ci-out/typecheck.log
+
+      - name: Build
+        id: build
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bun run build 2>&1 | tee ci-out/build.log
+          ls -R .output 2>/dev/null | head -80 > ci-out/output-tree.txt || true
+          ls -la dist 2>/dev/null >> ci-out/output-tree.txt || true
+
+      - name: Diagnostics
+        if: always()
+        run: |
+          cp bun.lock ci-out/bun.lock 2>/dev/null || true
+          if [ -d node_modules/@lovable.dev/vite-tanstack-config ]; then
+            mkdir -p ci-out/lovable-config
+            cp -r node_modules/@lovable.dev/vite-tanstack-config/package.json node_modules/@lovable.dev/vite-tanstack-config/dist ci-out/lovable-config/ 2>/dev/null || true
+          fi
+          {
+            echo "install=${{ steps.install.outcome }}"
+            echo "typecheck=${{ steps.typecheck.outcome }}"
+            echo "build=${{ steps.build.outcome }}"
+          } > ci-out/RESULT.txt
+          cat ci-out/RESULT.txt
+
+      - name: Publish logs to ci-logs branch
+        if: always() && github.event_name == 'push'
+        run: |
+          cd ci-out
+          git init -q
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git add -A
+          git commit -qm "CI logs for ${GITHUB_SHA}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/ci-logs/${GITHUB_REF_NAME}
+
+      - name: Fail if any step failed
+        if: steps.install.outcome != 'success' || steps.typecheck.outcome != 'success' || steps.build.outcome != 'success'
+        run: exit 1
