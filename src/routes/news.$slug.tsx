@@ -4,6 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
+import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { Button } from "@/components/ui/button";
 import { newsQuery } from "@/lib/queries";
@@ -55,7 +56,7 @@ function NewsDetail() {
             <img src={item.thumbnail} alt="" className="mt-6 w-full rounded-xl object-cover" />
           ) : null}
           <div className="prose-content mt-6 whitespace-pre-line">
-            {item.description}
+            {item.content || item.description}
           </div>
           {item.external_url ? (
             <Button asChild variant="outline" className="mt-6">
@@ -67,6 +68,7 @@ function NewsDetail() {
           <div className="mt-8">
             <ShareButtons path={`/news/${item.slug}`} title={item.title} />
           </div>
+          <Comments kind="news" postId={item.id} />
         </div>
       </article>
     </>

@@ -6,6 +6,7 @@ import { siteName } from "@/core/seo";
 import { BlogCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
 import { SectionHeading } from "@/components/site/SectionHeading";
+import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { blogQuery } from "@/lib/queries";
 import { formatDate, truncate } from "@/lib/format";
@@ -69,6 +70,7 @@ function BlogDetail() {
           <div className="mt-8">
             <ShareButtons path={`/blogs/${blog.slug}`} title={blog.title} />
           </div>
+          <Comments kind="blog" postId={blog.id} />
         </div>
       </article>
 

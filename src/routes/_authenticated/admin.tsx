@@ -34,6 +34,7 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/seva", label: "Seva projects", group: "Content" },
   { to: "/admin/blogs", label: "Blogs", group: "Content" },
   { to: "/admin/news", label: "News", group: "Content" },
+  { to: "/admin/publishing", label: "Publishing (comments, feed, magazine)", group: "Content" },
   { to: "/admin/campaigns", label: "Campaigns", group: "Content" },
   { to: "/admin/media", label: "Videos, reels & gallery", group: "Content" },
   { to: "/admin/community", label: "Contributors & testimonials", group: "Content" },
