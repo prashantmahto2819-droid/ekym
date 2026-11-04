@@ -125,7 +125,7 @@ function DocumentComposer() {
         const { error: e2 } = await supabase.rpc("k1_set_document_pdf", { p_id: d.id, p_path: path });
         if (e2) throw e2;
       }
-      const orgName = org?.name ?? "";
+      const orgName = tenant.name;
       const subject = d.subject ?? d.title;
       const body = kind === "email"
         ? `Dear ${r.name ?? "Sir/Madam"},\n\nPlease find attached ${subject}${d.ref_no ? ` (Ref. ${d.ref_no})` : ""} from ${orgName}.${d.verify_code ? `\nVerify online: ${siteUrl}/verify/${d.verify_code}` : ""}\n\nRegards,\n${orgName}`

@@ -253,11 +253,11 @@ function BroadcastSection({ org, channels, onDone }: { org: string; channels: Ch
     return rows.map((r) => ({ to: kind === "email" ? (r.email ?? "") : normPhone(r.whatsapp ?? ""), name: r.full_name, data: { member: { name: r.full_name, name_hi: r.full_name_hi ?? r.full_name, no: r.member_no ?? "" } } })).filter((r) => r.to && r.to.length >= 5);
   }
 
-  async function send() {
-    if (!body.trim()) return toast.error("Write the message");
-    if (!hasChannel) return toast.error(`No active ${kind} channel`);
+  async function send(): Promise<void> {
+    if (!body.trim()) { toast.error("Write the message"); return; }
+    if (!hasChannel) { toast.error(`No active ${kind} channel`); return; }
     const list = await recipients();
-    if (!list.length) return toast.error("No recipients with a contact");
+    if (!list.length) { toast.error("No recipients with a contact"); return; }
     if (!confirm(`Queue ${list.length} ${kind} message(s)? They go out gradually with gaps between them.`)) return;
     const { data: camp } = await supabase.from("comms_campaigns").insert({ organization_id: org, name: subject || body.slice(0, 40), purpose, status: "sending", total: list.length } as never).select("id").single();
     const campaignId = (camp as { id: string } | null)?.id ?? null;
@@ -296,6 +296,6 @@ function BroadcastSection({ org, channels, onDone }: { org: string; channels: Ch
   );
 }
 
-function L({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function L({ label, hint, children }: { label: string; hint?: string | undefined; children: React.ReactNode }) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{label}{hint ? <span className="font-normal"> · {hint}</span> : null}</span>{children}</label>;
 }

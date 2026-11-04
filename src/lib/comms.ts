@@ -21,21 +21,15 @@ export type EnqueueInput = {
 
 /** Queue one message; the worker sends it within a minute. Returns the message id. */
 export async function enqueueMessage(i: EnqueueInput): Promise<string> {
-  const { data, error } = await supabase.rpc("k1_enqueue_message", {
-    p_org: i.org,
-    p_kind: i.kind,
-    p_to: i.to,
-    p_body: i.body,
-    p_name: i.name ?? null,
-    p_subject: i.subject ?? null,
-    p_media: (i.media ?? []) as never,
-    p_purpose: i.purpose ?? "utility",
-    p_ref_table: i.refTable ?? null,
-    p_ref_id: i.refId ?? null,
-    p_channel: i.channel ?? null,
-    p_campaign: i.campaign ?? null,
-    p_meta_template: (i.metaTemplate ?? null) as never,
-  });
+  const args: Record<string, unknown> = { p_org: i.org, p_kind: i.kind, p_to: i.to, p_body: i.body, p_media: i.media ?? [], p_purpose: i.purpose ?? "utility" };
+  if (i.name) args["p_name"] = i.name;
+  if (i.subject) args["p_subject"] = i.subject;
+  if (i.refTable) args["p_ref_table"] = i.refTable;
+  if (i.refId) args["p_ref_id"] = i.refId;
+  if (i.channel) args["p_channel"] = i.channel;
+  if (i.campaign) args["p_campaign"] = i.campaign;
+  if (i.metaTemplate) args["p_meta_template"] = i.metaTemplate;
+  const { data, error } = await supabase.rpc("k1_enqueue_message", args as never);
   if (error) throw new Error(error.message);
   return data as string;
 }
