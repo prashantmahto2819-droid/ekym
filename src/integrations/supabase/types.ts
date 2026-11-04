@@ -689,6 +689,339 @@ export type Database = {
         }
         Relationships: []
       }
+      comms_campaigns: {
+        Row: {
+          audience: Json
+          channel_id: string | null
+          created_at: string
+          created_by: string | null
+          failed: number
+          id: string
+          name: string
+          organization_id: string
+          purpose: string
+          schedule_at: string | null
+          sent: number
+          status: string
+          template_id: string | null
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          audience?: Json
+          channel_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          failed?: number
+          id?: string
+          name: string
+          organization_id: string
+          purpose?: string
+          schedule_at?: string | null
+          sent?: number
+          status?: string
+          template_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          audience?: Json
+          channel_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          failed?: number
+          id?: string
+          name?: string
+          organization_id?: string
+          purpose?: string
+          schedule_at?: string | null
+          sent?: number
+          status?: string
+          template_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_campaigns_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "comms_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comms_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "comms_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_channels: {
+        Row: {
+          config: Json
+          created_at: string
+          daily_limit: number
+          gap_max_s: number
+          gap_min_s: number
+          id: string
+          is_default: boolean
+          kind: string
+          last_error: string | null
+          name: string
+          organization_id: string
+          provider: string
+          secret_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          daily_limit?: number
+          gap_max_s?: number
+          gap_min_s?: number
+          id?: string
+          is_default?: boolean
+          kind: string
+          last_error?: string | null
+          name: string
+          organization_id: string
+          provider: string
+          secret_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          daily_limit?: number
+          gap_max_s?: number
+          gap_min_s?: number
+          id?: string
+          is_default?: boolean
+          kind?: string
+          last_error?: string | null
+          name?: string
+          organization_id?: string
+          provider?: string
+          secret_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      comms_consents: {
+        Row: {
+          contact: string
+          given_at: string
+          id: string
+          name: string | null
+          organization_id: string
+          purposes: string[]
+          source: string
+          user_id: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          contact: string
+          given_at?: string
+          id?: string
+          name?: string | null
+          organization_id: string
+          purposes?: string[]
+          source?: string
+          user_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          contact?: string
+          given_at?: string
+          id?: string
+          name?: string | null
+          organization_id?: string
+          purposes?: string[]
+          source?: string
+          user_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: []
+      }
+      comms_messages: {
+        Row: {
+          attempts: number
+          body: string
+          campaign_id: string | null
+          channel_id: string | null
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          error: string | null
+          id: string
+          kind: string
+          lock_until: string | null
+          max_attempts: number
+          media: Json
+          meta_template: Json | null
+          next_attempt_at: string
+          organization_id: string
+          provider_message_id: string | null
+          purpose: string
+          read_at: string | null
+          ref_id: string | null
+          ref_table: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          to_contact: string
+          to_name: string | null
+        }
+        Insert: {
+          attempts?: number
+          body: string
+          campaign_id?: string | null
+          channel_id?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          error?: string | null
+          id?: string
+          kind: string
+          lock_until?: string | null
+          max_attempts?: number
+          media?: Json
+          meta_template?: Json | null
+          next_attempt_at?: string
+          organization_id: string
+          provider_message_id?: string | null
+          purpose?: string
+          read_at?: string | null
+          ref_id?: string | null
+          ref_table?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          to_contact: string
+          to_name?: string | null
+        }
+        Update: {
+          attempts?: number
+          body?: string
+          campaign_id?: string | null
+          channel_id?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          error?: string | null
+          id?: string
+          kind?: string
+          lock_until?: string | null
+          max_attempts?: number
+          media?: Json
+          meta_template?: Json | null
+          next_attempt_at?: string
+          organization_id?: string
+          provider_message_id?: string | null
+          purpose?: string
+          read_at?: string | null
+          ref_id?: string | null
+          ref_table?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          to_contact?: string
+          to_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comms_messages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "comms_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comms_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "comms_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comms_opt_outs: {
+        Row: {
+          contact: string
+          created_at: string
+          id: string
+          organization_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          contact: string
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          contact?: string
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      comms_templates: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          id: string
+          kind: string
+          language: string
+          meta_status: string | null
+          meta_template_name: string | null
+          name: string
+          organization_id: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string
+          created_at?: string
+          id?: string
+          kind: string
+          language?: string
+          meta_status?: string | null
+          meta_template_name?: string | null
+          name: string
+          organization_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          language?: string
+          meta_status?: string | null
+          meta_template_name?: string | null
+          name?: string
+          organization_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           city: string | null
@@ -4336,6 +4669,7 @@ export type Database = {
         Returns: boolean
       }
       claim_admin_families: { Args: never; Returns: number }
+      comms_tick: { Args: never; Returns: undefined }
       create_letter_recipients: {
         Args: {
           p_allow_repeat?: boolean
@@ -4495,7 +4829,85 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_cancel_message: { Args: { p_id: string }; Returns: undefined }
       k1_claim_memberships: { Args: never; Returns: number }
+      k1_comms_channel_runtime: {
+        Args: { p_channel: string }
+        Returns: {
+          config: Json
+          daily_limit: number
+          gap_max_s: number
+          gap_min_s: number
+          id: string
+          kind: string
+          organization_id: string
+          provider: string
+          secret: string
+          status: string
+        }[]
+      }
+      k1_comms_claim: {
+        Args: { p_batch?: number }
+        Returns: {
+          attempts: number
+          body: string
+          campaign_id: string | null
+          channel_id: string | null
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          error: string | null
+          id: string
+          kind: string
+          lock_until: string | null
+          max_attempts: number
+          media: Json
+          meta_template: Json | null
+          next_attempt_at: string
+          organization_id: string
+          provider_message_id: string | null
+          purpose: string
+          read_at: string | null
+          ref_id: string | null
+          ref_table: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+          to_contact: string
+          to_name: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "comms_messages"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      k1_comms_opt_out: {
+        Args: { p_contact: string; p_org: string; p_reason?: string }
+        Returns: undefined
+      }
+      k1_comms_result: {
+        Args: {
+          p_cost?: number
+          p_error?: string
+          p_fatal?: boolean
+          p_id: string
+          p_ok: boolean
+          p_provider_id?: string
+        }
+        Returns: undefined
+      }
+      k1_comms_set_secret: {
+        Args: { p_channel: string; p_secret: string }
+        Returns: undefined
+      }
+      k1_comms_stats: { Args: { p_org: string }; Returns: Json }
+      k1_comms_status_update: {
+        Args: { p_at?: string; p_provider_id: string; p_status: string }
+        Returns: undefined
+      }
       k1_decide_document: {
         Args: { p_approve: boolean; p_id: string; p_note?: string }
         Returns: {
@@ -4584,6 +4996,24 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_enqueue_message: {
+        Args: {
+          p_body: string
+          p_campaign?: string
+          p_channel?: string
+          p_kind: string
+          p_media?: Json
+          p_meta_template?: Json
+          p_name?: string
+          p_org: string
+          p_purpose?: string
+          p_ref_id?: string
+          p_ref_table?: string
+          p_subject?: string
+          p_to: string
+        }
+        Returns: string
+      }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
         Args: { p_id: string }
@@ -4638,6 +5068,7 @@ export type Database = {
         Args: { p_kind: string; p_org: string }
         Returns: string
       }
+      k1_norm_contact: { Args: { p: string }; Returns: string }
       k1_org_by_slug: {
         Args: { p_slug: string }
         Returns: {
@@ -4673,6 +5104,10 @@ export type Database = {
           role_name: string
           user_id: string
         }[]
+      }
+      k1_pick_channel: {
+        Args: { p_kind: string; p_org: string }
+        Returns: string
       }
       k1_remove_role: { Args: { p_assignment: string }; Returns: undefined }
       k1_resolve_host: {
