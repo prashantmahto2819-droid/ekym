@@ -10,9 +10,10 @@
 7. [WHATSAPP_INTEGRATION.md](WHATSAPP_INTEGRATION.md)
 8. [SECURITY_AND_PRIVACY.md](SECURITY_AND_PRIVACY.md)
 9. [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md): phases और Definition of Done
-10. [CHANGELOG.md](CHANGELOG.md)
+10. [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+11. [CHANGELOG.md](CHANGELOG.md)
 
-Master prompt की बाकी docs (PRD, SRS, API_DOCUMENTATION, CMS_AND_PUBLISHING, MODULES_AND_FEATURES, DEPLOYMENT_GUIDE) संबंधित phase शुरू होने पर बनेंगी, ताकि वे असली code से मेल खाएँ।
+Master prompt की बाकी docs (PRD, SRS, API_DOCUMENTATION, CMS_AND_PUBLISHING, MODULES_AND_FEATURES) संबंधित phase शुरू होने पर बनेंगी, ताकि वे असली code से मेल खाएँ।
 
 ## तय फ़ैसले (4 नवंबर 2026)
 - Kalchuri One इसी `ekym` repo में restructure होगा; EKYM वेबसाइट इसका पहला संगठन बनेगी।
