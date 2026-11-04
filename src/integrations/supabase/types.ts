@@ -1013,6 +1013,182 @@ export type Database = {
         }
         Relationships: []
       }
+      cm_post_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          organization_id: string
+          parent_id: string | null
+          post_id: string
+          status: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          parent_id?: string | null
+          post_id: string
+          status?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          parent_id?: string | null
+          post_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "cm_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "cm_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "cm_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_post_reports: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          id: string
+          organization_id: string
+          post_id: string | null
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id: string
+          post_id?: string | null
+          reason: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string
+          post_id?: string | null
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_post_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "cm_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "cm_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_posts: {
+        Row: {
+          author_id: string
+          body: string | null
+          comment_count: number
+          created_at: string
+          id: string
+          like_count: number
+          link_kind: string | null
+          link_url: string | null
+          media: Json
+          organization_id: string
+          pinned: boolean
+          share_count: number
+          status: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          author_id: string
+          body?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          link_kind?: string | null
+          link_url?: string | null
+          media?: Json
+          organization_id: string
+          pinned?: boolean
+          share_count?: number
+          status?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          link_kind?: string | null
+          link_url?: string | null
+          media?: Json
+          organization_id?: string
+          pinned?: boolean
+          share_count?: number
+          status?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       cm_votes: {
         Row: {
           choices: string[]
@@ -6301,6 +6477,33 @@ export type Database = {
         }[]
       }
       k1_family_ctx: { Args: never; Returns: Json }
+      k1_feed: {
+        Args: {
+          p_before?: string
+          p_limit?: number
+          p_org: string
+          p_post?: string
+        }
+        Returns: {
+          author_id: string
+          author_name: string
+          author_photo: string
+          body: string
+          can_moderate: boolean
+          comment_count: number
+          created_at: string
+          id: string
+          like_count: number
+          liked: boolean
+          link_kind: string
+          link_url: string
+          media: Json
+          mine: boolean
+          pinned: boolean
+          share_count: number
+          visibility: string
+        }[]
+      }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
@@ -6479,6 +6682,18 @@ export type Database = {
       }
       k1_poll_close: { Args: { p_poll: string }; Returns: undefined }
       k1_poll_results: { Args: { p_poll: string }; Returns: Json }
+      k1_post_comments: {
+        Args: { p_post: string }
+        Returns: {
+          author_id: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          mine: boolean
+          parent_id: string
+        }[]
+      }
       k1_post_decide: {
         Args: {
           p_decision: string
@@ -6488,10 +6703,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      k1_post_moderate: {
+        Args: { p_pinned?: boolean; p_post: string; p_status: string }
+        Returns: undefined
+      }
       k1_post_nominate: {
         Args: { p_id: string; p_kind: string; p_nominate?: boolean }
         Returns: undefined
       }
+      k1_post_shared: { Args: { p_post: string }; Returns: undefined }
       k1_post_submit: {
         Args: { p_id: string; p_kind: string }
         Returns: undefined
@@ -6574,6 +6794,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_toggle_like: { Args: { p_post: string }; Returns: boolean }
       k1_verify_document: {
         Args: { p_code: string }
         Returns: {

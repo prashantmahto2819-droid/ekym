@@ -19,6 +19,7 @@ import { menusQuery, organizationQuery } from "@/lib/queries";
 import type { MenuItem } from "@/lib/public.functions";
 
 const primaryNav: { key: TKey; to: string }[] = [
+  { key: "community", to: "/community" },
   { key: "about", to: "/about" },
   { key: "seva", to: "/seva" },
   { key: "blood", to: "/blood" },

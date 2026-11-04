@@ -6,7 +6,7 @@ export const LANG_COOKIE = "k1_lang";
 
 const dict = {
   en: {
-    home: "Home", about: "About us", seva: "Seva Prakalp", blogs: "Blogs", news: "News", magazine: "Magazine", events: "Events", directory: "Directory", jobs: "Jobs", scholarships: "Scholarships", help: "Emergency help", matrimony: "Matrimony", polls: "Polls", campaigns: "Campaigns",
+    home: "Home", about: "About us", seva: "Seva Prakalp", blogs: "Blogs", news: "News", magazine: "Magazine", events: "Events", community: "Kalchuri One", directory: "Directory", jobs: "Jobs", scholarships: "Scholarships", help: "Emergency help", matrimony: "Matrimony", polls: "Polls", campaigns: "Campaigns",
     gallery: "Gallery", videos: "Videos", reels: "Reels", blood: "Blood donation", library: "Library",
     volunteer: "Volunteer", internship: "Internship", donate: "Donate", contact: "Contact",
     our_seva: "Our seva", get_involved: "Get involved", read_watch: "Read & watch", policies: "Policies",
@@ -16,7 +16,7 @@ const dict = {
     team: "Our team", join: "Become a member", announcements: "Announcements",
   },
   hi: {
-    home: "होम", about: "हमारे बारे में", seva: "सेवा प्रकल्प", blogs: "ब्लॉग", news: "समाचार", magazine: "पत्रिका", events: "आयोजन", directory: "निर्देशिका", jobs: "रोज़गार", scholarships: "छात्रवृत्ति", help: "आपात सहायता", matrimony: "वैवाहिक", polls: "मतदान", campaigns: "अभियान",
+    home: "होम", about: "हमारे बारे में", seva: "सेवा प्रकल्प", blogs: "ब्लॉग", news: "समाचार", magazine: "पत्रिका", events: "आयोजन", community: "कलचुरी वन", directory: "निर्देशिका", jobs: "रोज़गार", scholarships: "छात्रवृत्ति", help: "आपात सहायता", matrimony: "वैवाहिक", polls: "मतदान", campaigns: "अभियान",
     gallery: "गैलरी", videos: "वीडियो", reels: "रील्स", blood: "रक्तदान", library: "पुस्तकालय",
     volunteer: "स्वयंसेवक", internship: "इंटर्नशिप", donate: "दान करें", contact: "संपर्क",
     our_seva: "हमारी सेवा", get_involved: "जुड़ें", read_watch: "पढ़ें और देखें", policies: "नीतियाँ",

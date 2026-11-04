@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-04 — Phase 11b ("Kalchuri One" community feed)
+- निर्णय: community feed का नाम **Kalchuri One / कलचुरी वन** (Header में मुख्य link, route `/community`)।
+- Migration `cm_02_feed`: `cm_posts` (body, media = bucket `community` की फोटो, `link_url` + `link_kind` youtube|instagram|facebook|other, visibility members|public, status active|hidden|removed, pinned, like/comment/share counters), `cm_post_likes`, `cm_post_comments` (1-level replies), `cm_post_reports`; counters trigger से। RLS: public posts सबको, members posts सदस्यों को; अपनी पोस्ट/टिप्पणी ही बदल/हटा सकते हैं; `community.listing.moderate` वाले सब। RPCs: `k1_feed` (author नाम/फोटो, liked/mine/can_moderate; pagination), `k1_post_comments`, `k1_toggle_like`, `k1_post_shared`, `k1_post_moderate` (hide/remove/pin)। Bucket `community` (public, 5 MB, सिर्फ़ images)।
+- `Feed.tsx`: composer (पाठ, 6 तक फोटो, link; सदस्य/सार्वजनिक), post card (फोटो grid, **YouTube/Facebook/Instagram embed सिर्फ़ link से** — कोई वीडियो upload नहीं), 👍 like, threaded टिप्पणियाँ, WhatsApp/native/copy share (+count), रिपोर्ट, ⋯ menu (pin/hide/delete)। Pages `/community` (feed) और `/community/<id>` (share link के लिए)। Admin → Community → "Kalchuri One feed": open reports (hide/remove/dismiss), hidden posts (restore)।
+- बाकी: notifications (किसी ने like/comment किया), @mentions, hashtags/search, OG image for post links, video upload (नीचे देखें — जानबूझकर नहीं)।
+
 ## 2026-11-04 — Phase 11 (Community modules)
 - Migration `cm_01_community`: permissions `community.listing.moderate`, `community.matrimony.manage`, `community.poll.manage`; `k1_is_member(org)` (team या active membership)।
 - **Listings** `cm_listings` (kind business|professional|job|scholarship|emergency; title/hi, body/hi, category, kind-specific `fields`, संपर्क, पता, image, status pending→approved/rejected/expired, expires_at, featured, views)। कोई भी logged-in user जोड़ सकता है (pending); moderator `k1_listing_decide`। Public pages: `/directory` (business+professional), `/jobs`, `/scholarships`, `/help` — खोज, श्रेणी फ़िल्टर, WhatsApp/call link, "+ Add a listing" फ़ॉर्म।
