@@ -2761,6 +2761,7 @@ export type Database = {
           message_template: string | null
           message_text: string | null
           name_box: Json | null
+          organization_id: string | null
           send_mode: string
           status: string
           updated_at: string
@@ -2782,6 +2783,7 @@ export type Database = {
           message_template?: string | null
           message_text?: string | null
           name_box?: Json | null
+          organization_id?: string | null
           send_mode?: string
           status?: string
           updated_at?: string
@@ -2803,6 +2805,7 @@ export type Database = {
           message_template?: string | null
           message_text?: string | null
           name_box?: Json | null
+          organization_id?: string | null
           send_mode?: string
           status?: string
           updated_at?: string

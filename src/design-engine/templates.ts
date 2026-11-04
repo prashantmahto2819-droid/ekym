@@ -154,10 +154,45 @@ export function idCardTemplate(b: Brand): DesignDoc {
   return doc;
 }
 
+
+/** शोकपत्र (condolence letter) — portrait, dark navy with diya; recipient name is merged per person. */
+export function shokPatraTemplate(b: Brand): DesignDoc {
+  const accent = b.color && b.color !== "#0f766e" ? b.color : "#b8924a";
+  const doc = newDoc("shokp", "#14213d");
+  const W = Math.round(mm(277.8)), H = Math.round(mm(394.5)), m = mm(18);
+  doc.master = [
+    { id: uid(), type: "frame", name: "Border", style: "double", x: m, y: m, w: W - 2 * m, h: H - 2 * m, color: accent, lw: 3, radius: 14 },
+    { id: uid(), type: "art", name: "Diya", art: "diya", x: W / 2 - mm(16), y: mm(28), w: mm(32), h: mm(32), color: accent },
+    { id: uid(), type: "art", name: "Divider", art: "divider", x: W / 2 - mm(50), y: mm(64), w: mm(100), h: mm(8), color: accent },
+  ];
+  doc.pages[0]!.layers = [
+    { id: uid(), type: "text", name: "Shraddhanjali", text: "॥ श्रद्धांजलि ॥", x: m, y: mm(74), w: W - 2 * m, size: 30, weight: 700, font: "tiro", color: accent, align: "center", lh: 40 },
+    { id: uid(), type: "text", name: "Deceased", text: "{{shok.deceased}}", x: m + mm(10), y: mm(92), w: W - 2 * m - mm(20), h: mm(26), size: 52, weight: 700, font: "tiro", color: "#ffffff", align: "center", lh: 64, fit: true },
+    { id: uid(), type: "text", name: "Dates", text: "निधन: {{shok.death_date|date}}", x: m, y: mm(122), w: W - 2 * m, size: 18, font: "mukta", color: "#e5e7eb", align: "center", lh: 26 },
+    { id: uid(), type: "text", name: "Body", text: "अत्यंत दुःख के साथ सूचित करना पड़ रहा है कि **{{shok.deceased}}** का निधन दिनांक {{shok.death_date|date}} को हो गया है। उनका दशगात्र एवं चन्दनपान दिनांक **{{shok.ceremony_date|date}}** को संपन्न होगा।\n\nस्थान: {{shok.venue}}\n\nआप सपरिवार पधारकर मृतात्मा को शांति प्रदान कर हमें अनुग्रहित करें।", x: m + mm(14), y: mm(140), w: W - 2 * m - mm(28), size: 18, font: "mukta", color: "#f3f4f6", align: "center", lh: 29 },
+    { id: uid(), type: "rect", name: "Name box", x: m + mm(20), y: mm(236), w: W - 2 * m - mm(40), h: mm(34), radius: 10, lw: 1.5, color: accent, fill: "#1d2b4f" },
+    { id: uid(), type: "text", name: "Recipient label", text: "सेवा में,", x: m + mm(24), y: mm(239), w: W - 2 * m - mm(48), size: 13, font: "mukta", color: accent, lh: 18 },
+    { id: uid(), type: "text", name: "Recipient", text: "**{{recipient.name}}** {{recipient.father_line}}\n{{recipient.village}}", x: m + mm(24), y: mm(246), w: W - 2 * m - mm(48), h: mm(22), size: 22, font: "tiro", color: "#ffffff", lh: 30, fit: true },
+    { id: uid(), type: "text", name: "Family", text: "शोकाकुल: {{shok.family}}", x: m, y: mm(290), w: W - 2 * m, size: 16, font: "mukta", color: "#e5e7eb", align: "center", lh: 24 },
+    { id: uid(), type: "text", name: "Organization", text: "{{org.name_hi}}", x: m, y: H - mm(50), w: W - 2 * m, size: 15, weight: 700, font: "tiro", color: accent, align: "center", lh: 22 },
+    { id: uid(), type: "text", name: "Org line", text: "{{org.address}} · {{org.phone}}", x: m, y: H - mm(42), w: W - 2 * m, size: 11, font: "mukta", color: "#9ca3af", align: "center", lh: 16 },
+  ];
+  doc.fields = [
+    { key: "shok.deceased", label: "Deceased name", label_hi: "दिवंगत का नाम", sample: "श्री संतोष कुमार कश्यप" },
+    { key: "shok.death_date", label: "Date of death", label_hi: "निधन की तारीख", sample: "2026-11-01" },
+    { key: "shok.ceremony_date", label: "Ceremony date", label_hi: "दशगात्र / चन्दनपान", sample: "2026-11-11" },
+    { key: "shok.venue", label: "Venue", label_hi: "स्थान", sample: "सामुदायिक भवन, आदर्श नगर" },
+    { key: "shok.family", label: "Bereaved family", label_hi: "शोकाकुल परिवार", sample: "कश्यप परिवार, कुसमुण्डा" },
+    { key: "recipient.name", label: "Recipient name (per person)", label_hi: "प्राप्तकर्ता का नाम", sample: "श्री रमेश कुमार" },
+  ];
+  return doc;
+}
+
 export const STARTER_TEMPLATES: { kind: string; name: string; name_hi: string; make: (b: Brand) => DesignDoc }[] = [
   { kind: "letterhead", name: "Official letterhead", name_hi: "आधिकारिक लेटरहेड", make: letterheadTemplate },
   { kind: "letter", name: "General letter", name_hi: "सामान्य पत्र", make: letterTemplate },
   { kind: "certificate", name: "Certificate", name_hi: "प्रमाणपत्र", make: certificateTemplate },
   { kind: "receipt", name: "Receipt", name_hi: "रसीद", make: receiptTemplate },
   { kind: "id_card", name: "Membership card", name_hi: "सदस्यता कार्ड", make: idCardTemplate },
+  { kind: "shok_patra", name: "Condolence letter (शोकपत्र)", name_hi: "शोकपत्र", make: shokPatraTemplate },
 ];
