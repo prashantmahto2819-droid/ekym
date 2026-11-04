@@ -11,7 +11,7 @@ export type Tenant = {
   name: string;
   name_hi: string | null;
   short_name: string | null;
-  branding: Record<string, unknown>;
+  branding: Record<string, string | number | boolean | null>;
 };
 
 const cache = new Map<string, { at: number; tenant: Tenant | null }>();

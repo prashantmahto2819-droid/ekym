@@ -22,7 +22,8 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 function AccountPage() {
-  const { user, roles, isStaff, signOut } = useAuth();
+  const { user, currentOrg, isStaff, signOut } = useAuth();
+  const roles = currentOrg?.role_keys ?? [];
 
   const applications = useQuery({
     queryKey: ["my-applications", user?.id],
