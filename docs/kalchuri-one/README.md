@@ -14,8 +14,11 @@
 
 Master prompt की बाकी docs (PRD, SRS, API_DOCUMENTATION, CMS_AND_PUBLISHING, MODULES_AND_FEATURES, DEPLOYMENT_GUIDE) संबंधित phase शुरू होने पर बनेंगी, ताकि वे असली code से मेल खाएँ।
 
-## खुले फ़ैसले (मालिक से)
-1. Kalchuri One का अलग नया GitHub repo या `ekym` को ही बदलना
-2. मुख्य डोमेन (जैसे kalchurione.in)
-3. Lovable से जुड़ाव रखना या हटाना
-4. Root संगठन का नाम (जैसे "कलचुरी समाज" राष्ट्रीय)
+## तय फ़ैसले (4 नवंबर 2026)
+- Kalchuri One इसी `ekym` repo में restructure होगा; EKYM वेबसाइट इसका पहला संगठन बनेगी।
+- Lovable से जुड़ाव हटेगा: build GitHub Actions में, deploy Cloudflare पर, Google login सीधे Supabase से।
+- Supabase प्रोजेक्ट: वही EKYM (`udxdxkyfrqlgdwwqaucu`), जिसमें शोकपत्र का असली डेटा है।
+
+## खुले फ़ैसले
+1. मुख्य डोमेन (बाद में तय होगा; तब तक code में config से आएगा)
+2. Root संगठन का नाम (जैसे "कलचुरी समाज" राष्ट्रीय)

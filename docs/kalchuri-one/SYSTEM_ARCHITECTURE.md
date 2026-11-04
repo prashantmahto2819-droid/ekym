@@ -97,7 +97,7 @@ docs/kalchuri-one/     यह documentation
 ## 7. Build, test, deploy
 - इस Claude sandbox से npm registry बंद है, इसलिए हर push पर **GitHub Actions**: `typecheck`, `lint`, `build`, `vitest`। RLS के लिए SQL tests (pgTAP-style) migration के साथ चलेंगे।
 - Deploy: GitHub → Cloudflare Workers (wrangler)। preview branch पर अलग Supabase branch भी बन सकती है।
-- Lovable: अभी ekym Lovable से जुड़ा है (`@lovable.dev/vite-tanstack-config`, Google login Lovable broker से)। Kalchuri One के लिए Lovable पर निर्भरता हटाने की सलाह है (देखें खुले फ़ैसले)।
+- Lovable: अभी ekym Lovable से जुड़ा है (`@lovable.dev/vite-tanstack-config`, Google login Lovable broker से)। तय हुआ है कि Lovable पर निर्भरता हटेगी (Phase 0)।
 
 ## 8. मुख्य तकनीकी चुनाव
 
