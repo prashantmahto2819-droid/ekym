@@ -208,6 +208,7 @@ export function StudioEditor({ initial, data, onSave, saving }: { initial: Desig
               </div>
             </div>
             <Prop label="Name"><Input value={layer.name ?? ""} onChange={(e) => updateLayer(layer.id, { name: e.target.value }, false)} /></Prop>
+            {!isMasterLayer ? <label className="text-xs"><input type="checkbox" checked={!!layer.lastPageOnly} onChange={(e) => updateLayer(layer.id, { lastPageOnly: e.target.checked })} /> only on the last page (signature, QR)</label> : null}
             <div className="grid grid-cols-4 gap-1">
               {(["x", "y", "w", "h"] as const).map((k) => (
                 <Prop key={k} label={k.toUpperCase()}><Input type="number" value={Math.round((layer as unknown as Record<string, number>)[k] ?? 0)} onChange={(e) => updateLayer(layer.id, { [k]: Number(e.target.value) } as Partial<Layer>, false)} /></Prop>

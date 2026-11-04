@@ -47,9 +47,9 @@ export function letterTemplate(b: Brand): DesignDoc {
     { id: uid(), type: "text", name: "Subject", text: "Subject: **{{doc.subject}}**", x: m, y: top + mm(42), w: W - 2 * m, size: 12, font: "manrope", color: ink, lh: 17 },
     { id: uid(), type: "text", name: "Salutation", text: "{{doc.salutation}}", x: m, y: top + mm(52), w: W - 2 * m, size: 11.5, font: "manrope", color: ink, lh: 16 },
     { id: uid(), type: "flow", name: "Body", text: "{{doc.body}}", x: m, y: top + mm(60), w: W - 2 * m, h: H - mm(22) - (top + mm(60)) - mm(40), size: 11.5, font: "manrope", color: ink, lh: 17, align: "justify" },
-    { id: uid(), type: "text", name: "Signature", text: "{{doc.closing}}\n\n\n**{{signatory.name}}**\n{{signatory.designation}}\n{{org.name}}", x: W - m - mm(70), y: H - mm(22) - mm(38), w: mm(70), size: 11, font: "manrope", color: ink, lh: 15 },
-    { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: m, y: H - mm(22) - mm(22), w: mm(18), h: mm(18), color: ink },
-    { id: uid(), type: "text", name: "Verify hint", text: "Scan to verify", x: m, y: H - mm(22) - mm(3), w: mm(30), size: 7.5, font: "manrope", color: "#6b7280", lh: 10 },
+    { id: uid(), type: "text", name: "Signature", text: "{{doc.closing}}\n\n\n**{{signatory.name}}**\n{{signatory.designation}}\n{{org.name}}", x: W - m - mm(70), y: H - mm(22) - mm(38), w: mm(70), size: 11, font: "manrope", color: ink, lh: 15, lastPageOnly: true },
+    { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: m, y: H - mm(22) - mm(22), w: mm(18), h: mm(18), color: ink, lastPageOnly: true },
+    { id: uid(), type: "text", name: "Verify hint", text: "Scan to verify", x: m, y: H - mm(22) - mm(3), w: mm(30), size: 7.5, font: "manrope", color: "#6b7280", lh: 10, lastPageOnly: true },
   ];
   doc.fields = [
     { key: "recipient.name", label: "Recipient name", label_hi: "प्राप्तकर्ता का नाम" },

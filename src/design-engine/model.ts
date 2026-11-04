@@ -43,6 +43,8 @@ type Base = {
   opacity?: number;
   hidden?: boolean;
   locked?: boolean;
+  /** Page-0 layer that should appear only on the last page (signature, QR) when body text flows. */
+  lastPageOnly?: boolean;
 };
 
 export type TextLayer = Base & {

@@ -245,8 +245,11 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
   const ctx = canvas.getContext("2d")!;
   const sc = canvas.width / W;
 
-  // which layers appear on this page: master + the page's own + flow continuations
-  const own = doc.pages[pageIndex]?.layers ?? [];
+  // which layers appear on this page: master + the page's own + flow continuations (+ last-page-only layers)
+  const total = pageCount(doc, data);
+  const isLast = pageIndex === total - 1;
+  const own = (doc.pages[pageIndex]?.layers ?? []).filter((l) => !l.lastPageOnly || isLast);
+  const lastOnly = isLast && pageIndex > 0 ? (doc.pages[0]?.layers ?? []).filter((l) => l.lastPageOnly && l.type !== "flow") : [];
   const flows: { L: FlowLayer; lines: Line[] }[] = [];
   doc.pages.forEach((p, pi) => {
     for (const L of p.layers) {
@@ -257,7 +260,7 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
       }
     }
   });
-  const layers: Layer[] = [...doc.master, ...own.filter((l) => l.type !== "flow")];
+  const layers: Layer[] = [...doc.master, ...own.filter((l) => l.type !== "flow"), ...lastOnly];
 
   await ensureFonts([...layers, ...flows.map((f) => f.L)].map((l) => (l as TextLayer).font));
   const images = new Map<string, HTMLImageElement | null>();
