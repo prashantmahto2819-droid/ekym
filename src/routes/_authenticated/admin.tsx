@@ -54,6 +54,8 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/payments", label: "Payment settings", group: "Administration" },
   { to: "/admin/settings", label: "Organization settings", group: "Administration" },
   { to: "/admin/users", label: "Users & roles", group: "Administration" },
+  { to: "/admin/health", label: "System health & backups", group: "Administration" },
+  { to: "/admin/guide", label: "उपयोग गाइड (Hindi guide)", group: "Administration" },
 ];
 
 function AdminLayout() {

@@ -10,3 +10,11 @@
 - **Audit**: सभी बदलाव `core.audit_log` में; super admin और org auditor देख सकें।
 - **Backups**: Supabase daily backup + हर बड़े migration से पहले `pg_dump` (schema + data)। Phase 13 में restore drill।
 - **Ads**: शोक संदेश, वंश वृक्ष, वैवाहिक और बच्चों से जुड़े पेजों पर विज्ञापन नहीं; consent banner; ads.txt।
+
+## Phase 13 hardening (2026-11-04) — किया गया
+- **Function grants**: migration `sec_01_function_grants` — हर public function से PUBLIC/anon EXECUTE हटाया; anon सिर्फ़ allow-list (ads, feed read, RSVP, event register, issue/listing/post view, resolve host, verify)। Server-internal functions (ticks, digests, comms claim/result, fin_ensure_*) authenticated से भी हटे। Trigger functions से सब हटाया (trigger चलाने के लिए EXECUTE नहीं चाहिए — जाँचा हुआ)। `alter default privileges … revoke execute on functions from anon, public` — नई functions को anon तभी मिलेगा जब migration में लिखा हो।
+- **Rate limits**: posts 20/घंटा, comments 60/घंटा, listings 10/दिन, reports 30/दिन प्रति user (`k1_rate_guard` triggers)।
+- **Indexes**: बढ़ने वाली tables के FK पर (`perf_01_fk_indexes`)।
+- **Health**: `k1_health()` (platform admin), `/api/public/health` (uptime monitor), रोज़ 08:00 IST digest `send_health_digest()` जब समस्या हो।
+- **Export/backup**: `k1_org_export`, weekly `db-backup` workflow, `BACKUP_RESTORE.md` drill।
+- बाकी (advisor): `auth_rls_initplan` (policies में `auth.uid()` को `(select auth.uid())` करना — scale पर), `multiple_permissive_policies` (core.* read+write policies merge), Supabase Auth → "Leaked password protection" dashboard से चालू करना (owner)।

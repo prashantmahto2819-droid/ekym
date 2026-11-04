@@ -1,0 +1,30 @@
+# Weekly logical backup of the EKYM database (schema + data) kept as a GitHub artifact for 90 days.
+# Needs repository secret SUPABASE_DB_URL = the project's Postgres connection string (Supabase → Settings → Database → Connection string, URI, session mode).
+name: db-backup
+on:
+  schedule:
+    - cron: "30 21 * * 6"   # Sunday 03:00 IST
+  workflow_dispatch:
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL 17 client
+        run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17
+      - name: pg_dump
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$DB_URL" || { echo "SUPABASE_DB_URL secret missing"; exit 1; }
+          mkdir -p out
+          pg_dump "$DB_URL" --no-owner --no-privileges --schema=public --schema=core --format=custom --file=out/ekym-$(date -u +%Y%m%d).dump
+          pg_dump "$DB_URL" --no-owner --no-privileges --schema=public --schema=core --schema-only --file=out/ekym-schema-$(date -u +%Y%m%d).sql
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ekym-backup-${{ github.run_id }}
+          path: out/
+          retention-days: 90

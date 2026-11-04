@@ -1,0 +1,30 @@
+-- Kalchuri One · Phase 13 · indexes on foreign keys of the tables that grow (advisor: unindexed_foreign_keys).
+-- Lookup tables and *_by audit columns are left alone on purpose.
+create index if not exists cm_posts_author_idx on public.cm_posts(author_id);
+create index if not exists cm_post_comments_author_idx on public.cm_post_comments(author_id);
+create index if not exists cm_post_comments_parent_idx on public.cm_post_comments(parent_id);
+create index if not exists cm_post_likes_user_idx on public.cm_post_likes(user_id);
+create index if not exists cm_post_reports_post_idx on public.cm_post_reports(post_id);
+create index if not exists cm_post_reports_org_idx on public.cm_post_reports(organization_id, status);
+create index if not exists cm_listings_submitted_idx on public.cm_listings(submitted_by);
+create index if not exists cm_matrimony_interests_to_idx on public.cm_matrimony_interests(to_profile);
+create index if not exists cm_matrimony_profiles_user_idx on public.cm_matrimony_profiles(user_id);
+create index if not exists cm_votes_voter_idx on public.cm_votes(voter_id);
+create index if not exists comms_messages_channel_idx on public.comms_messages(channel_id);
+create index if not exists comms_messages_campaign_idx on public.comms_messages(campaign_id);
+create index if not exists comms_messages_org_created_idx on public.comms_messages(organization_id, created_at desc);
+create index if not exists fin_lines_account_idx on public.fin_lines(account_id);
+create index if not exists fin_vouchers_party_idx on public.fin_vouchers(party_id);
+create index if not exists fin_vouchers_fy_idx on public.fin_vouchers(fy_id);
+create index if not exists ev_guests_org_idx on public.ev_guests(organization_id);
+create index if not exists ev_guests_membership_idx on public.ev_guests(membership_id);
+create index if not exists letter_recipients_member_idx on public.letter_recipients(member_id);
+create index if not exists letter_recipients_family_idx on public.letter_recipients(family_id);
+create index if not exists members_village_idx on public.members(village_id);
+create index if not exists members_origin_idx on public.members(origin_village_id);
+create index if not exists families_village_idx on public.families(village_id);
+create index if not exists org_memberships_user_idx on public.org_memberships(user_id);
+create index if not exists docs_documents_template_idx on public.docs_documents(template_id);
+create index if not exists ad_stats_campaign_idx on public.ad_stats(campaign_id);
+create index if not exists cms_page_revisions_org_idx on public.cms_page_revisions(organization_id);
+create index if not exists role_assignments_role_idx on core.role_assignments(role_id);

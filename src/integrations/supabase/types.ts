@@ -6827,6 +6827,7 @@ export type Database = {
           visibility: string
         }[]
       }
+      k1_health: { Args: never; Returns: Json }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
@@ -6963,6 +6964,7 @@ export type Database = {
           verified_at: string
         }[]
       }
+      k1_org_export: { Args: { p_org: string }; Returns: Json }
       k1_org_roles: {
         Args: { p_org: string }
         Returns: {
@@ -7003,6 +7005,7 @@ export type Database = {
         Args: { p_kind: string; p_org: string }
         Returns: string
       }
+      k1_ping: { Args: never; Returns: Json }
       k1_poll_close: { Args: { p_poll: string }; Returns: undefined }
       k1_poll_results: { Args: { p_poll: string }; Returns: Json }
       k1_post_comments: {
@@ -7041,6 +7044,16 @@ export type Database = {
       }
       k1_post_view: {
         Args: { p_id: string; p_kind: string }
+        Returns: undefined
+      }
+      k1_rate_guard: {
+        Args: {
+          p_col: string
+          p_max: number
+          p_table: string
+          p_who: string
+          p_window: string
+        }
         Returns: undefined
       }
       k1_remove_role: { Args: { p_assignment: string }; Returns: undefined }
@@ -7382,6 +7395,7 @@ export type Database = {
         Returns: string
       }
       send_admin_digest: { Args: never; Returns: undefined }
+      send_health_digest: { Args: never; Returns: undefined }
       send_letters_tick: { Args: never; Returns: undefined }
       set_admin_access: {
         Args: { p_admin: string; p_contacts: boolean; p_scope: string }
