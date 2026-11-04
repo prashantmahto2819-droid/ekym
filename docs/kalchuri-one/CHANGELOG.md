@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-04 — Phase 6b (वंश वृक्ष: संपादन)
+- चार्ट में ही संपादन (FamilyEcho शैली): सदस्य चुनने पर बटन — + पुत्र / + पुत्री / + पत्नी, ⬆ पूर्वज जोड़ें (`add_parent_above`), बदलें, मुखिया बनाएँ (`set_family_head`), भाइयों का क्रम ◀ ▶ (`sort_order`), ले जाएँ (एडमिन, `move_member`), हटाएँ (सिर्फ़ यह → `remove_member_keep_children`, या नीचे वालों समेत)।
+- `MemberDialog`: नाम/नाम याद नहीं/दिवंगत/रिश्ता/मोबाइल (duplicate जाँच `phone_check`: एडमिन override `phone_dup_ok`, या बिना नंबर)/मूल ग्राम (datalist; सूची में न हो तो `request_origin_village`)/निवास (`ensureVillage`)।
+- परिवार: नया परिवार (सूची पेज), जानकारी बदलना, मंज़ूरी के लिए भेजना, बदलाव के लिए खोलना (`reopen_family`), एडमिन: मंज़ूर/अस्वीकार (`decide_family`, first-wins)/ड्राफ़्ट में/कचरा (`trash_family`)।
+- अभी शोकपत्र में ही: वंश-कड़ी का अनुरोध, परिवार मिलाना, "पुत्रों के परिवार जोड़ें", नाम सुझाव, Roman→हिंदी transliteration। Phase 6c में शोक संदेश भेजना।
+
 ## 2026-11-04 — Phase 6a (वंश वृक्ष: पढ़ने का हिस्सा)
 - Migration `family_01_bridge` (additive): शोकपत्र के `is_approved()` / `admin_can_manage_family()` अब Kalchuri One की भूमिकाएँ भी मानते हैं — `family.manage` वाला user approved गिना जाता है; संगठन में `social_region_id` हो तो उसी क्षेत्र के परिवार, न हो तो सभी (राष्ट्रीय संगठन); platform admin सब। नए RPC `k1_family_ctx()`, `k1_families(status,q)`।
 - `src/family/layout.ts`: FamilyEcho जैसा chart layout — पीढ़ियाँ पंक्तियों में, पति-पत्नी साथ (सुनहरी रेखा), संतानें दंपति के नीचे बीच में, bus connectors, पुत्री/पत्नी badges।
