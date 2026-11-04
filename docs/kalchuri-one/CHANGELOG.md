@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-04 — Phase 12 (Ads & revenue)
+- Migration `ad_01_ads`: `ad_settings` (enabled, AdSense client + per-slot ids, ads.txt, consent banner + पाठ en/hi, slots on/off, `excluded_paths` — शोक/परिवार/वंश/matrimony/RSVP/donation/admin पर कभी विज्ञापन नहीं), `ad_campaigns` (sponsor, banner image/text, link, slots[], तारीखें, price, weight, impressions/clicks, voucher_id), `ad_stats` (दिन/slot), `ad_revenue` (AdSense आदि की manual मासिक entries)। RPCs: `k1_ads_for` (anon भी), `k1_ad_hit`, `k1_ad_revenue` (4400 Sponsorship vouchers + manual + campaigns + by_slot), `k1_ad_campaign_paid` (receipt voucher Dr bank/cash, Cr 4400; sponsor party बनती है)। Permission `ads.manage`.
+- `Ads.tsx`: `AdSlot` — पहले sponsor banner (weight से रोटेशन, impression/click गिनती), नहीं तो AdSense (सिर्फ़ consent "Accept" के बाद); `ConsentBanner`। Slots: header, footer (root layout), post_bottom (blog/news detail), feed (Kalchuri One, तीसरी पोस्ट के बाद)। `/ads.txt` route tenant की ads.txt serve करता है।
+- Admin → Administration → "Ads & revenue": campaigns (CrudPage, "Mark paid" → voucher link), settings (AdSense setup के चरण साथ में), revenue dashboard (FY चुनें, manual AdSense entry, campaign table CTR सहित)।
+- बाकी: banner image upload (अभी URL), sidebar slot किसी layout में नहीं लगा, AdSense auto-ads, GA/analytics।
+
 ## 2026-11-04 — Phase 11b ("Kalchuri One" community feed)
 - निर्णय: community feed का नाम **Kalchuri One / कलचुरी वन** (Header में मुख्य link, route `/community`)।
 - Migration `cm_02_feed`: `cm_posts` (body, media = bucket `community` की फोटो, `link_url` + `link_kind` youtube|instagram|facebook|other, visibility members|public, status active|hidden|removed, pinned, like/comment/share counters), `cm_post_likes`, `cm_post_comments` (1-level replies), `cm_post_reports`; counters trigger से। RLS: public posts सबको, members posts सदस्यों को; अपनी पोस्ट/टिप्पणी ही बदल/हटा सकते हैं; `community.listing.moderate` वाले सब। RPCs: `k1_feed` (author नाम/फोटो, liked/mine/can_moderate; pagination), `k1_post_comments`, `k1_toggle_like`, `k1_post_shared`, `k1_post_moderate` (hide/remove/pin)। Bucket `community` (public, 5 MB, सिर्फ़ images)।
