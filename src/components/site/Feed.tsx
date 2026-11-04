@@ -112,7 +112,7 @@ function PostCard({ p, L, signedIn, onChange }: { p: Post; L: boolean; signedIn:
   async function share(kind: "wa" | "copy" | "native") {
     const text = `${p.author_name}: ${(p.body ?? "").slice(0, 120)}\n${url}`;
     try {
-      if (kind === "native" && navigator.share) await navigator.share({ title: COMMUNITY_NAME.en, text, url });
+      if (kind === "native" && typeof navigator.share === "function") await navigator.share({ title: COMMUNITY_NAME.en, text, url });
       else if (kind === "wa") window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
       else { await navigator.clipboard.writeText(url); toast.success(L ? "लिंक कॉपी हुआ" : "Link copied"); }
       supabase.rpc("k1_post_shared", { p_post: p.id } as never).then(() => undefined, () => undefined);
@@ -135,7 +135,7 @@ function PostCard({ p, L, signedIn, onChange }: { p: Post; L: boolean; signedIn:
         <Button size="sm" variant={liked ? "default" : "ghost"} onClick={like}>👍 {likes} {L ? "पसंद" : "Like"}</Button>
         <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>💬 {p.comment_count} {L ? "टिप्पणी" : "Comment"}</Button>
         <Button size="sm" variant="ghost" onClick={() => share("wa")}>WhatsApp</Button>
-        <Button size="sm" variant="ghost" onClick={() => share(typeof navigator !== "undefined" && navigator.share ? "native" : "copy")}>↗ {L ? "शेयर" : "Share"}{p.share_count ? ` (${p.share_count})` : ""}</Button>
+        <Button size="sm" variant="ghost" onClick={() => share(typeof navigator !== "undefined" && typeof navigator.share === "function" ? "native" : "copy")}>↗ {L ? "शेयर" : "Share"}{p.share_count ? ` (${p.share_count})` : ""}</Button>
         {signedIn && !p.mine ? <Button size="sm" variant="ghost" className="ml-auto text-xs text-muted-foreground" onClick={report}>{L ? "रिपोर्ट" : "Report"}</Button> : null}
       </footer>
       {open ? <Comments post={p} L={L} signedIn={signedIn} /> : null}
