@@ -122,7 +122,7 @@ function FamilyPage() {
     }
     const one = confirm(L ? `इनके नीचे ${extra} सदस्य हैं।\nOK = सिर्फ़ "${p.name}" को हटाएँ (नीचे वाले ऊपर जुड़ जाएँगे)\nCancel = आगे पूछें` : `${extra} members are below.\nOK = remove only "${p.name}" (those below move up)\nCancel = ask further`);
     if (one) {
-      if (p.is_head) return toast.error(L ? "पहले किसी और को मुखिया बनाएँ।" : "Make someone else the head first.");
+      if (p.is_head) { toast.error(L ? "पहले किसी और को मुखिया बनाएँ।" : "Make someone else the head first."); return; }
       await run(L ? "हट गए; नीचे के सदस्य ऊपर जुड़ गए।" : "Removed; descendants moved up", () => rpc("remove_member_keep_children", { p_id: p.id }));
     } else if (confirm(L ? `"${p.name}" और नीचे के ${extra} सदस्य हमेशा के लिए हटाएँ?` : `Delete "${p.name}" and ${extra} members below permanently?`)) {
       await run(L ? "हटा दिया।" : "Removed", async () => { const { error } = await supabase.from("members").delete().in("id", ids); if (error) throw error; });
@@ -142,7 +142,7 @@ function FamilyPage() {
     if (!f) return;
     const name = prompt(L ? "परिवार का नाम" : "Family name", f.family_name); if (!name?.trim()) return;
     const wa = hideContacts ? null : prompt(L ? "मुखिया का मुख्य व्हाट्सएप नंबर (10 अंक)" : "Head's main WhatsApp (10 digits)", (f.main_whatsapp ?? "").replace(/^91/, ""));
-    if (wa !== null && wa !== undefined && !validPhone(wa)) return toast.error(L ? "सही 10 अंकों का नंबर लिखिए।" : "Enter a valid 10-digit number.");
+    if (wa !== null && wa !== undefined && !validPhone(wa)) { toast.error(L ? "सही 10 अंकों का नंबर लिखिए।" : "Enter a valid 10-digit number."); return; }
     const vil = prompt(L ? "गाँव या शहर" : "Village or city", f.villages?.name ?? ""); if (vil === null) return;
     await run(L ? "सहेज लिया।" : "Saved", async () => {
       const village_id = await ensureVillage(vil, villages.data ?? []);
@@ -152,7 +152,7 @@ function FamilyPage() {
     });
   }
   async function submit() {
-    if (!head) return toast.error(L ? "पहले मुखिया जोड़िए।" : "Add the family head first.");
+    if (!head) { toast.error(L ? "पहले मुखिया जोड़िए।" : "Add the family head first."); return; }
     if (!confirm(L ? "मंज़ूरी के लिए भेजें? फ़ैसले तक बदलाव नहीं हो सकेगा।" : "Submit for approval? No edits until decided.")) return;
     await run(L ? "मंज़ूरी के लिए भेज दिया।" : "Submitted", async () => { const { error } = await supabase.from("families").update({ status: "pending" } as never).eq("id", id); if (error) throw error; });
   }
@@ -161,7 +161,7 @@ function FamilyPage() {
     await run(L ? "अब बदलाव कर सकते हैं।" : "Reopened", () => rpc("reopen_family", { p_id: id }));
   }
   async function decide(status: "approved" | "rejected" | "draft") {
-    if (status === "draft") return run(L ? "ड्राफ़्ट में भेजा।" : "Back to draft", async () => { const { error } = await supabase.from("families").update({ status: "draft", admin_note: null } as never).eq("id", id); if (error) throw error; });
+    if (status === "draft") { await run(L ? "ड्राफ़्ट में भेजा।" : "Back to draft", async () => { const { error } = await supabase.from("families").update({ status: "draft", admin_note: null } as never).eq("id", id); if (error) throw error; }); return; }
     let note: string | null = null;
     if (status === "rejected") { note = prompt(L ? "अस्वीकार का कारण (यूज़र को क्या सुधारना है?)" : "Reason (what should the user fix?)"); if (!note) return; }
     await run("", async () => { const r = await rpc<{ ok: boolean; by?: string; status?: string }>("decide_family", { p_id: id, p_status: status, p_note: note }); if (!r.ok) toast.error(DecidedMsg(r, L)); else toast.success(L ? "स्थिति बदल दी।" : "Decided"); });

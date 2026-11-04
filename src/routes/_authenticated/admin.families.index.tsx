@@ -100,9 +100,9 @@ function NewFamilyDialog({ open, onClose, L }: { open: boolean; onClose: () => v
   const [busy, setBusy] = useState(false);
   const villages = useQuery({ queryKey: ["villages"], queryFn: loadVillages, enabled: open, staleTime: 300000 });
   async function create() {
-    if (!name.trim()) return toast.error(L ? "परिवार का नाम लिखिए।" : "Enter the family name.");
-    if (!validPhone(wa)) return toast.error(L ? "सही 10 अंकों का व्हाट्सएप नंबर लिखिए।" : "Enter a valid 10-digit WhatsApp number.");
-    if (!village.trim()) return toast.error(L ? "गाँव या शहर लिखिए।" : "Enter the village or city.");
+    if (!name.trim()) { toast.error(L ? "परिवार का नाम लिखिए।" : "Enter the family name."); return; }
+    if (!validPhone(wa)) { toast.error(L ? "सही 10 अंकों का व्हाट्सएप नंबर लिखिए।" : "Enter a valid 10-digit WhatsApp number."); return; }
+    if (!village.trim()) { toast.error(L ? "गाँव या शहर लिखिए।" : "Enter the village or city."); return; }
     setBusy(true);
     try {
       const hits = await phoneCheck(wa);

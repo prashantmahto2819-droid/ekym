@@ -57,11 +57,11 @@ export function MemberDialog(p: MemberDialogProps) {
 
   async function save() {
     const nm = name.trim();
-    if (!nm && !unknown) return toast.error(L ? "नाम लिखिए, या \"नाम याद नहीं\" चुनिए।" : "Enter a name or tick \"name not known\".");
-    if (kind !== "son" && !nm) return toast.error(L ? "पत्नी / पुत्री का नाम लिखिए।" : "Enter the name.");
-    if (deceased && isHead) return toast.error(L ? "मुखिया जीवित सदस्य होना चाहिए।" : "The head must be a living member.");
+    if (!nm && !unknown) { toast.error(L ? "नाम लिखिए, या \"नाम याद नहीं\" चुनिए।" : "Enter a name or tick \"name not known\"."); return; }
+    if (kind !== "son" && !nm) { toast.error(L ? "पत्नी / पुत्री का नाम लिखिए।" : "Enter the name."); return; }
+    if (deceased && isHead) { toast.error(L ? "मुखिया जीवित सदस्य होना चाहिए।" : "The head must be a living member."); return; }
     const ph = deceased ? "" : phone.trim();
-    if (ph && !validPhone(ph)) return toast.error(L ? "मोबाइल नंबर सही नहीं है (10 अंक)।" : "Invalid mobile number (10 digits).");
+    if (ph && !validPhone(ph)) { toast.error(L ? "मोबाइल नंबर सही नहीं है (10 अंक)।" : "Invalid mobile number (10 digits)."); return; }
     setBusy(true);
     try {
       const inList = p.origins.find((o) => o.name.trim().toLowerCase() === native.trim().toLowerCase());
