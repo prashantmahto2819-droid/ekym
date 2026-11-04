@@ -1,0 +1,163 @@
+// Built-in starter templates. Organizations copy these and edit them in the Studio.
+import { mm, newDoc, uid, type DesignDoc, type Layer } from "./model";
+
+type Brand = { name: string; name_hi?: string | null; tagline?: string | null; address?: string | null; phone?: string | null; email?: string | null; website?: string | null; logo?: string | null; color?: string };
+
+const ink = "#1b2a4a";
+
+function header(b: Brand, W: number, accent: string): Layer[] {
+  const m = mm(14);
+  const layers: Layer[] = [];
+  if (b.logo) layers.push({ id: uid(), type: "image", name: "Logo", src: b.logo, x: m, y: mm(12), w: mm(22), h: mm(22), shape: "rect" });
+  const tx = b.logo ? m + mm(26) : m;
+  layers.push({ id: uid(), type: "text", name: "Organization name", text: "{{org.name}}", x: tx, y: mm(12), w: W - tx - m, size: 26, weight: 700, font: "sora", color: accent, lh: 32 });
+  layers.push({ id: uid(), type: "text", name: "Name (Hindi)", text: "{{org.name_hi}}", x: tx, y: mm(12) + 32, w: W - tx - m, size: 18, weight: 700, font: "tiro", color: ink, lh: 24 });
+  layers.push({ id: uid(), type: "text", name: "Address line", text: "{{org.address}} · {{org.phone}} · {{org.email}}", x: tx, y: mm(12) + 58, w: W - tx - m, size: 10.5, font: "manrope", color: "#4b5563", lh: 14 });
+  layers.push({ id: uid(), type: "line", name: "Header rule", x: m, y: mm(36), w: W - 2 * m, lw: 2, color: accent });
+  return layers;
+}
+function footer(W: number, H: number, accent: string): Layer[] {
+  const m = mm(14);
+  return [
+    { id: uid(), type: "line", name: "Footer rule", x: m, y: H - mm(18), w: W - 2 * m, lw: 1, color: accent },
+    { id: uid(), type: "text", name: "Footer", text: "{{org.website}}  ·  {{org.tagline}}", x: m, y: H - mm(16), w: W - 2 * m, size: 9.5, font: "manrope", color: "#6b7280", align: "center", lh: 13 },
+    { id: uid(), type: "text", name: "Page credit", text: "Kalchuri One · Designed & Developed by Vivid Brandify", x: m, y: H - mm(10), w: W - 2 * m, size: 7.5, font: "manrope", color: "#9ca3af", align: "center", lh: 10 },
+  ];
+}
+
+export function letterheadTemplate(b: Brand): DesignDoc {
+  const accent = b.color ?? "#0f766e";
+  const doc = newDoc("a4p");
+  const W = Math.round(mm(210)), H = Math.round(mm(297));
+  doc.master = [...header(b, W, accent), ...footer(W, H, accent)];
+  doc.fields = [];
+  return doc;
+}
+
+export function letterTemplate(b: Brand): DesignDoc {
+  const accent = b.color ?? "#0f766e";
+  const doc = letterheadTemplate(b);
+  const W = Math.round(mm(210)), H = Math.round(mm(297)), m = mm(14);
+  const top = mm(44);
+  const page = doc.pages[0]!;
+  page.layers = [
+    { id: uid(), type: "text", name: "Ref no", text: "Ref: {{doc.ref_no}}", x: m, y: top, w: mm(90), size: 11, font: "manrope", color: ink, lh: 15 },
+    { id: uid(), type: "text", name: "Date", text: "Date: {{doc.date|date}}", x: W - m - mm(60), y: top, w: mm(60), size: 11, font: "manrope", color: ink, align: "right", lh: 15 },
+    { id: uid(), type: "text", name: "Recipient", text: "To,\n{{recipient.name}}\n{{recipient.designation}}\n{{recipient.organization}}\n{{recipient.address}}", x: m, y: top + mm(10), w: mm(110), size: 11.5, font: "manrope", color: ink, lh: 16 },
+    { id: uid(), type: "text", name: "Subject", text: "Subject: **{{doc.subject}}**", x: m, y: top + mm(42), w: W - 2 * m, size: 12, font: "manrope", color: ink, lh: 17 },
+    { id: uid(), type: "text", name: "Salutation", text: "{{doc.salutation}}", x: m, y: top + mm(52), w: W - 2 * m, size: 11.5, font: "manrope", color: ink, lh: 16 },
+    { id: uid(), type: "flow", name: "Body", text: "{{doc.body}}", x: m, y: top + mm(60), w: W - 2 * m, h: H - mm(22) - (top + mm(60)) - mm(40), size: 11.5, font: "manrope", color: ink, lh: 17, align: "justify" },
+    { id: uid(), type: "text", name: "Signature", text: "{{doc.closing}}\n\n\n**{{signatory.name}}**\n{{signatory.designation}}\n{{org.name}}", x: W - m - mm(70), y: H - mm(22) - mm(38), w: mm(70), size: 11, font: "manrope", color: ink, lh: 15 },
+    { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: m, y: H - mm(22) - mm(22), w: mm(18), h: mm(18), color: ink },
+    { id: uid(), type: "text", name: "Verify hint", text: "Scan to verify", x: m, y: H - mm(22) - mm(3), w: mm(30), size: 7.5, font: "manrope", color: "#6b7280", lh: 10 },
+  ];
+  doc.fields = [
+    { key: "recipient.name", label: "Recipient name", label_hi: "प्राप्तकर्ता का नाम" },
+    { key: "recipient.designation", label: "Recipient designation", label_hi: "पद" },
+    { key: "recipient.organization", label: "Recipient organization", label_hi: "संस्था" },
+    { key: "recipient.address", label: "Recipient address", label_hi: "पता" },
+    { key: "doc.salutation", label: "Salutation", label_hi: "संबोधन", sample: "Respected Sir/Madam," },
+    { key: "doc.closing", label: "Closing", label_hi: "समापन", sample: "Yours sincerely," },
+    { key: "signatory.name", label: "Signatory name", label_hi: "हस्ताक्षरकर्ता" },
+    { key: "signatory.designation", label: "Signatory designation", label_hi: "हस्ताक्षरकर्ता का पद" },
+  ];
+  void accent;
+  return doc;
+}
+
+export function certificateTemplate(b: Brand): DesignDoc {
+  const accent = b.color ?? "#b8924a";
+  const doc = newDoc("a4l", "#fffdf7");
+  const W = Math.round(mm(297)), H = Math.round(mm(210)), m = mm(12);
+  doc.master = [
+    { id: uid(), type: "frame", name: "Border", style: "double", x: m, y: m, w: W - 2 * m, h: H - 2 * m, color: accent, lw: 3, radius: 10 },
+    { id: uid(), type: "art", name: "Corner", art: "ornament", x: m + 10, y: m + 10, w: 60, h: 60, color: accent },
+  ];
+  const page = doc.pages[0]!;
+  page.layers = [
+    ...(b.logo ? [{ id: uid(), type: "image", name: "Logo", src: b.logo, x: W / 2 - mm(12), y: mm(22), w: mm(24), h: mm(24), shape: "circle" } as Layer] : []),
+    { id: uid(), type: "text", name: "Organization", text: "{{org.name}}", x: m, y: mm(48), w: W - 2 * m, size: 24, weight: 700, font: "sora", color: ink, align: "center", lh: 30 },
+    { id: uid(), type: "text", name: "Title", text: "CERTIFICATE OF {{doc.certificate_type|upper}}", x: m, y: mm(62), w: W - 2 * m, size: 34, weight: 700, font: "sora", color: accent, align: "center", lh: 42 },
+    { id: uid(), type: "text", name: "Lead", text: "This certificate is proudly presented to", x: m, y: mm(82), w: W - 2 * m, size: 13, font: "manrope", color: "#4b5563", align: "center", lh: 18 },
+    { id: uid(), type: "text", name: "Recipient", text: "{{recipient.name}}", x: mm(40), y: mm(92), w: W - mm(80), h: mm(16), size: 40, weight: 700, font: "tiro", color: ink, align: "center", lh: 50, fit: true },
+    { id: uid(), type: "line", name: "Name rule", x: mm(60), y: mm(108), w: W - mm(120), lw: 1.5, color: accent },
+    { id: uid(), type: "text", name: "Body", text: "{{doc.body}}", x: mm(40), y: mm(114), w: W - mm(80), size: 13, font: "manrope", color: ink, align: "center", lh: 19 },
+    { id: uid(), type: "text", name: "Date", text: "Date: {{doc.date|date}}\nRef: {{doc.ref_no}}", x: mm(30), y: H - mm(40), w: mm(70), size: 10.5, font: "manrope", color: ink, lh: 15 },
+    { id: uid(), type: "text", name: "Signature", text: "\n**{{signatory.name}}**\n{{signatory.designation}}", x: W - mm(100), y: H - mm(44), w: mm(70), size: 11, font: "manrope", color: ink, align: "center", lh: 15 },
+    { id: uid(), type: "line", name: "Sign rule", x: W - mm(100), y: H - mm(40), w: mm(70), lw: 1, color: ink },
+    { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: W / 2 - mm(9), y: H - mm(40), w: mm(18), h: mm(18), color: ink },
+  ];
+  doc.fields = [
+    { key: "doc.certificate_type", label: "Certificate type", label_hi: "प्रमाणपत्र प्रकार", sample: "Appreciation" },
+    { key: "recipient.name", label: "Recipient name", label_hi: "नाम" },
+    { key: "signatory.name", label: "Signatory name", label_hi: "हस्ताक्षरकर्ता" },
+    { key: "signatory.designation", label: "Signatory designation", label_hi: "पद" },
+  ];
+  return doc;
+}
+
+export function receiptTemplate(b: Brand): DesignDoc {
+  const accent = b.color ?? "#0f766e";
+  const doc = newDoc("a5l");
+  const W = Math.round(mm(210)), H = Math.round(mm(148)), m = mm(10);
+  doc.master = [
+    { id: uid(), type: "frame", name: "Border", style: "single", x: m / 2, y: m / 2, w: W - m, h: H - m, color: accent, lw: 1.5, radius: 6 },
+    ...(b.logo ? [{ id: uid(), type: "image", name: "Logo", src: b.logo, x: m, y: m, w: mm(16), h: mm(16) } as Layer] : []),
+    { id: uid(), type: "text", name: "Organization", text: "{{org.name}}", x: m + (b.logo ? mm(19) : 0), y: m, w: W - 2 * m - mm(19), size: 18, weight: 700, font: "sora", color: accent, lh: 22 },
+    { id: uid(), type: "text", name: "Address", text: "{{org.address}} · {{org.phone}} · {{org.email}}", x: m + (b.logo ? mm(19) : 0), y: m + 23, w: W - 2 * m - mm(19), size: 8.5, font: "manrope", color: "#4b5563", lh: 11 },
+    { id: uid(), type: "text", name: "Reg", text: "Reg. No: {{org.registration_no}}   PAN: {{org.pan}}   80G: {{org.g80}}", x: m + (b.logo ? mm(19) : 0), y: m + 35, w: W - 2 * m - mm(19), size: 8, font: "manrope", color: "#4b5563", lh: 10 },
+    { id: uid(), type: "line", name: "Rule", x: m, y: mm(28), w: W - 2 * m, lw: 1, color: accent },
+  ];
+  doc.pages[0]!.layers = [
+    { id: uid(), type: "text", name: "Title", text: "{{doc.title|upper}}", x: m, y: mm(31), w: W - 2 * m, size: 14, weight: 700, font: "sora", color: ink, align: "center", lh: 18 },
+    { id: uid(), type: "text", name: "Meta", text: "Receipt No: **{{doc.ref_no}}**\nDate: **{{doc.date|date}}**\nMode: {{receipt.mode}} {{receipt.instrument}}", x: W - m - mm(70), y: mm(31), w: mm(70), size: 9.5, font: "manrope", color: ink, align: "right", lh: 13 },
+    { id: uid(), type: "text", name: "Received from", text: "Received with thanks from **{{receipt.payer_name}}**\n{{receipt.payer_address}}\nMobile: {{receipt.payer_mobile}}   PAN: {{receipt.payer_pan}}", x: m, y: mm(48), w: W - 2 * m - mm(60), size: 10, font: "manrope", color: ink, lh: 14 },
+    { id: uid(), type: "text", name: "Purpose", text: "Towards: **{{receipt.purpose}}**", x: m, y: mm(70), w: W - 2 * m - mm(60), size: 10, font: "manrope", color: ink, lh: 14 },
+    { id: uid(), type: "rect", name: "Amount box", x: W - m - mm(55), y: mm(48), w: mm(55), h: mm(26), radius: 6, lw: 1.2, color: accent, fill: "#f0fdfa" },
+    { id: uid(), type: "text", name: "Amount", text: "{{receipt.amount|inr}}", x: W - m - mm(55), y: mm(51), w: mm(55), size: 20, weight: 700, font: "sora", color: accent, align: "center", lh: 26 },
+    { id: uid(), type: "text", name: "Amount words", text: "{{receipt.amount|words}}", x: W - m - mm(55), y: mm(61), w: mm(55), h: mm(10), size: 8, font: "manrope", color: ink, align: "center", lh: 10 },
+    { id: uid(), type: "text", name: "Footer note", text: "{{receipt.footer_note}}", x: m, y: H - mm(32), w: W - 2 * m - mm(60), size: 8, font: "manrope", color: "#6b7280", lh: 11 },
+    { id: uid(), type: "text", name: "Signature", text: "\n\n**{{signatory.name}}**\n{{signatory.designation}}", x: W - m - mm(50), y: H - mm(38), w: mm(50), size: 9.5, font: "manrope", color: ink, align: "center", lh: 12 },
+    { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: m, y: H - mm(24), w: mm(14), h: mm(14), color: ink },
+    { id: uid(), type: "text", name: "Verify hint", text: "Scan to verify this receipt", x: m + mm(16), y: H - mm(20), w: mm(50), size: 7.5, font: "manrope", color: "#6b7280", lh: 10 },
+  ];
+  doc.fields = [
+    { key: "receipt.payer_name", label: "Received from", label_hi: "प्राप्त किया" },
+    { key: "receipt.amount", label: "Amount", label_hi: "राशि" },
+    { key: "receipt.purpose", label: "Purpose", label_hi: "उद्देश्य" },
+    { key: "receipt.mode", label: "Payment mode", label_hi: "भुगतान माध्यम" },
+    { key: "receipt.instrument", label: "Cheque/UPI/Txn no.", label_hi: "चेक/UPI नंबर" },
+    { key: "signatory.name", label: "Signatory", label_hi: "हस्ताक्षरकर्ता" },
+    { key: "signatory.designation", label: "Signatory designation", label_hi: "पद" },
+  ];
+  return doc;
+}
+
+export function idCardTemplate(b: Brand): DesignDoc {
+  const accent = b.color ?? "#0f766e";
+  const doc = newDoc("idcard", "#ffffff");
+  const W = Math.round(mm(85.6)), H = Math.round(mm(54));
+  doc.master = [
+    { id: uid(), type: "rect", name: "Header band", x: 0, y: 0, w: W, h: mm(14), fill: accent },
+    { id: uid(), type: "text", name: "Organization", text: "{{org.name}}", x: mm(3), y: mm(2.5), w: W - mm(6), size: 11, weight: 700, font: "sora", color: "#ffffff", lh: 14, fit: true },
+    { id: uid(), type: "text", name: "Card type", text: "{{doc.title|upper}}", x: mm(3), y: mm(8.5), w: W - mm(6), size: 7, weight: 600, font: "manrope", color: "#e6fffa", lh: 9 },
+    { id: uid(), type: "text", name: "Footer", text: "{{org.phone}} · {{org.website}}", x: mm(3), y: H - mm(5), w: W - mm(6), size: 5.5, font: "manrope", color: "#6b7280", lh: 7 },
+  ];
+  doc.pages[0]!.layers = [
+    { id: uid(), type: "image", name: "Photo", src: "{{member.photo}}", x: mm(3), y: mm(17), w: mm(20), h: mm(25), shape: "rect", radius: 4, ring: 1, color: accent },
+    { id: uid(), type: "text", name: "Name", text: "{{member.name}}", x: mm(26), y: mm(17), w: mm(42), h: mm(7), size: 11, weight: 700, font: "sora", color: ink, lh: 14, fit: true },
+    { id: uid(), type: "text", name: "Name Hindi", text: "{{member.name_hi}}", x: mm(26), y: mm(23), w: mm(42), size: 9, weight: 700, font: "tiro", color: ink, lh: 12, fit: true },
+    { id: uid(), type: "text", name: "Details", text: "Member No: **{{member.member_no}}**\n{{member.category}} member\n{{member.city}}\nValid: {{member.valid_from|date}} – {{member.valid_to|date}}", x: mm(26), y: mm(29), w: mm(42), size: 6.5, font: "manrope", color: ink, lh: 9 },
+    { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: W - mm(16), y: mm(28), w: mm(13), h: mm(13), color: ink },
+  ];
+  doc.fields = [];
+  return doc;
+}
+
+export const STARTER_TEMPLATES: { kind: string; name: string; name_hi: string; make: (b: Brand) => DesignDoc }[] = [
+  { kind: "letterhead", name: "Official letterhead", name_hi: "आधिकारिक लेटरहेड", make: letterheadTemplate },
+  { kind: "letter", name: "General letter", name_hi: "सामान्य पत्र", make: letterTemplate },
+  { kind: "certificate", name: "Certificate", name_hi: "प्रमाणपत्र", make: certificateTemplate },
+  { kind: "receipt", name: "Receipt", name_hi: "रसीद", make: receiptTemplate },
+  { kind: "id_card", name: "Membership card", name_hi: "सदस्यता कार्ड", make: idCardTemplate },
+];

@@ -340,3 +340,10 @@ export const getAnnouncements = createServerFn({ method: "GET" }).handler(async 
     .limit(20);
   return data ?? [];
 });
+
+export const verifyDocument = createServerFn({ method: "GET" })
+  .inputValidator((d: { code: string }) => ({ code: String(d.code ?? "").trim().slice(0, 32) }))
+  .handler(async ({ data }) => {
+    const { data: rows } = await sb().rpc("k1_verify_document", { p_code: data.code });
+    return (rows?.[0] as { kind: string; ref_no: string; doc_date: string; title: string; status: string; organization: string; recipient_name: string | null; issued_at: string | null } | undefined) ?? null;
+  });
