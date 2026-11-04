@@ -60,12 +60,10 @@ function MembersPage() {
 
   const decide = useMutation({
     mutationFn: async ({ id, approve }: { id: string; approve: boolean }) => {
-      const { data, error } = await supabase.rpc("k1_decide_membership", {
-        p_id: id,
-        p_approve: approve,
-        p_category: approve ? category : undefined,
-        p_note: note || undefined,
-      });
+      const args: { p_id: string; p_approve: boolean; p_category?: string; p_note?: string } = { p_id: id, p_approve: approve };
+      if (approve) args.p_category = category;
+      if (note) args.p_note = note;
+      const { data, error } = await supabase.rpc("k1_decide_membership", args);
       if (error) throw error;
       return data as unknown as Membership;
     },

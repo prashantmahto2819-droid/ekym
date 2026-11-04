@@ -19,10 +19,12 @@ import { Route as DonateRouteImport } from './routes/donate'
 import { Route as DonationStatusRouteImport } from './routes/donation-status'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as InternshipRouteImport } from './routes/internship'
+import { Route as JoinRouteImport } from './routes/join'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ReelsRouteImport } from './routes/reels'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as VolunteerRouteImport } from './routes/volunteer'
@@ -38,24 +40,31 @@ import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as SevaIndexRouteImport } from './routes/seva.index'
 import { Route as SevaSlugRouteImport } from './routes/seva.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminAnnouncementsRouteImport } from './routes/_authenticated/admin.announcements'
 import { Route as AuthenticatedAdminBlogsRouteImport } from './routes/_authenticated/admin.blogs'
 import { Route as AuthenticatedAdminBloodRouteImport } from './routes/_authenticated/admin.blood'
 import { Route as AuthenticatedAdminCampaignsRouteImport } from './routes/_authenticated/admin.campaigns'
+import { Route as AuthenticatedAdminCommitteesRouteImport } from './routes/_authenticated/admin.committees'
 import { Route as AuthenticatedAdminCommunityRouteImport } from './routes/_authenticated/admin.community'
+import { Route as AuthenticatedAdminDocumentsRouteImport } from './routes/_authenticated/admin.documents'
 import { Route as AuthenticatedAdminDonationsRouteImport } from './routes/_authenticated/admin.donations'
 import { Route as AuthenticatedAdminHomepageRouteImport } from './routes/_authenticated/admin.homepage'
 import { Route as AuthenticatedAdminInternsRouteImport } from './routes/_authenticated/admin.interns'
 import { Route as AuthenticatedAdminLibraryRouteImport } from './routes/_authenticated/admin.library'
 import { Route as AuthenticatedAdminMediaRouteImport } from './routes/_authenticated/admin.media'
+import { Route as AuthenticatedAdminMeetingsRouteImport } from './routes/_authenticated/admin.meetings'
+import { Route as AuthenticatedAdminMembersRouteImport } from './routes/_authenticated/admin.members'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated/admin.messages'
 import { Route as AuthenticatedAdminNewsRouteImport } from './routes/_authenticated/admin.news'
 import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminSevaRouteImport } from './routes/_authenticated/admin.seva'
+import { Route as AuthenticatedAdminTasksRouteImport } from './routes/_authenticated/admin.tasks'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminVolunteersRouteImport } from './routes/_authenticated/admin.volunteers'
 import { Route as VerifyReceiptCodeRouteImport } from './routes/verify.receipt.$code'
 import { Route as VerifyVolunteerRefRouteImport } from './routes/verify.volunteer.$ref'
+import { Route as AuthenticatedAdminMeetingsIdRouteImport } from './routes/_authenticated/admin.meetings.$id'
 import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -107,6 +116,11 @@ const InternshipRoute = InternshipRouteImport.update({
   path: '/internship',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinRoute = JoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -125,6 +139,11 @@ const ReelsRoute = ReelsRouteImport.update({
 const RefundPolicyRoute = RefundPolicyRouteImport.update({
   id: '/refund-policy',
   path: '/refund-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -202,6 +221,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminAnnouncementsRoute =
+  AuthenticatedAdminAnnouncementsRouteImport.update({
+    id: '/announcements',
+    path: '/announcements',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminBlogsRoute = AuthenticatedAdminBlogsRouteImport.update({
   id: '/blogs',
   path: '/blogs',
@@ -218,10 +243,22 @@ const AuthenticatedAdminCampaignsRoute =
     path: '/campaigns',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCommitteesRoute =
+  AuthenticatedAdminCommitteesRouteImport.update({
+    id: '/committees',
+    path: '/committees',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCommunityRoute =
   AuthenticatedAdminCommunityRouteImport.update({
     id: '/community',
     path: '/community',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminDocumentsRoute =
+  AuthenticatedAdminDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminDonationsRoute =
@@ -253,6 +290,18 @@ const AuthenticatedAdminMediaRoute = AuthenticatedAdminMediaRouteImport.update({
   path: '/media',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminMeetingsRoute =
+  AuthenticatedAdminMeetingsRouteImport.update({
+    id: '/meetings',
+    path: '/meetings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminMembersRoute =
+  AuthenticatedAdminMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminMessagesRoute =
   AuthenticatedAdminMessagesRouteImport.update({
     id: '/messages',
@@ -281,6 +330,11 @@ const AuthenticatedAdminSevaRoute = AuthenticatedAdminSevaRouteImport.update({
   path: '/seva',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminTasksRoute = AuthenticatedAdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -302,6 +356,12 @@ const VerifyVolunteerRefRoute = VerifyVolunteerRefRouteImport.update({
   path: '/verify/volunteer/$ref',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminMeetingsIdRoute =
+  AuthenticatedAdminMeetingsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminMeetingsRoute,
+  } as any)
 const ApiPublicRazorpayWebhookRoute =
   ApiPublicRazorpayWebhookRouteImport.update({
     id: '/api/public/razorpay/webhook',
@@ -319,10 +379,12 @@ export interface FileRoutesByFullPath {
   '/donation-status': typeof DonationStatusRoute
   '/gallery': typeof GalleryRoute
   '/internship': typeof InternshipRoute
+  '/join': typeof JoinRoute
   '/library': typeof LibraryRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reels': typeof ReelsRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/volunteer': typeof VolunteerRoute
@@ -337,25 +399,32 @@ export interface FileRoutesByFullPath {
   '/campaigns/': typeof CampaignsIndexRoute
   '/news/': typeof NewsIndexRoute
   '/seva/': typeof SevaIndexRoute
+  '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/blogs': typeof AuthenticatedAdminBlogsRoute
   '/admin/blood': typeof AuthenticatedAdminBloodRoute
   '/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
+  '/admin/committees': typeof AuthenticatedAdminCommitteesRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/admin/documents': typeof AuthenticatedAdminDocumentsRoute
   '/admin/donations': typeof AuthenticatedAdminDonationsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/interns': typeof AuthenticatedAdminInternsRoute
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/admin/meetings': typeof AuthenticatedAdminMeetingsRouteWithChildren
+  '/admin/members': typeof AuthenticatedAdminMembersRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/news': typeof AuthenticatedAdminNewsRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/seva': typeof AuthenticatedAdminSevaRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
   '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/verify/volunteer/$ref': typeof VerifyVolunteerRefRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/meetings/$id': typeof AuthenticatedAdminMeetingsIdRoute
   '/api/public/razorpay/webhook': typeof ApiPublicRazorpayWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -368,10 +437,12 @@ export interface FileRoutesByTo {
   '/donation-status': typeof DonationStatusRoute
   '/gallery': typeof GalleryRoute
   '/internship': typeof InternshipRoute
+  '/join': typeof JoinRoute
   '/library': typeof LibraryRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reels': typeof ReelsRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/volunteer': typeof VolunteerRoute
@@ -385,25 +456,32 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsIndexRoute
   '/news': typeof NewsIndexRoute
   '/seva': typeof SevaIndexRoute
+  '/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/admin/blogs': typeof AuthenticatedAdminBlogsRoute
   '/admin/blood': typeof AuthenticatedAdminBloodRoute
   '/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
+  '/admin/committees': typeof AuthenticatedAdminCommitteesRoute
   '/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/admin/documents': typeof AuthenticatedAdminDocumentsRoute
   '/admin/donations': typeof AuthenticatedAdminDonationsRoute
   '/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/admin/interns': typeof AuthenticatedAdminInternsRoute
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/admin/meetings': typeof AuthenticatedAdminMeetingsRouteWithChildren
+  '/admin/members': typeof AuthenticatedAdminMembersRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/news': typeof AuthenticatedAdminNewsRoute
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/seva': typeof AuthenticatedAdminSevaRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
   '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/verify/volunteer/$ref': typeof VerifyVolunteerRefRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin/meetings/$id': typeof AuthenticatedAdminMeetingsIdRoute
   '/api/public/razorpay/webhook': typeof ApiPublicRazorpayWebhookRoute
 }
 export interface FileRoutesById {
@@ -418,10 +496,12 @@ export interface FileRoutesById {
   '/donation-status': typeof DonationStatusRoute
   '/gallery': typeof GalleryRoute
   '/internship': typeof InternshipRoute
+  '/join': typeof JoinRoute
   '/library': typeof LibraryRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reels': typeof ReelsRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/videos': typeof VideosRoute
   '/volunteer': typeof VolunteerRoute
@@ -436,25 +516,32 @@ export interface FileRoutesById {
   '/campaigns/': typeof CampaignsIndexRoute
   '/news/': typeof NewsIndexRoute
   '/seva/': typeof SevaIndexRoute
+  '/_authenticated/admin/announcements': typeof AuthenticatedAdminAnnouncementsRoute
   '/_authenticated/admin/blogs': typeof AuthenticatedAdminBlogsRoute
   '/_authenticated/admin/blood': typeof AuthenticatedAdminBloodRoute
   '/_authenticated/admin/campaigns': typeof AuthenticatedAdminCampaignsRoute
+  '/_authenticated/admin/committees': typeof AuthenticatedAdminCommitteesRoute
   '/_authenticated/admin/community': typeof AuthenticatedAdminCommunityRoute
+  '/_authenticated/admin/documents': typeof AuthenticatedAdminDocumentsRoute
   '/_authenticated/admin/donations': typeof AuthenticatedAdminDonationsRoute
   '/_authenticated/admin/homepage': typeof AuthenticatedAdminHomepageRoute
   '/_authenticated/admin/interns': typeof AuthenticatedAdminInternsRoute
   '/_authenticated/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/_authenticated/admin/media': typeof AuthenticatedAdminMediaRoute
+  '/_authenticated/admin/meetings': typeof AuthenticatedAdminMeetingsRouteWithChildren
+  '/_authenticated/admin/members': typeof AuthenticatedAdminMembersRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/news': typeof AuthenticatedAdminNewsRoute
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/seva': typeof AuthenticatedAdminSevaRoute
+  '/_authenticated/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/volunteers': typeof AuthenticatedAdminVolunteersRoute
   '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/verify/volunteer/$ref': typeof VerifyVolunteerRefRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/admin/meetings/$id': typeof AuthenticatedAdminMeetingsIdRoute
   '/api/public/razorpay/webhook': typeof ApiPublicRazorpayWebhookRoute
 }
 export interface FileRouteTypes {
@@ -469,10 +556,12 @@ export interface FileRouteTypes {
     | '/donation-status'
     | '/gallery'
     | '/internship'
+    | '/join'
     | '/library'
     | '/privacy-policy'
     | '/reels'
     | '/refund-policy'
+    | '/team'
     | '/terms'
     | '/videos'
     | '/volunteer'
@@ -487,25 +576,32 @@ export interface FileRouteTypes {
     | '/campaigns/'
     | '/news/'
     | '/seva/'
+    | '/admin/announcements'
     | '/admin/blogs'
     | '/admin/blood'
     | '/admin/campaigns'
+    | '/admin/committees'
     | '/admin/community'
+    | '/admin/documents'
     | '/admin/donations'
     | '/admin/homepage'
     | '/admin/interns'
     | '/admin/library'
     | '/admin/media'
+    | '/admin/meetings'
+    | '/admin/members'
     | '/admin/messages'
     | '/admin/news'
     | '/admin/payments'
     | '/admin/settings'
     | '/admin/seva'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/volunteers'
     | '/verify/receipt/$code'
     | '/verify/volunteer/$ref'
     | '/admin/'
+    | '/admin/meetings/$id'
     | '/api/public/razorpay/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -518,10 +614,12 @@ export interface FileRouteTypes {
     | '/donation-status'
     | '/gallery'
     | '/internship'
+    | '/join'
     | '/library'
     | '/privacy-policy'
     | '/reels'
     | '/refund-policy'
+    | '/team'
     | '/terms'
     | '/videos'
     | '/volunteer'
@@ -535,25 +633,32 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/news'
     | '/seva'
+    | '/admin/announcements'
     | '/admin/blogs'
     | '/admin/blood'
     | '/admin/campaigns'
+    | '/admin/committees'
     | '/admin/community'
+    | '/admin/documents'
     | '/admin/donations'
     | '/admin/homepage'
     | '/admin/interns'
     | '/admin/library'
     | '/admin/media'
+    | '/admin/meetings'
+    | '/admin/members'
     | '/admin/messages'
     | '/admin/news'
     | '/admin/payments'
     | '/admin/settings'
     | '/admin/seva'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/volunteers'
     | '/verify/receipt/$code'
     | '/verify/volunteer/$ref'
     | '/admin'
+    | '/admin/meetings/$id'
     | '/api/public/razorpay/webhook'
   id:
     | '__root__'
@@ -567,10 +672,12 @@ export interface FileRouteTypes {
     | '/donation-status'
     | '/gallery'
     | '/internship'
+    | '/join'
     | '/library'
     | '/privacy-policy'
     | '/reels'
     | '/refund-policy'
+    | '/team'
     | '/terms'
     | '/videos'
     | '/volunteer'
@@ -585,25 +692,32 @@ export interface FileRouteTypes {
     | '/campaigns/'
     | '/news/'
     | '/seva/'
+    | '/_authenticated/admin/announcements'
     | '/_authenticated/admin/blogs'
     | '/_authenticated/admin/blood'
     | '/_authenticated/admin/campaigns'
+    | '/_authenticated/admin/committees'
     | '/_authenticated/admin/community'
+    | '/_authenticated/admin/documents'
     | '/_authenticated/admin/donations'
     | '/_authenticated/admin/homepage'
     | '/_authenticated/admin/interns'
     | '/_authenticated/admin/library'
     | '/_authenticated/admin/media'
+    | '/_authenticated/admin/meetings'
+    | '/_authenticated/admin/members'
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/news'
     | '/_authenticated/admin/payments'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/seva'
+    | '/_authenticated/admin/tasks'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/volunteers'
     | '/verify/receipt/$code'
     | '/verify/volunteer/$ref'
     | '/_authenticated/admin/'
+    | '/_authenticated/admin/meetings/$id'
     | '/api/public/razorpay/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -618,10 +732,12 @@ export interface RootRouteChildren {
   DonationStatusRoute: typeof DonationStatusRoute
   GalleryRoute: typeof GalleryRoute
   InternshipRoute: typeof InternshipRoute
+  JoinRoute: typeof JoinRoute
   LibraryRoute: typeof LibraryRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ReelsRoute: typeof ReelsRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
+  TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
   VideosRoute: typeof VideosRoute
   VolunteerRoute: typeof VolunteerRoute
@@ -710,6 +826,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InternshipRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library': {
       id: '/library'
       path: '/library'
@@ -736,6 +859,13 @@ declare module '@tanstack/react-router' {
       path: '/refund-policy'
       fullPath: '/refund-policy'
       preLoaderRoute: typeof RefundPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -843,6 +973,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/announcements': {
+      id: '/_authenticated/admin/announcements'
+      path: '/announcements'
+      fullPath: '/admin/announcements'
+      preLoaderRoute: typeof AuthenticatedAdminAnnouncementsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/blogs': {
       id: '/_authenticated/admin/blogs'
       path: '/blogs'
@@ -864,11 +1001,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCampaignsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/committees': {
+      id: '/_authenticated/admin/committees'
+      path: '/committees'
+      fullPath: '/admin/committees'
+      preLoaderRoute: typeof AuthenticatedAdminCommitteesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/community': {
       id: '/_authenticated/admin/community'
       path: '/community'
       fullPath: '/admin/community'
       preLoaderRoute: typeof AuthenticatedAdminCommunityRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/documents': {
+      id: '/_authenticated/admin/documents'
+      path: '/documents'
+      fullPath: '/admin/documents'
+      preLoaderRoute: typeof AuthenticatedAdminDocumentsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/donations': {
@@ -906,6 +1057,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMediaRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/meetings': {
+      id: '/_authenticated/admin/meetings'
+      path: '/meetings'
+      fullPath: '/admin/meetings'
+      preLoaderRoute: typeof AuthenticatedAdminMeetingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/members': {
+      id: '/_authenticated/admin/members'
+      path: '/members'
+      fullPath: '/admin/members'
+      preLoaderRoute: typeof AuthenticatedAdminMembersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/messages': {
       id: '/_authenticated/admin/messages'
       path: '/messages'
@@ -941,6 +1106,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSevaRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/tasks': {
+      id: '/_authenticated/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AuthenticatedAdminTasksRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/users'
@@ -969,6 +1141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyVolunteerRefRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/meetings/$id': {
+      id: '/_authenticated/admin/meetings/$id'
+      path: '/$id'
+      fullPath: '/admin/meetings/$id'
+      preLoaderRoute: typeof AuthenticatedAdminMeetingsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminMeetingsRoute
+    }
     '/api/public/razorpay/webhook': {
       id: '/api/public/razorpay/webhook'
       path: '/api/public/razorpay/webhook'
@@ -979,41 +1158,67 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminMeetingsRouteChildren {
+  AuthenticatedAdminMeetingsIdRoute: typeof AuthenticatedAdminMeetingsIdRoute
+}
+
+const AuthenticatedAdminMeetingsRouteChildren: AuthenticatedAdminMeetingsRouteChildren =
+  {
+    AuthenticatedAdminMeetingsIdRoute: AuthenticatedAdminMeetingsIdRoute,
+  }
+
+const AuthenticatedAdminMeetingsRouteWithChildren =
+  AuthenticatedAdminMeetingsRoute._addFileChildren(
+    AuthenticatedAdminMeetingsRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAnnouncementsRoute: typeof AuthenticatedAdminAnnouncementsRoute
   AuthenticatedAdminBlogsRoute: typeof AuthenticatedAdminBlogsRoute
   AuthenticatedAdminBloodRoute: typeof AuthenticatedAdminBloodRoute
   AuthenticatedAdminCampaignsRoute: typeof AuthenticatedAdminCampaignsRoute
+  AuthenticatedAdminCommitteesRoute: typeof AuthenticatedAdminCommitteesRoute
   AuthenticatedAdminCommunityRoute: typeof AuthenticatedAdminCommunityRoute
+  AuthenticatedAdminDocumentsRoute: typeof AuthenticatedAdminDocumentsRoute
   AuthenticatedAdminDonationsRoute: typeof AuthenticatedAdminDonationsRoute
   AuthenticatedAdminHomepageRoute: typeof AuthenticatedAdminHomepageRoute
   AuthenticatedAdminInternsRoute: typeof AuthenticatedAdminInternsRoute
   AuthenticatedAdminLibraryRoute: typeof AuthenticatedAdminLibraryRoute
   AuthenticatedAdminMediaRoute: typeof AuthenticatedAdminMediaRoute
+  AuthenticatedAdminMeetingsRoute: typeof AuthenticatedAdminMeetingsRouteWithChildren
+  AuthenticatedAdminMembersRoute: typeof AuthenticatedAdminMembersRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminNewsRoute: typeof AuthenticatedAdminNewsRoute
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminSevaRoute: typeof AuthenticatedAdminSevaRoute
+  AuthenticatedAdminTasksRoute: typeof AuthenticatedAdminTasksRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminVolunteersRoute: typeof AuthenticatedAdminVolunteersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAnnouncementsRoute: AuthenticatedAdminAnnouncementsRoute,
   AuthenticatedAdminBlogsRoute: AuthenticatedAdminBlogsRoute,
   AuthenticatedAdminBloodRoute: AuthenticatedAdminBloodRoute,
   AuthenticatedAdminCampaignsRoute: AuthenticatedAdminCampaignsRoute,
+  AuthenticatedAdminCommitteesRoute: AuthenticatedAdminCommitteesRoute,
   AuthenticatedAdminCommunityRoute: AuthenticatedAdminCommunityRoute,
+  AuthenticatedAdminDocumentsRoute: AuthenticatedAdminDocumentsRoute,
   AuthenticatedAdminDonationsRoute: AuthenticatedAdminDonationsRoute,
   AuthenticatedAdminHomepageRoute: AuthenticatedAdminHomepageRoute,
   AuthenticatedAdminInternsRoute: AuthenticatedAdminInternsRoute,
   AuthenticatedAdminLibraryRoute: AuthenticatedAdminLibraryRoute,
   AuthenticatedAdminMediaRoute: AuthenticatedAdminMediaRoute,
+  AuthenticatedAdminMeetingsRoute: AuthenticatedAdminMeetingsRouteWithChildren,
+  AuthenticatedAdminMembersRoute: AuthenticatedAdminMembersRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminNewsRoute: AuthenticatedAdminNewsRoute,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminSevaRoute: AuthenticatedAdminSevaRoute,
+  AuthenticatedAdminTasksRoute: AuthenticatedAdminTasksRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminVolunteersRoute: AuthenticatedAdminVolunteersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -1048,10 +1253,12 @@ const rootRouteChildren: RootRouteChildren = {
   DonationStatusRoute: DonationStatusRoute,
   GalleryRoute: GalleryRoute,
   InternshipRoute: InternshipRoute,
+  JoinRoute: JoinRoute,
   LibraryRoute: LibraryRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ReelsRoute: ReelsRoute,
   RefundPolicyRoute: RefundPolicyRoute,
+  TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
   VideosRoute: VideosRoute,
   VolunteerRoute: VolunteerRoute,
