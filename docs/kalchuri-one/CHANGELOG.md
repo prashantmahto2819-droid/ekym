@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-04 — Phase 7 (हिसाब-किताब · double entry)
+- Migration `fin_01_accounting`: `fin_accounts` (संगठन-वार chart; समूह/नकद/बैंक flags, opening balance), `fin_years` (अप्रैल–मार्च, अपने आप बनता है; `fin_lock_year` से बंद — trigger `fin_guard_locked` बंद वर्ष में कोई बदलाव नहीं होने देता), `fin_parties`, `fin_vouchers` (receipt/payment/journal/contra; draft → posted → cancelled; नंबर series `<SHORT>/R|P|J|C/0001` post पर; `source`/`source_id` से दान/सदस्यता से जुड़ाव), `fin_lines`। RPCs: `fin_seed_accounts` (संस्था template, 26 खाते), `fin_post_voucher` (डेबिट = क्रेडिट, ≥2 पंक्तियाँ, समूह/निष्क्रिय खाते नहीं, बंद वर्ष नहीं), `fin_cancel_voucher` (कारण ज़रूरी; `fin.voucher.cancel`), `fin_reverse_voucher` (उलटा journal, मूल को `reversed_by`), रिपोर्ट `fin_trial_balance`, `fin_ledger` (running balance), `fin_cashbook`, `fin_receipts_payments`, `fin_voucher_detail`। **Razorpay दान PAID → trigger `trg_fin_donation_paid` → receipt voucher (बैंक Dr / दान आय Cr) अपने आप**; पुराने भुगतान `fin_import_paid_donations` से।
+- `fin_02_receipt_document`: posted receipt voucher से design-engine रसीद (`docs_documents` kind receipt, नंबर = वाउचर नंबर, verify code, `receipt.*` merge fields) → PDF/WhatsApp Letters पेज से।
+- Admin → **Accounts** group: *Chart of accounts & years* (मानक खाते बनाना, जोड़ना/बदलना, वर्ष बंद/खोलना), *Vouchers & receipts* (सूची + अवधि/प्रकार/स्थिति/खोज, CSV; नया वाउचर; receipt/payment का आसान फ़ॉर्म = नकद/बैंक खाता + मदें; journal/contra का Dr/Cr grid; post, print, रसीद, reversal, रद्द), *Books & reports* (रोकड़/बैंक बही, खाता बही, तलपट, आय-व्यय, प्राप्ति-भुगतान; CSV/Excel + प्रिंट→PDF)।
+- Permissions (पहले से seeded): treasurer = `fin.*`; president/auditor = रिपोर्ट देखना; `fin.fy.lock` वर्ष बंद करने के लिए।
+- बाकी: bills/GST (sales/purchase), बजट बनाम वास्तविक, बैंक statement import/reconciliation, सदस्यता शुल्क → auto voucher (Phase 3 की membership fee flow जुड़ने पर)।
+
 ## 2026-11-04 — Phase 6c (शोक संदेश Kalchuri One में)
 - Design engine starter **शोकपत्र** (`shokPatraTemplate`, kind `shok_patra`, 1050×1491): दीया + श्रद्धांजलि, `{{shok.deceased}}`, `{{shok.death_date|date}}`, `{{shok.ceremony_date|date}}`, `{{shok.venue}}`, `{{shok.family}}`; हर व्यक्ति के लिए `{{recipient.name}}`, `{{recipient.father_line}}` ("(पिता: …)" या खाली), `{{recipient.village}}`। Studio में किसी भी संगठन के लिए copy/edit।
 - Admin → **Shok sandesh**: सूची (भेजे/असफल/बाकी, स्थिति), एडमिन मंज़ूर/अस्वीकार (`decide_letter`), असफल दोबारा (`send-letters` retry), ड्राफ़्ट हटाना।
