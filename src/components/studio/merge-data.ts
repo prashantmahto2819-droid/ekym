@@ -78,4 +78,8 @@ export const SAMPLE_DATA: MergeData = {
   signatory: { name: "Prashant Mahto", designation: "Secretary" },
   receipt: { payer_name: "Shri Ramesh Kumar", amount: 1100, purpose: "General donation", mode: "UPI", instrument: "TXN123456", payer_mobile: "98xxxxxx10", payer_address: "Raipur", payer_pan: "", footer_note: "This receipt is computer generated." },
   member: { name: "Ramesh Kumar", name_hi: "रमेश कुमार", member_no: "EKYM/M/0001", category: "Life", city: "Raipur", valid_from: "2026-11-04", valid_to: "2031-11-03", photo: "" },
+  shok: { deceased: "श्री संतोष कुमार कश्यप", death_date: "2026-11-01", ceremony_date: "2026-11-11", venue: "नगर पालिका सामुदायिक भवन, आदर्श नगर, कुसमुण्डा", family: "कश्यप परिवार, कुसमुण्डा" },
 };
+// recipient sample for शोकपत्र previews (father_line = "(पिता: …)" or empty)
+(SAMPLE_DATA["recipient"] as Record<string, unknown>)["father_line"] = "(पिता: श्री मोहन लाल)";
+(SAMPLE_DATA["recipient"] as Record<string, unknown>)["village"] = "कुसमुण्डा";

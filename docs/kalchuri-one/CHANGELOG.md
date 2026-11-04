@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-04 — Phase 6c (शोक संदेश Kalchuri One में)
+- Design engine starter **शोकपत्र** (`shokPatraTemplate`, kind `shok_patra`, 1050×1491): दीया + श्रद्धांजलि, `{{shok.deceased}}`, `{{shok.death_date|date}}`, `{{shok.ceremony_date|date}}`, `{{shok.venue}}`, `{{shok.family}}`; हर व्यक्ति के लिए `{{recipient.name}}`, `{{recipient.father_line}}` ("(पिता: …)" या खाली), `{{recipient.village}}`। Studio में किसी भी संगठन के लिए copy/edit।
+- Admin → **Shok sandesh**: सूची (भेजे/असफल/बाकी, स्थिति), एडमिन मंज़ूर/अस्वीकार (`decide_letter`), असफल दोबारा (`send-letters` retry), ड्राफ़्ट हटाना।
+- **Send wizard** (`/admin/shok/send`): जानकारी + live preview → प्राप्तकर्ता (गाँव / क्षेत्र / परिवार / वंश-वार, खोज, "पहले भेजा जा चुका" धुँधला (`already_covered_members`), जीवित पति वाली पत्नी सिर्फ़ हाथ से, each_member में बिना नंबर वाले नहीं) → जाँच (परिवार-वार n/total, cross-check checkbox) → हर व्यक्ति का JPEG design engine से → bucket `letters` → `create_letter_recipients` → `submit_letter` (एडमिन का सीधे queued, बाकी pending_approval)। भेजना शोकपत्र के server-side cron (`send_letters_tick` → `send-letters`) से — tab बंद होने पर भी चलता है।
+- Migration `shok_01_org_link`: `letters.organization_id` (nullable)।
+- निर्णय: शोक संदेश अभी शोकपत्र के Vivid Relay pipeline से जाते हैं (comms engine से नहीं), ताकि दोनों ऐप एक ही कतार/स्थिति दिखाएँ; शोकपत्र बंद होने पर comms engine पर ले जाएँगे। Kalchuri One की भूमिकाएँ (`shok.approve`) अभी `decide_letter` में नहीं जुड़ीं — शोकपत्र एडमिन ही मंज़ूर करता है।
+- अभी शोकपत्र में ही: अपनी फोटो पर नाम-बॉक्स वाला पुराना तरीका, पत्र में संपादन (`#/send/edit`), नाम सुझाव, वंश-कड़ी अनुरोध, परिवार मिलाना, Roman→हिंदी।
+
 ## 2026-11-04 — Phase 6b (वंश वृक्ष: संपादन)
 - चार्ट में ही संपादन (FamilyEcho शैली): सदस्य चुनने पर बटन — + पुत्र / + पुत्री / + पत्नी, ⬆ पूर्वज जोड़ें (`add_parent_above`), बदलें, मुखिया बनाएँ (`set_family_head`), भाइयों का क्रम ◀ ▶ (`sort_order`), ले जाएँ (एडमिन, `move_member`), हटाएँ (सिर्फ़ यह → `remove_member_keep_children`, या नीचे वालों समेत)।
 - `MemberDialog`: नाम/नाम याद नहीं/दिवंगत/रिश्ता/मोबाइल (duplicate जाँच `phone_check`: एडमिन override `phone_dup_ok`, या बिना नंबर)/मूल ग्राम (datalist; सूची में न हो तो `request_origin_village`)/निवास (`ensureVillage`)।
