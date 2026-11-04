@@ -48,6 +48,17 @@ jobs:
           set -o pipefail
           bunx tsc --noEmit -p . 2>&1 | tee ci-out/typecheck.log
 
+      - name: Design engine smoke (headless Chromium)
+        id: smoke
+        if: steps.install.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          bun build src/design-engine/smoke.ts --outfile ci-out/smoke.js --target browser 2>&1 | tee ci-out/smoke-build.log
+          bunx playwright@1.56.1 install --with-deps chromium 2>&1 | tail -3
+          bun add -d playwright@1.56.1 >/dev/null 2>&1 || true
+          node scripts/smoke-engine.mjs 2>&1 | tee ci-out/smoke.log
+
       - name: Diagnostics
         if: always()
         run: |
@@ -60,6 +71,7 @@ jobs:
             echo "install=${{ steps.install.outcome }}"
             echo "typecheck=${{ steps.typecheck.outcome }}"
             echo "build=${{ steps.build.outcome }}"
+            echo "smoke=${{ steps.smoke.outcome }}"
           } > ci-out/RESULT.txt
           cat ci-out/RESULT.txt
 
@@ -83,5 +95,5 @@ jobs:
         run: bunx wrangler@4 deploy
 
       - name: Fail if any step failed
-        if: steps.install.outcome != 'success' || steps.typecheck.outcome != 'success' || steps.build.outcome != 'success'
+        if: steps.install.outcome != 'success' || steps.typecheck.outcome != 'success' || steps.build.outcome != 'success' || steps.smoke.outcome != 'success'
         run: exit 1
