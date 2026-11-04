@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-04 — Phase 6a (वंश वृक्ष: पढ़ने का हिस्सा)
+- Migration `family_01_bridge` (additive): शोकपत्र के `is_approved()` / `admin_can_manage_family()` अब Kalchuri One की भूमिकाएँ भी मानते हैं — `family.manage` वाला user approved गिना जाता है; संगठन में `social_region_id` हो तो उसी क्षेत्र के परिवार, न हो तो सभी (राष्ट्रीय संगठन); platform admin सब। नए RPC `k1_family_ctx()`, `k1_families(status,q)`।
+- `src/family/layout.ts`: FamilyEcho जैसा chart layout — पीढ़ियाँ पंक्तियों में, पति-पत्नी साथ (सुनहरी रेखा), संतानें दंपति के नीचे बीच में, bus connectors, पुत्री/पत्नी badges।
+- `FamilyChart`: SVG, pan/zoom/fit, click → सदस्य चुनें (पूर्वज+वंशज हाइलाइट, बाकी धुँधले), वंश-दृश्य में हर परिवार का अलग रंग।
+- Admin → **Family trees**: सूची (मेरे / मेरे क्षेत्र के / निर्देशिका), परिवार पेज (chart + सदस्य panel: पिता, पत्नी, संतान, वंशावली; सूची दृश्य; कड़ियाँ), **Full lineage** (जुड़े परिवार एक chart में)।
+- संपादन अभी शोकपत्र ऐप में (link दिया है); Phase 6b में यहाँ आएगा।
+
 ## 2026-11-04 — Phase 5 (Communication engine: WhatsApp + ईमेल)
 - Migration `comms_01_engine`: `comms_channels` (provider: vivid_relay | meta_cloud | smtp; secret Supabase **Vault** में, DB में नहीं), `comms_consents` / `comms_opt_outs`, `comms_templates`, `comms_campaigns`, `comms_messages` (server-side queue)। RPCs: `k1_enqueue_message` (permission: `comms.campaign.send`, या पत्र/बैठक/सदस्यता के अपने अधिकार), `k1_comms_set_secret`, `k1_comms_claim` (SKIP LOCKED, daily limit), `k1_comms_result` (retry = 2^n × 2 मिनट, 4 बार; 401/402/403 fatal → channel `error`), `k1_comms_status_update`, `k1_comms_opt_out`, `k1_cancel_message`, `k1_comms_stats`। pg_cron `kalchuri-comms-worker` हर मिनट `comms_tick()` (queue खाली तो कुछ नहीं)।
 - Edge function **`comms-worker`** (deployed): Vivid Relay (`/api/sessions/<s>/send`, unique `Ref:` tail, gap_min–gap_max), Meta Cloud API (text/image/document/template), SMTP (nodemailer, attachments); PDF/छवि storage से signed URL द्वारा। `action:"test"` से एडमिन channel जाँचता है। **`comms-webhook`** (deployed): Meta delivery/read status + "STOP" पर opt-out (secrets `META_WEBHOOK_VERIFY_TOKEN`, `META_APP_SECRET` dashboard में)।

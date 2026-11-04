@@ -5014,6 +5014,23 @@ export type Database = {
         }
         Returns: string
       }
+      k1_families: {
+        Args: { p_limit?: number; p_q?: string; p_status?: string }
+        Returns: {
+          created_at: string
+          family_name: string
+          head_name: string
+          id: string
+          main_whatsapp: string
+          managed: boolean
+          members: number
+          mine: boolean
+          owner_id: string
+          status: string
+          village_name: string
+        }[]
+      }
+      k1_family_ctx: { Args: never; Returns: Json }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
         Args: { p_id: string }

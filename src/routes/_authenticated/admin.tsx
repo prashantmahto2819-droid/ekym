@@ -28,6 +28,7 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/letters", label: "Letters & certificates", group: "Letters & documents" },
   { to: "/admin/register", label: "Inward / outward register", group: "Letters & documents" },
   { to: "/admin/messaging", label: "Messaging (WhatsApp & email)", group: "Letters & documents" },
+  { to: "/admin/families", label: "Family trees", group: "Family & shok" },
   { to: "/admin/homepage", label: "Homepage sections", group: "Content" },
   { to: "/admin/seva", label: "Seva projects", group: "Content" },
   { to: "/admin/blogs", label: "Blogs", group: "Content" },
