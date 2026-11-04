@@ -13,7 +13,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -55,14 +55,14 @@ jobs:
         run: |
           set -o pipefail
           bun build src/design-engine/smoke.ts --outfile ci-out/smoke.js --target browser 2>&1 | tee ci-out/smoke-build.log
-          bunx playwright@1.56.1 install --with-deps chromium 2>&1 | tail -3
-          bun add -d playwright@1.56.1 >/dev/null 2>&1 || true
+          bunx playwright install --with-deps chromium 2>&1 | tail -3
           node scripts/smoke-engine.mjs 2>&1 | tee ci-out/smoke.log
 
       - name: Diagnostics
         if: always()
         run: |
           cp bun.lock ci-out/bun.lock 2>/dev/null || true
+          cp -r ci-out/smoke ci-out/smoke-png 2>/dev/null || true
           if [ -d node_modules/@lovable.dev/vite-tanstack-config ]; then
             mkdir -p ci-out/lovable-config
             cp -r node_modules/@lovable.dev/vite-tanstack-config/package.json node_modules/@lovable.dev/vite-tanstack-config/dist ci-out/lovable-config/ 2>/dev/null || true
