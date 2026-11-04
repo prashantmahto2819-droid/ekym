@@ -726,6 +726,325 @@ export type Database = {
         }
         Relationships: []
       }
+      cm_listings: {
+        Row: {
+          address: string | null
+          admin_note: string | null
+          body: string | null
+          body_hi: string | null
+          category: string | null
+          city: string | null
+          contact_name: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          district: string | null
+          email: string | null
+          expires_at: string | null
+          featured: boolean
+          fields: Json
+          id: string
+          image: string | null
+          kind: string
+          organization_id: string
+          phone: string | null
+          state: string | null
+          status: string
+          submitted_by: string | null
+          title: string
+          title_hi: string | null
+          updated_at: string
+          views: number
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          admin_note?: string | null
+          body?: string | null
+          body_hi?: string | null
+          category?: string | null
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          district?: string | null
+          email?: string | null
+          expires_at?: string | null
+          featured?: boolean
+          fields?: Json
+          id?: string
+          image?: string | null
+          kind: string
+          organization_id: string
+          phone?: string | null
+          state?: string | null
+          status?: string
+          submitted_by?: string | null
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          views?: number
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          admin_note?: string | null
+          body?: string | null
+          body_hi?: string | null
+          category?: string | null
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          district?: string | null
+          email?: string | null
+          expires_at?: string | null
+          featured?: boolean
+          fields?: Json
+          id?: string
+          image?: string | null
+          kind?: string
+          organization_id?: string
+          phone?: string | null
+          state?: string | null
+          status?: string
+          submitted_by?: string | null
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          views?: number
+          website?: string | null
+        }
+        Relationships: []
+      }
+      cm_matrimony_interests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          from_profile: string
+          id: string
+          status: string
+          to_profile: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          from_profile: string
+          id?: string
+          status?: string
+          to_profile: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          from_profile?: string
+          id?: string
+          status?: string
+          to_profile?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_matrimony_interests_from_profile_fkey"
+            columns: ["from_profile"]
+            isOneToOne: false
+            referencedRelation: "cm_matrimony_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_matrimony_interests_to_profile_fkey"
+            columns: ["to_profile"]
+            isOneToOne: false
+            referencedRelation: "cm_matrimony_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_matrimony_profiles: {
+        Row: {
+          about: string | null
+          birth_year: number
+          city: string | null
+          consent_at: string
+          contact_phone: string
+          created_at: string
+          created_for: string
+          display_name: string
+          district: string | null
+          education: string | null
+          expectations: string | null
+          family_id: string | null
+          gender: string
+          gotra: string | null
+          height_cm: number | null
+          id: string
+          income_range: string | null
+          native_place: string | null
+          organization_id: string
+          photo_path: string | null
+          profession: string | null
+          state: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          about?: string | null
+          birth_year: number
+          city?: string | null
+          consent_at?: string
+          contact_phone: string
+          created_at?: string
+          created_for?: string
+          display_name: string
+          district?: string | null
+          education?: string | null
+          expectations?: string | null
+          family_id?: string | null
+          gender: string
+          gotra?: string | null
+          height_cm?: number | null
+          id?: string
+          income_range?: string | null
+          native_place?: string | null
+          organization_id: string
+          photo_path?: string | null
+          profession?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          about?: string | null
+          birth_year?: number
+          city?: string | null
+          consent_at?: string
+          contact_phone?: string
+          created_at?: string
+          created_for?: string
+          display_name?: string
+          district?: string | null
+          education?: string | null
+          expectations?: string | null
+          family_id?: string | null
+          gender?: string
+          gotra?: string | null
+          height_cm?: number | null
+          id?: string
+          income_range?: string | null
+          native_place?: string | null
+          organization_id?: string
+          photo_path?: string | null
+          profession?: string | null
+          state?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_matrimony_profiles_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_polls: {
+        Row: {
+          anonymous: boolean
+          audience: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          id: string
+          multi: boolean
+          open_results: boolean
+          options: Json
+          organization_id: string
+          question: string
+          question_hi: string | null
+          starts_at: string
+          status: string
+        }
+        Insert: {
+          anonymous?: boolean
+          audience?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          multi?: boolean
+          open_results?: boolean
+          options?: Json
+          organization_id: string
+          question: string
+          question_hi?: string | null
+          starts_at?: string
+          status?: string
+        }
+        Update: {
+          anonymous?: boolean
+          audience?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          multi?: boolean
+          open_results?: boolean
+          options?: Json
+          organization_id?: string
+          question?: string
+          question_hi?: string | null
+          starts_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      cm_votes: {
+        Row: {
+          choices: string[]
+          created_at: string
+          id: string
+          poll_id: string
+          voter_id: string
+        }
+        Insert: {
+          choices: string[]
+          created_at?: string
+          id?: string
+          poll_id: string
+          voter_id: string
+        }
+        Update: {
+          choices?: string[]
+          created_at?: string
+          id?: string
+          poll_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "cm_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cms_categories: {
         Row: {
           created_at: string
@@ -5982,6 +6301,7 @@ export type Database = {
         }[]
       }
       k1_family_ctx: { Args: never; Returns: Json }
+      k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
         Args: { p_id: string }
@@ -6022,6 +6342,61 @@ export type Database = {
         }
       }
       k1_issue_view: { Args: { p_id: string }; Returns: undefined }
+      k1_listing_decide: {
+        Args: { p_id: string; p_note?: string; p_status: string }
+        Returns: undefined
+      }
+      k1_listing_view: { Args: { p_id: string }; Returns: undefined }
+      k1_matrimony_browse: {
+        Args: { p_gender?: string; p_org: string }
+        Returns: {
+          about: string
+          age: number
+          city: string
+          created_for: string
+          display_name: string
+          district: string
+          education: string
+          expectations: string
+          gender: string
+          gotra: string
+          height_cm: number
+          id: string
+          income_range: string
+          my_interest: string
+          native_place: string
+          photo_path: string
+          profession: string
+          their_interest: string
+          verified: boolean
+        }[]
+      }
+      k1_matrimony_contact: { Args: { p_profile: string }; Returns: Json }
+      k1_matrimony_inbox: {
+        Args: { p_org: string }
+        Returns: {
+          created_at: string
+          direction: string
+          interest_id: string
+          other_age: number
+          other_city: string
+          other_id: string
+          other_name: string
+          status: string
+        }[]
+      }
+      k1_matrimony_interest: {
+        Args: { p_from: string; p_to: string }
+        Returns: undefined
+      }
+      k1_matrimony_respond: {
+        Args: { p_accept: boolean; p_interest: string }
+        Returns: undefined
+      }
+      k1_matrimony_verify: {
+        Args: { p_id: string; p_verified: boolean }
+        Returns: undefined
+      }
       k1_my_orgs: {
         Args: never
         Returns: {
@@ -6102,6 +6477,8 @@ export type Database = {
         Args: { p_kind: string; p_org: string }
         Returns: string
       }
+      k1_poll_close: { Args: { p_poll: string }; Returns: undefined }
+      k1_poll_results: { Args: { p_poll: string }; Returns: Json }
       k1_post_decide: {
         Args: {
           p_decision: string
@@ -6212,6 +6589,10 @@ export type Database = {
       }
       k1_verify_domain: {
         Args: { p_id: string; p_verified?: boolean }
+        Returns: undefined
+      }
+      k1_vote: {
+        Args: { p_choices: string[]; p_poll: string }
         Returns: undefined
       }
       lineage_roots: {

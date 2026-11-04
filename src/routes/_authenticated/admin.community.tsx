@@ -1,73 +1,123 @@
+// Community admin: listings moderation, matrimony verification, polls, contributors & testimonials.
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import { CrudPage } from "@/components/admin/CrudPage";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useTenant } from "@/core/tenant-context";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { KIND_LABEL, type Listing } from "@/lib/community";
 
-export const Route = createFileRoute("/_authenticated/admin/community")({
-  component: CommunityAdmin,
-});
+export const Route = createFileRoute("/_authenticated/admin/community")({ component: CommunityAdmin });
+
+const rpc = async (fn: string, args: Record<string, unknown>) => { const { data, error } = await supabase.rpc(fn as never, args as never); if (error) throw new Error(error.message); return data; };
 
 function CommunityAdmin() {
+  const tenant = useTenant();
+  const org = tenant.organization_id;
+  const { can } = useAuth();
+  const qc = useQueryClient();
+  const [tab, setTab] = useState<"listings" | "matrimony" | "polls" | "people">("listings");
+  const [status, setStatus] = useState("pending");
+  const listings = useQuery({ queryKey: ["cm_listings_admin", org, status], queryFn: async () => { let q = supabase.from("cm_listings").select("*").eq("organization_id", org).order("created_at", { ascending: false }).limit(300); if (status) q = q.eq("status", status); const { data } = await q; return (data ?? []) as unknown as Listing[]; } });
+  const profiles = useQuery({ queryKey: ["cm_matri_admin", org], enabled: tab === "matrimony", queryFn: async () => { const { data } = await supabase.from("cm_matrimony_profiles").select("id,display_name,gender,birth_year,city,education,profession,created_for,verified_at,status,created_at").eq("organization_id", org).order("created_at", { ascending: false }); return (data ?? []) as { id: string; display_name: string; gender: string; birth_year: number; city: string | null; education: string | null; profession: string | null; created_for: string; verified_at: string | null; status: string; created_at: string }[]; } });
+
+  async function decide(l: Listing, st: "approved" | "rejected" | "expired") {
+    const note = st === "rejected" ? prompt("Reason (sent to the submitter)") : null; if (st === "rejected" && !note) return;
+    try { await rpc("k1_listing_decide", { p_id: l.id, p_status: st, p_note: note }); qc.invalidateQueries({ queryKey: ["cm_listings_admin", org] }); } catch (e) { toast.error((e as Error).message); }
+  }
+  async function verify(id: string, ok: boolean) { try { await rpc("k1_matrimony_verify", { p_id: id, p_verified: ok }); qc.invalidateQueries({ queryKey: ["cm_matri_admin", org] }); } catch (e) { toast.error((e as Error).message); } }
+
   return (
-    <Tabs defaultValue="contributors">
-      <TabsList className="mb-6">
-        <TabsTrigger value="contributors">Contributors</TabsTrigger>
-        <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
-      </TabsList>
+    <div className="space-y-4">
+      <header><h1 className="font-display text-2xl font-semibold">Community</h1><p className="text-sm text-muted-foreground">Directory listings (business, professionals, jobs, scholarships, emergency help), matrimony verification and polls.</p></header>
+      <div className="flex w-fit rounded-md border border-border p-0.5 text-xs">{([["listings", "Listings"], ["matrimony", "Matrimony"], ["polls", "Polls"], ["people", "Contributors & testimonials"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
 
-      <TabsContent value="contributors">
-        <CrudPage
-          table="contributors"
-          title="Contributors"
-          description="Donors, partners and well-wishers recognised on the site."
-          defaults={{ active: true, display_publicly: true }}
-          columns={[
-            { key: "name", label: "Name" },
-            { key: "organization", label: "Organization" },
-            { key: "contribution_type", label: "Type" },
-            { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") },
-          ]}
-          fields={[
-            { key: "name", label: "Name", required: true, full: true },
-            { key: "organization", label: "Organization" },
-            { key: "contribution_type", label: "Contribution type" },
-            { key: "photo", label: "Photo URL", type: "url", full: true },
-            { key: "description", label: "Description", type: "textarea", full: true },
-            { key: "recognition_message", label: "Recognition message", type: "textarea", full: true },
-            { key: "location", label: "Location" },
-            { key: "contribution_date", label: "Contribution date", type: "date" },
-            { key: "display_publicly", label: "Show publicly", type: "checkbox" },
-            { key: "active", label: "Active", type: "checkbox" },
-          ]}
-        />
-      </TabsContent>
+      {tab === "listings" ? (
+        <div className="space-y-2">
+          <div className="flex gap-2 text-xs">{["pending", "approved", "rejected", "expired", ""].map((s) => <button key={s} type="button" className={`rounded-full border px-3 py-1 ${status === s ? "border-primary bg-primary/10" : "border-border"}`} onClick={() => setStatus(s)}>{s || "all"}</button>)}</div>
+          {(listings.data ?? []).map((l) => (
+            <div key={l.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-border bg-background p-3 text-sm">
+              <div className="min-w-0 flex-1">
+                <p><Badge variant="outline">{KIND_LABEL[l.kind].en}</Badge> <b className="ml-1">{l.title}</b> {l.category ? <span className="text-xs text-muted-foreground">· {l.category}</span> : null} <Badge variant={l.status === "approved" ? "default" : l.status === "pending" ? "secondary" : "destructive"} className="ml-1">{l.status}</Badge></p>
+                <p className="mt-1 line-clamp-2 text-muted-foreground">{l.body}</p>
+                <p className="text-xs text-muted-foreground">{[l.contact_name, l.phone, l.city, l.expires_at ? `expires ${l.expires_at}` : null].filter(Boolean).join(" · ")}</p>
+              </div>
+              {can("community.listing.moderate") ? <div className="flex gap-1">{l.status !== "approved" ? <Button size="sm" onClick={() => decide(l, "approved")}>Approve</Button> : null}{l.status !== "rejected" ? <Button size="sm" variant="outline" onClick={() => decide(l, "rejected")}>Reject</Button> : null}{l.status === "approved" ? <Button size="sm" variant="ghost" onClick={() => decide(l, "expired")}>Expire</Button> : null}</div> : null}
+            </div>
+          ))}
+          {listings.isSuccess && !listings.data.length ? <p className="text-sm text-muted-foreground">Nothing here.</p> : null}
+        </div>
+      ) : null}
 
-      <TabsContent value="testimonials">
-        <CrudPage
-          table="testimonials"
-          title="Testimonials"
-          description="Only approved and active testimonials appear publicly."
-          orderBy="display_order"
-          ascending
-          defaults={{ active: true, approved: true }}
-          columns={[
-            { key: "name", label: "Name" },
-            { key: "city", label: "City" },
-            { key: "approved", label: "Approved", render: (r) => (r.approved ? "Yes" : "No") },
-            { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") },
-          ]}
-          fields={[
-            { key: "name", label: "Name", required: true },
-            { key: "role", label: "Role" },
-            { key: "city", label: "City" },
-            { key: "photo", label: "Photo URL", type: "url" },
-            { key: "message", label: "Message", type: "textarea", full: true, required: true },
-            { key: "display_order", label: "Display order", type: "number" },
-            { key: "approved", label: "Approved", type: "checkbox" },
-            { key: "active", label: "Active", type: "checkbox" },
-          ]}
-        />
-      </TabsContent>
-    </Tabs>
+      {tab === "matrimony" ? (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">Verify after a phone call / document check. Only verified, active profiles are visible to members; phone numbers are revealed only when both sides accept an interest.</p>
+          {(profiles.data ?? []).map((p) => (
+            <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3 text-sm">
+              <span><b>{p.display_name}</b> · {p.gender} · {new Date().getFullYear() - p.birth_year} yrs · {p.city ?? ""} · {p.education ?? ""} {p.profession ? `· ${p.profession}` : ""} <span className="text-xs text-muted-foreground">({p.created_for})</span> {p.verified_at ? <Badge className="ml-1">verified</Badge> : <Badge variant="secondary" className="ml-1">unverified</Badge>} <Badge variant="outline" className="ml-1">{p.status}</Badge></span>
+              {can("community.matrimony.manage") ? <Button size="sm" variant={p.verified_at ? "ghost" : "default"} onClick={() => verify(p.id, !p.verified_at)}>{p.verified_at ? "Un-verify" : "Verify"}</Button> : null}
+            </div>
+          ))}
+          {profiles.isSuccess && !profiles.data.length ? <p className="text-sm text-muted-foreground">No profiles yet.</p> : null}
+        </div>
+      ) : null}
+
+      {tab === "polls" ? <PollsAdmin org={org} /> : null}
+
+      {tab === "people" ? (
+        <div className="space-y-8">
+          <CrudPage table="contributors" title="Contributors" description="Donors, partners and well-wishers recognised on the site." defaults={{ active: true, display_publicly: true }}
+            columns={[{ key: "name", label: "Name" }, { key: "organization", label: "Organization" }, { key: "contribution_type", label: "Type" }, { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") }]}
+            fields={[{ key: "name", label: "Name", required: true, full: true }, { key: "organization", label: "Organization" }, { key: "contribution_type", label: "Contribution type" }, { key: "photo", label: "Photo URL", type: "url", full: true }, { key: "description", label: "Description", type: "textarea", full: true }, { key: "recognition_message", label: "Recognition message", type: "textarea", full: true }, { key: "location", label: "Location" }, { key: "contribution_date", label: "Contribution date", type: "date" }, { key: "display_publicly", label: "Show publicly", type: "checkbox" }, { key: "active", label: "Active", type: "checkbox" }]} />
+          <CrudPage table="testimonials" title="Testimonials" description="Only approved and active testimonials appear publicly." orderBy="display_order" ascending defaults={{ active: true, approved: true }}
+            columns={[{ key: "name", label: "Name" }, { key: "city", label: "City" }, { key: "approved", label: "Approved", render: (r) => (r.approved ? "Yes" : "No") }, { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") }]}
+            fields={[{ key: "name", label: "Name", required: true }, { key: "role", label: "Role" }, { key: "city", label: "City" }, { key: "photo", label: "Photo URL", type: "url" }, { key: "message", label: "Message", type: "textarea", full: true, required: true }, { key: "display_order", label: "Display order", type: "number" }, { key: "approved", label: "Approved", type: "checkbox" }, { key: "active", label: "Active", type: "checkbox" }]} />
+        </div>
+      ) : null}
+    </div>
   );
+}
+
+function PollsAdmin({ org }: { org: string }) {
+  const qc = useQueryClient();
+  const [opts, setOpts] = useState("");
+  const polls = useQuery({ queryKey: ["cm_polls_admin", org], queryFn: async () => { const { data } = await supabase.from("cm_polls").select("*").eq("organization_id", org).order("created_at", { ascending: false }); return (data ?? []) as unknown as { id: string; question: string; status: string; audience: string; options: { key: string; label: string }[]; ends_at: string | null }[]; } });
+  const results = useQuery({ queryKey: ["cm_poll_results_all", polls.data?.map((p) => p.id).join(",")], enabled: !!polls.data?.length, queryFn: async () => { const out: Record<string, { total: number; counts?: Record<string, number> }> = {}; for (const p of polls.data!) out[p.id] = (await rpc("k1_poll_results", { p_poll: p.id })) as { total: number; counts?: Record<string, number> }; return out; } });
+  async function close(id: string) { if (!confirm("Close this poll? Voting stops and results become visible.")) return; try { await rpc("k1_poll_close", { p_poll: id }); qc.invalidateQueries({ queryKey: ["cm_polls_admin", org] }); } catch (e) { toast.error((e as Error).message); } }
+  return (
+    <div className="space-y-4">
+      <CrudPage table="cm_polls" title="Polls" description="Members vote once each. Options: one per line in the box below (first word before | is English, after | Hindi), e.g. 'Yes|हाँ'." orderBy="created_at" createdBy
+        defaults={{ status: "open" }}
+        toolbar={<label className="block text-sm"><span className="mb-1 block text-xs text-muted-foreground">Options for the NEXT poll you create (one per line, English|हिंदी)</span><textarea className="w-full rounded-md border border-input bg-background p-2 text-sm" rows={3} value={opts} onChange={(e) => setOpts(e.target.value)} placeholder={"Yes|हाँ\nNo|नहीं"} /></label>}
+        columns={[{ key: "question", label: "Question" }, { key: "audience", label: "Audience" }, { key: "status", label: "Status" }, { key: "votes", label: "Votes / results", render: (r) => { const res = results.data?.[r.id]; return res ? <span className="text-xs">{res.total} votes{res.counts ? " · " + Object.entries(res.counts).map(([k, n]) => `${(r.options as { key: string; label: string }[]).find((o) => o.key === k)?.label ?? k}: ${n}`).join(", ") : ""}</span> : null; } }]}
+        fields={[{ key: "question", label: "Question (English)", required: true, full: true }, { key: "question_hi", label: "प्रश्न (हिंदी)", full: true }, { key: "description", label: "Description", type: "textarea", full: true }, { key: "audience", label: "Who can vote", type: "select", options: ["members", "team", "public"] }, { key: "status", label: "Status", type: "select", options: ["open", "draft", "closed"] }, { key: "ends_at", label: "Ends at", type: "datetime" }, { key: "anonymous", label: "Anonymous (hide who voted)", type: "checkbox" }, { key: "open_results", label: "Show results while open", type: "checkbox" }, { key: "multi", label: "Allow multiple choices", type: "checkbox" }]}
+        extraActions={(r) => r.status === "open" ? <Button size="sm" variant="outline" onClick={() => close(r.id)}>Close</Button> : null}
+      />
+      <OptionsApplier org={org} opts={opts} onApplied={() => { setOpts(""); qc.invalidateQueries({ queryKey: ["admin", "cm_polls"] }); qc.invalidateQueries({ queryKey: ["cm_polls_admin", org] }); }} />
+    </div>
+  );
+}
+
+/** CrudPage cannot edit jsonb arrays, so options typed above are applied to the newest poll without options. */
+function OptionsApplier({ org, opts, onApplied }: { org: string; opts: string; onApplied: () => void }) {
+  const [busy, setBusy] = useState(false);
+  async function apply() {
+    const lines = opts.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length < 2) { toast.error("Enter at least two options"); return; }
+    setBusy(true);
+    try {
+      const { data } = await supabase.from("cm_polls").select("id,question,options").eq("organization_id", org).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (!data) throw new Error("Create the poll first (New), then apply options");
+      const options = lines.map((l, i) => { const [en, hi] = l.split("|").map((x) => x.trim()); return { key: `o${i + 1}`, label: en, label_hi: hi || en }; });
+      const { error } = await supabase.from("cm_polls").update({ options } as never).eq("id", data.id); if (error) throw error;
+      toast.success(`Options applied to "${(data as { question: string }).question}"`); onApplied();
+    } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
+  }
+  if (!opts.trim()) return null;
+  return <Button size="sm" onClick={apply} disabled={busy}>Apply these options to the newest poll</Button>;
 }

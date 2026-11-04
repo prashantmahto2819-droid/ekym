@@ -26,6 +26,7 @@ import {
   getEvents,
   getEvent,
   getRsvpInfo,
+  getListings,
 } from "./public.functions";
 
 export const organizationQuery = () =>
@@ -83,3 +84,5 @@ export const menusQuery = () => queryOptions({ queryKey: ["menus"], queryFn: () 
 export const eventsQuery = () => queryOptions({ queryKey: ["events"], queryFn: () => getEvents() });
 export const eventQuery = (slug: string) => queryOptions({ queryKey: ["event", slug], queryFn: () => getEvent({ data: { slug } }) });
 export const rsvpQuery = (token: string) => queryOptions({ queryKey: ["rsvp", token], queryFn: () => getRsvpInfo({ data: { token } }) });
+
+export const listingsQuery = (kinds: string[]) => queryOptions({ queryKey: ["listings", kinds], queryFn: () => getListings({ data: { kinds } }) });
