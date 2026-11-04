@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-04 — Phase 5 (Communication engine: WhatsApp + ईमेल)
+- Migration `comms_01_engine`: `comms_channels` (provider: vivid_relay | meta_cloud | smtp; secret Supabase **Vault** में, DB में नहीं), `comms_consents` / `comms_opt_outs`, `comms_templates`, `comms_campaigns`, `comms_messages` (server-side queue)। RPCs: `k1_enqueue_message` (permission: `comms.campaign.send`, या पत्र/बैठक/सदस्यता के अपने अधिकार), `k1_comms_set_secret`, `k1_comms_claim` (SKIP LOCKED, daily limit), `k1_comms_result` (retry = 2^n × 2 मिनट, 4 बार; 401/402/403 fatal → channel `error`), `k1_comms_status_update`, `k1_comms_opt_out`, `k1_cancel_message`, `k1_comms_stats`। pg_cron `kalchuri-comms-worker` हर मिनट `comms_tick()` (queue खाली तो कुछ नहीं)।
+- Edge function **`comms-worker`** (deployed): Vivid Relay (`/api/sessions/<s>/send`, unique `Ref:` tail, gap_min–gap_max), Meta Cloud API (text/image/document/template), SMTP (nodemailer, attachments); PDF/छवि storage से signed URL द्वारा। `action:"test"` से एडमिन channel जाँचता है। **`comms-webhook`** (deployed): Meta delivery/read status + "STOP" पर opt-out (secrets `META_WEBHOOK_VERIFY_TOKEN`, `META_APP_SECRET` dashboard में)।
+- Admin → **Messaging**: channels (बनाना, secret, Test, Resume), Broadcast (active members / team / custom list; template से; marketing सिर्फ़ consent वालों को), message templates, delivery log + आँकड़े, queued संदेश cancel।
+- Letters & certificates: issued दस्तावेज़ पर **Send by WhatsApp / Send by email** (PDF अपने आप store+attach, dispatch + जावक रजिस्टर entry)। Meetings: **WhatsApp notice to members**। `/join` पर संचार-सहमति checkbox → `comms_consents`।
+- बाकी: शोकपत्र का `app_settings.relay_key` अभी वहीं है (पुराना ऐप चलता रहे); Meta Embedded Signup; संगठन-वार मासिक cost रिपोर्ट; campaigns का scheduling (`schedule_at`) UI।
+
 ## 2026-11-04 — Phase 4 (Universal Design Studio + दस्तावेज़ workflow)
 - `src/design-engine/`: शोकपत्र के studio-engine का TypeScript port + विस्तार: mm page presets (A4/A5/Letter/ID card/square/story/शोकपत्र), master (letterhead) layers हर पेज पर, `flow` layer (body text अपने आप अगले पेज पर), merge fields (`{{org.name}}`, `{{doc.date|date}}`, `|inr`, `|words` = रुपये शब्दों में, `|upper`), QR layer, table layer, `lastPageOnly` (हस्ताक्षर/QR आख़िरी पेज पर), image-PDF export (हिंदी सही), PNG।
 - Starter templates: लेटरहेड, सामान्य पत्र, प्रमाणपत्र, रसीद, सदस्यता कार्ड (`STARTER_TEMPLATES`)।
