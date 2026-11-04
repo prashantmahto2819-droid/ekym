@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteName } from "@/core/seo";
 
 import { SevaGrid } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -7,15 +8,15 @@ import { sevaListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/seva/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(sevaListQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Seva Prakalp — Ekatm Kalar Yuva Manch" },
+      { title: `Seva Prakalp — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Explore all seva prakalp of Ekatm Kalar Yuva Manch — food, blood donation, education, health, environment and community care.",
+          `Explore all seva prakalp of ${siteName(matches)} — food, blood donation, education, health, environment and community care.`,
       },
-      { property: "og:title", content: "Seva Prakalp — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Seva Prakalp — ${siteName(matches)}` },
       {
         property: "og:description",
         content: "Every seva project we run, and how you can be part of it.",

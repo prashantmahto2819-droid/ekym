@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { LogOut, ShieldCheck } from "lucide-react";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/account")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "My account — Ekatm Kalar Yuva Manch" },
-      { name: "description", content: "Your Ekatm Kalar Yuva Manch account and activity." },
+      { title: `My account — ${siteName(matches)}` },
+      { name: "description", content: `Your ${siteName(matches)} account and activity.` },
       { name: "robots", content: "noindex" },
     ],
   }),

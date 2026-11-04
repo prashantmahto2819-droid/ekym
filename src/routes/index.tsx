@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteName } from "@/core/seo";
 
 import {
   BhojanSeva,
@@ -28,15 +29,15 @@ export const Route = createFileRoute("/")({
       context.queryClient.ensureQueryData(organizationQuery()),
     ]);
   },
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Ekatm Kalar Yuva Manch — Seva Prakalp for people in need" },
+      { title: `${siteName(matches)} — Seva Prakalp for people in need` },
       {
         name: "description",
         content:
-          "Ekatm Kalar Yuva Manch runs seva prakalp across food, blood donation, education, health and community care. Volunteer, donate or request help.",
+          `${siteName(matches)} runs seva prakalp across food, blood donation, education, health and community care. Volunteer, donate or request help.`,
       },
-      { property: "og:title", content: "Ekatm Kalar Yuva Manch — Seva, every single day" },
+      { property: "og:title", content: `${siteName(matches)} — Seva, every single day` },
       {
         property: "og:description",
         content:

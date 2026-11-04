@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteName } from "@/core/seo";
 
 import { NewsCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -7,15 +8,15 @@ import { newsListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/news/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(newsListQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "News & press coverage — Ekatm Kalar Yuva Manch" },
+      { title: `News & press coverage — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Press coverage, announcements and media mentions of Ekatm Kalar Yuva Manch's seva work.",
+          `Press coverage, announcements and media mentions of ${siteName(matches)}'s seva work.`,
       },
-      { property: "og:title", content: "News & press coverage — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `News & press coverage — ${siteName(matches)}` },
       { property: "og:description", content: "Announcements and media coverage of our work." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

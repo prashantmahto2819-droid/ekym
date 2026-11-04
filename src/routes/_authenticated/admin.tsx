@@ -3,12 +3,13 @@ import { LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/core/tenant-context";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Admin — Ekatm Kalar Yuva Manch" },
-      { name: "description", content: "Internal administration for Ekatm Kalar Yuva Manch." },
+      { title: "Admin — Kalchuri One" },
+      { name: "description", content: "Organization administration on Kalchuri One." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -37,6 +38,7 @@ const NAV: { to: string; label: string; group: string }[] = [
 
 function AdminLayout() {
   const { isStaff, loading, user, signOut } = useAuth();
+  const tenant = useTenant();
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center text-sm">Loading…</div>;
@@ -48,8 +50,7 @@ function AdminLayout() {
         <div className="surface-card max-w-md p-8 text-center">
           <h1 className="font-display text-xl font-semibold">Staff access only</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This account ({user?.email}) does not have an admin role yet. Please contact a foundation
-            administrator.
+            This account ({user?.email}) does not have an admin role yet. Please contact an administrator of {tenant.name}.
           </p>
           <div className="mt-6 flex justify-center gap-2">
             <Button asChild variant="outline">
@@ -68,7 +69,7 @@ function AdminLayout() {
     <div className="flex min-h-screen bg-secondary/40">
       <aside className="hidden w-64 shrink-0 border-r border-border bg-background p-4 lg:block">
         <Link to="/" className="mb-6 block font-display text-base font-semibold">
-          EKYM Admin
+          {tenant.short_name ?? tenant.name} Admin
         </Link>
         <nav className="space-y-5">
           {groups.map((g) => (
@@ -99,7 +100,7 @@ function AdminLayout() {
         <header className="flex items-center justify-between gap-3 border-b border-border bg-background px-4 py-3">
           <div className="lg:hidden">
             <Link to="/admin" className="font-display font-semibold">
-              EKYM Admin
+              {tenant.short_name ?? tenant.name} Admin
             </Link>
           </div>
           <div className="ml-auto flex items-center gap-2 text-sm">

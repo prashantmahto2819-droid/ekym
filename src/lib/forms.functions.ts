@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type { Database } from "@/integrations/supabase/types";
+import { tenantId } from "@/core/tenant.server";
 
 /** Publishable client: public INSERT policies apply. */
 function sb() {
@@ -67,7 +68,7 @@ export type ContactInput = z.input<typeof contactSchema>;
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((d: ContactInput) => parse(contactSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("contact_messages").insert(clean(data) as any);
+    const { error } = await sb().from("contact_messages").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -96,7 +97,7 @@ export type DonorInput = z.input<typeof donorSchema>;
 export const submitDonor = createServerFn({ method: "POST" })
   .inputValidator((d: DonorInput) => parse(donorSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("blood_donors").insert(clean(data) as any);
+    const { error } = await sb().from("blood_donors").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -130,7 +131,7 @@ export type RequirementInput = z.input<typeof requirementSchema>;
 export const submitRequirement = createServerFn({ method: "POST" })
   .inputValidator((d: RequirementInput) => parse(requirementSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("blood_requirements").insert(clean(data) as any);
+    const { error } = await sb().from("blood_requirements").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -162,7 +163,7 @@ export type VolunteerInput = z.input<typeof volunteerSchema>;
 export const submitVolunteer = createServerFn({ method: "POST" })
   .inputValidator((d: VolunteerInput) => parse(volunteerSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("volunteer_applications").insert(clean(data) as any);
+    const { error } = await sb().from("volunteer_applications").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -192,7 +193,7 @@ export type InternInput = z.input<typeof internSchema>;
 export const submitIntern = createServerFn({ method: "POST" })
   .inputValidator((d: InternInput) => parse(internSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("intern_applications").insert(clean(data) as any);
+    const { error } = await sb().from("intern_applications").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -220,7 +221,7 @@ export type BookDonationInput = z.input<typeof bookDonationSchema>;
 export const submitBookDonation = createServerFn({ method: "POST" })
   .inputValidator((d: BookDonationInput) => parse(bookDonationSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("book_donation_requests").insert(clean(data) as any);
+    const { error } = await sb().from("book_donation_requests").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -250,7 +251,7 @@ export type MaterialDonationInput = z.input<typeof materialDonationSchema>;
 export const submitMaterialDonation = createServerFn({ method: "POST" })
   .inputValidator((d: MaterialDonationInput) => parse(materialDonationSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("material_donation_requests").insert(clean(data) as any);
+    const { error } = await sb().from("material_donation_requests").insert({ ...clean(data), organization_id: await tenantId() } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

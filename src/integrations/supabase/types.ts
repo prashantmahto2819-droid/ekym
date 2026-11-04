@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_regions: {
+        Row: {
+          admin_id: string
+          region_id: string
+        }
+        Insert: {
+          admin_id: string
+          region_id: string
+        }
+        Update: {
+          admin_id?: string
+          region_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_regions_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "social_regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_villages: {
+        Row: {
+          admin_id: string
+          village_id: string
+        }
+        Insert: {
+          admin_id: string
+          village_id: string
+        }
+        Update: {
+          admin_id?: string
+          village_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_villages_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_villages_village_id_fkey"
+            columns: ["village_id"]
+            isOneToOne: false
+            referencedRelation: "villages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string
@@ -73,15 +126,18 @@ export type Database = {
           author_id: string | null
           city: string | null
           content: string | null
+          content_hi: string | null
           created_at: string
           created_by: string | null
           excerpt: string | null
+          excerpt_hi: string | null
           featured_image: string | null
           gallery: Json
           id: string
           og_description: string | null
           og_image: string | null
           og_title: string | null
+          organization_id: string
           published_at: string | null
           seo_description: string | null
           seo_title: string | null
@@ -90,6 +146,7 @@ export type Database = {
           state: string | null
           status: Database["public"]["Enums"]["content_status"]
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
           video_url: string | null
@@ -98,15 +155,18 @@ export type Database = {
           author_id?: string | null
           city?: string | null
           content?: string | null
+          content_hi?: string | null
           created_at?: string
           created_by?: string | null
           excerpt?: string | null
+          excerpt_hi?: string | null
           featured_image?: string | null
           gallery?: Json
           id?: string
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
+          organization_id: string
           published_at?: string | null
           seo_description?: string | null
           seo_title?: string | null
@@ -115,6 +175,7 @@ export type Database = {
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url?: string | null
@@ -123,15 +184,18 @@ export type Database = {
           author_id?: string | null
           city?: string | null
           content?: string | null
+          content_hi?: string | null
           created_at?: string
           created_by?: string | null
           excerpt?: string | null
+          excerpt_hi?: string | null
           featured_image?: string | null
           gallery?: Json
           id?: string
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
+          organization_id?: string
           published_at?: string | null
           seo_description?: string | null
           seo_title?: string | null
@@ -140,6 +204,7 @@ export type Database = {
           state?: string | null
           status?: Database["public"]["Enums"]["content_status"]
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url?: string | null
@@ -174,6 +239,7 @@ export type Database = {
           last_donation_date: string | null
           medical_notes: string | null
           mobile: string
+          organization_id: string
           pincode: string | null
           preferred_component: string
           state: string | null
@@ -203,6 +269,7 @@ export type Database = {
           last_donation_date?: string | null
           medical_notes?: string | null
           mobile: string
+          organization_id: string
           pincode?: string | null
           preferred_component?: string
           state?: string | null
@@ -232,6 +299,7 @@ export type Database = {
           last_donation_date?: string | null
           medical_notes?: string | null
           mobile?: string
+          organization_id?: string
           pincode?: string | null
           preferred_component?: string
           state?: string | null
@@ -257,6 +325,7 @@ export type Database = {
           hospital_contact: string | null
           id: string
           notes: string | null
+          organization_id: string
           patient_age: number | null
           patient_name: string
           public_visibility: boolean
@@ -286,6 +355,7 @@ export type Database = {
           hospital_contact?: string | null
           id?: string
           notes?: string | null
+          organization_id: string
           patient_age?: number | null
           patient_name: string
           public_visibility?: boolean
@@ -315,6 +385,7 @@ export type Database = {
           hospital_contact?: string | null
           id?: string
           notes?: string | null
+          organization_id?: string
           patient_age?: number | null
           patient_name?: string
           public_visibility?: boolean
@@ -342,7 +413,10 @@ export type Database = {
           display_order: number
           id: string
           name: string
+          name_hi: string | null
+          organization_id: string
           slug: string
+          title_hi: string | null
           updated_at: string
         }
         Insert: {
@@ -352,7 +426,10 @@ export type Database = {
           display_order?: number
           id?: string
           name: string
+          name_hi?: string | null
+          organization_id: string
           slug: string
+          title_hi?: string | null
           updated_at?: string
         }
         Update: {
@@ -362,7 +439,10 @@ export type Database = {
           display_order?: number
           id?: string
           name?: string
+          name_hi?: string | null
+          organization_id?: string
           slug?: string
+          title_hi?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -384,6 +464,7 @@ export type Database = {
           id: string
           images: Json
           mobile: string
+          organization_id: string
           pickup_required: boolean
           pincode: string | null
           preferred_date: string | null
@@ -410,6 +491,7 @@ export type Database = {
           id?: string
           images?: Json
           mobile: string
+          organization_id: string
           pickup_required?: boolean
           pincode?: string | null
           preferred_date?: string | null
@@ -436,6 +518,7 @@ export type Database = {
           id?: string
           images?: Json
           mobile?: string
+          organization_id?: string
           pickup_required?: boolean
           pincode?: string | null
           preferred_date?: string | null
@@ -463,6 +546,7 @@ export type Database = {
           isbn: string | null
           language: string | null
           location: string | null
+          organization_id: string
           publisher: string | null
           quantity: number
           shelf: string | null
@@ -487,6 +571,7 @@ export type Database = {
           isbn?: string | null
           language?: string | null
           location?: string | null
+          organization_id: string
           publisher?: string | null
           quantity?: number
           shelf?: string | null
@@ -511,6 +596,7 @@ export type Database = {
           isbn?: string | null
           language?: string | null
           location?: string | null
+          organization_id?: string
           publisher?: string | null
           quantity?: number
           shelf?: string | null
@@ -538,9 +624,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          description_hi: string | null
           end_date: string | null
           id: string
           location: string | null
+          organization_id: string
           raised_amount: number
           seo_description: string | null
           seo_title: string | null
@@ -549,6 +637,7 @@ export type Database = {
           status: Database["public"]["Enums"]["content_status"]
           target_amount: number | null
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -558,9 +647,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           end_date?: string | null
           id?: string
           location?: string | null
+          organization_id: string
           raised_amount?: number
           seo_description?: string | null
           seo_title?: string | null
@@ -569,6 +660,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["content_status"]
           target_amount?: number | null
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -578,9 +670,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           end_date?: string | null
           id?: string
           location?: string | null
+          organization_id?: string
           raised_amount?: number
           seo_description?: string | null
           seo_title?: string | null
@@ -589,6 +683,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["content_status"]
           target_amount?: number | null
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -604,6 +699,7 @@ export type Database = {
           message: string
           mobile: string | null
           name: string
+          organization_id: string
           state: string | null
           status: string
           subject: string | null
@@ -618,6 +714,7 @@ export type Database = {
           message: string
           mobile?: string | null
           name: string
+          organization_id: string
           state?: string | null
           status?: string
           subject?: string | null
@@ -632,6 +729,7 @@ export type Database = {
           message?: string
           mobile?: string | null
           name?: string
+          organization_id?: string
           state?: string | null
           status?: string
           subject?: string | null
@@ -652,6 +750,7 @@ export type Database = {
           location: string | null
           name: string
           organization: string | null
+          organization_id: string
           photo: string | null
           recognition_message: string | null
           seva_project_id: string | null
@@ -670,6 +769,7 @@ export type Database = {
           location?: string | null
           name: string
           organization?: string | null
+          organization_id: string
           photo?: string | null
           recognition_message?: string | null
           seva_project_id?: string | null
@@ -688,6 +788,7 @@ export type Database = {
           location?: string | null
           name?: string
           organization?: string | null
+          organization_id?: string
           photo?: string | null
           recognition_message?: string | null
           seva_project_id?: string | null
@@ -712,6 +813,7 @@ export type Database = {
           financial_year: string | null
           id: string
           issued_on: string
+          organization_id: string
           pdf_generated_at: string | null
           receipt_number: string
           storage_path: string | null
@@ -725,6 +827,7 @@ export type Database = {
           financial_year?: string | null
           id?: string
           issued_on?: string
+          organization_id: string
           pdf_generated_at?: string | null
           receipt_number: string
           storage_path?: string | null
@@ -738,6 +841,7 @@ export type Database = {
           financial_year?: string | null
           id?: string
           issued_on?: string
+          organization_id?: string
           pdf_generated_at?: string | null
           receipt_number?: string
           storage_path?: string | null
@@ -774,6 +878,7 @@ export type Database = {
           id: string
           is_anonymous: boolean
           message: string | null
+          organization_id: string
           paid_at: string | null
           pan: string | null
           payment_method: string | null
@@ -805,6 +910,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean
           message?: string | null
+          organization_id: string
           paid_at?: string | null
           pan?: string | null
           payment_method?: string | null
@@ -836,6 +942,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean
           message?: string | null
+          organization_id?: string
           paid_at?: string | null
           pan?: string | null
           payment_method?: string | null
@@ -869,12 +976,22 @@ export type Database = {
         Row: {
           admin_note: string | null
           approved_at: string | null
+          claimed_at: string | null
+          contact_address: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          entered_by_admin: boolean
           family_name: string
           id: string
           main_whatsapp: string
           owner_id: string
           status: string
+          status_before: string | null
           submitted_at: string | null
           updated_at: string
           village_id: string | null
@@ -882,12 +999,22 @@ export type Database = {
         Insert: {
           admin_note?: string | null
           approved_at?: string | null
+          claimed_at?: string | null
+          contact_address?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          entered_by_admin?: boolean
           family_name: string
           id?: string
           main_whatsapp: string
           owner_id?: string
           status?: string
+          status_before?: string | null
           submitted_at?: string | null
           updated_at?: string
           village_id?: string | null
@@ -895,17 +1022,34 @@ export type Database = {
         Update: {
           admin_note?: string | null
           approved_at?: string | null
+          claimed_at?: string | null
+          contact_address?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          entered_by_admin?: boolean
           family_name?: string
           id?: string
           main_whatsapp?: string
           owner_id?: string
           status?: string
+          status_before?: string | null
           submitted_at?: string | null
           updated_at?: string
           village_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "families_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "families_owner_id_fkey"
             columns: ["owner_id"]
@@ -922,6 +1066,64 @@ export type Database = {
           },
         ]
       }
+      family_links: {
+        Row: {
+          child_family_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          note: string | null
+          parent_member_id: string
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          child_family_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          note?: string | null
+          parent_member_id: string
+          requested_by?: string
+          status?: string
+        }
+        Update: {
+          child_family_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          note?: string | null
+          parent_member_id?: string
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_links_child_family_id_fkey"
+            columns: ["child_family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_links_parent_member_id_fkey"
+            columns: ["parent_member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "family_links_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       festival_slides: {
         Row: {
           active: boolean
@@ -933,7 +1135,10 @@ export type Database = {
           id: string
           image: string | null
           message: string | null
+          message_hi: string | null
+          organization_id: string
           title: string | null
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -947,7 +1152,10 @@ export type Database = {
           id?: string
           image?: string | null
           message?: string | null
+          message_hi?: string | null
+          organization_id: string
           title?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -961,7 +1169,10 @@ export type Database = {
           id?: string
           image?: string | null
           message?: string | null
+          message_hi?: string | null
+          organization_id?: string
           title?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -975,12 +1186,15 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          description_hi: string | null
           display_order: number
           event_date: string | null
           id: string
           location: string | null
+          organization_id: string
           slug: string
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -991,12 +1205,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           event_date?: string | null
           id?: string
           location?: string | null
+          organization_id: string
           slug: string
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1007,12 +1224,15 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           event_date?: string | null
           id?: string
           location?: string | null
+          organization_id?: string
           slug?: string
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1026,6 +1246,7 @@ export type Database = {
           gallery_id: string
           id: string
           image: string
+          organization_id: string
           updated_at: string
         }
         Insert: {
@@ -1035,6 +1256,7 @@ export type Database = {
           gallery_id: string
           id?: string
           image: string
+          organization_id: string
           updated_at?: string
         }
         Update: {
@@ -1044,6 +1266,7 @@ export type Database = {
           gallery_id?: string
           id?: string
           image?: string
+          organization_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -1062,9 +1285,12 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
+          organization_id: string
           section_key: string
           subtitle: string | null
+          subtitle_hi: string | null
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -1073,9 +1299,12 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          organization_id: string
           section_key: string
           subtitle?: string | null
+          subtitle_hi?: string | null
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1084,9 +1313,12 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          organization_id?: string
           section_key?: string
           subtitle?: string | null
+          subtitle_hi?: string | null
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1096,51 +1328,66 @@ export type Database = {
         Row: {
           active: boolean
           button_text: string | null
+          button_text_hi: string | null
           button_url: string | null
           created_at: string
           created_by: string | null
           description: string | null
+          description_hi: string | null
           display_order: number
           end_date: string | null
           id: string
           image: string | null
+          organization_id: string
           start_date: string | null
           subtitle: string | null
+          subtitle_hi: string | null
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           active?: boolean
           button_text?: string | null
+          button_text_hi?: string | null
           button_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           end_date?: string | null
           id?: string
           image?: string | null
+          organization_id: string
           start_date?: string | null
           subtitle?: string | null
+          subtitle_hi?: string | null
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           active?: boolean
           button_text?: string | null
+          button_text_hi?: string | null
           button_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           end_date?: string | null
           id?: string
           image?: string | null
+          organization_id?: string
           start_date?: string | null
           subtitle?: string | null
+          subtitle_hi?: string | null
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1162,6 +1409,7 @@ export type Database = {
           id: string
           mobile: string
           name: string
+          organization_id: string
           payment_reference: string | null
           payment_status: string
           photo: string | null
@@ -1194,6 +1442,7 @@ export type Database = {
           id?: string
           mobile: string
           name: string
+          organization_id: string
           payment_reference?: string | null
           payment_status?: string
           photo?: string | null
@@ -1226,6 +1475,7 @@ export type Database = {
           id?: string
           mobile?: string
           name?: string
+          organization_id?: string
           payment_reference?: string | null
           payment_status?: string
           photo?: string | null
@@ -1260,6 +1510,7 @@ export type Database = {
           created_by: string | null
           department: string | null
           description: string | null
+          description_hi: string | null
           display_order: number
           duration: string | null
           eligibility: string | null
@@ -1267,9 +1518,12 @@ export type Database = {
           fee: number
           id: string
           name: string
+          name_hi: string | null
+          organization_id: string
           seats: number | null
           slug: string
           start_date: string | null
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -1279,6 +1533,7 @@ export type Database = {
           created_by?: string | null
           department?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           duration?: string | null
           eligibility?: string | null
@@ -1286,9 +1541,12 @@ export type Database = {
           fee?: number
           id?: string
           name: string
+          name_hi?: string | null
+          organization_id: string
           seats?: number | null
           slug: string
           start_date?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1298,6 +1556,7 @@ export type Database = {
           created_by?: string | null
           department?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           duration?: string | null
           eligibility?: string | null
@@ -1305,9 +1564,12 @@ export type Database = {
           fee?: number
           id?: string
           name?: string
+          name_hi?: string | null
+          organization_id?: string
           seats?: number | null
           slug?: string
           start_date?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1423,13 +1685,19 @@ export type Database = {
       }
       letters: {
         Row: {
+          admin_note: string | null
           base_image_path: string | null
           ceremony_date: string | null
           created_at: string
           created_by: string
           death_date: string | null
           deceased_name: string
+          decided_at: string | null
+          decided_by: string | null
           id: string
+          last_error: string | null
+          lock_until: string | null
+          message_template: string | null
           message_text: string | null
           name_box: Json | null
           send_mode: string
@@ -1438,13 +1706,19 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          admin_note?: string | null
           base_image_path?: string | null
           ceremony_date?: string | null
           created_at?: string
           created_by?: string
           death_date?: string | null
           deceased_name: string
+          decided_at?: string | null
+          decided_by?: string | null
           id?: string
+          last_error?: string | null
+          lock_until?: string | null
+          message_template?: string | null
           message_text?: string | null
           name_box?: Json | null
           send_mode?: string
@@ -1453,13 +1727,19 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          admin_note?: string | null
           base_image_path?: string | null
           ceremony_date?: string | null
           created_at?: string
           created_by?: string
           death_date?: string | null
           deceased_name?: string
+          decided_at?: string | null
+          decided_by?: string | null
           id?: string
+          last_error?: string | null
+          lock_until?: string | null
+          message_template?: string | null
           message_text?: string | null
           name_box?: Json | null
           send_mode?: string
@@ -1493,6 +1773,7 @@ export type Database = {
           material: string
           mobile: string
           notes: string | null
+          organization_id: string
           pickup_required: boolean
           pincode: string | null
           preferred_date: string | null
@@ -1520,6 +1801,7 @@ export type Database = {
           material: string
           mobile: string
           notes?: string | null
+          organization_id: string
           pickup_required?: boolean
           pincode?: string | null
           preferred_date?: string | null
@@ -1547,6 +1829,7 @@ export type Database = {
           material?: string
           mobile?: string
           notes?: string | null
+          organization_id?: string
           pickup_required?: boolean
           pincode?: string | null
           preferred_date?: string | null
@@ -1573,6 +1856,7 @@ export type Database = {
           file_size: number | null
           file_type: string | null
           id: string
+          organization_id: string
           public_url: string
           updated_at: string
         }
@@ -1587,6 +1871,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          organization_id: string
           public_url: string
           updated_at?: string
         }
@@ -1601,20 +1886,113 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          organization_id?: string
           public_url?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      member_suggestions: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          family_id: string
+          id: string
+          is_deceased: boolean
+          name: string
+          native_place: string | null
+          note: string | null
+          origin_village_id: string | null
+          parent_id: string | null
+          phone: string | null
+          relation: string | null
+          status: string
+          suggested_by: string
+          village_text: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          family_id: string
+          id?: string
+          is_deceased?: boolean
+          name: string
+          native_place?: string | null
+          note?: string | null
+          origin_village_id?: string | null
+          parent_id?: string | null
+          phone?: string | null
+          relation?: string | null
+          status?: string
+          suggested_by?: string
+          village_text?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          family_id?: string
+          id?: string
+          is_deceased?: boolean
+          name?: string
+          native_place?: string | null
+          note?: string | null
+          origin_village_id?: string | null
+          parent_id?: string | null
+          phone?: string | null
+          relation?: string | null
+          status?: string
+          suggested_by?: string
+          village_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_suggestions_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_suggestions_origin_village_id_fkey"
+            columns: ["origin_village_id"]
+            isOneToOne: false
+            referencedRelation: "origin_villages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_suggestions_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_suggestions_suggested_by_fkey"
+            columns: ["suggested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       members: {
         Row: {
           created_at: string
           family_id: string
           id: string
+          is_deceased: boolean
           is_head: boolean
+          member_kind: string
           name: string
+          name_unknown: boolean
+          native_place: string | null
+          origin_village_id: string | null
           parent_id: string | null
           phone: string | null
+          phone_dup_ok: boolean
           relation: string | null
           sort_order: number
           updated_at: string
@@ -1624,10 +2002,16 @@ export type Database = {
           created_at?: string
           family_id: string
           id?: string
+          is_deceased?: boolean
           is_head?: boolean
+          member_kind?: string
           name: string
+          name_unknown?: boolean
+          native_place?: string | null
+          origin_village_id?: string | null
           parent_id?: string | null
           phone?: string | null
+          phone_dup_ok?: boolean
           relation?: string | null
           sort_order?: number
           updated_at?: string
@@ -1637,10 +2021,16 @@ export type Database = {
           created_at?: string
           family_id?: string
           id?: string
+          is_deceased?: boolean
           is_head?: boolean
+          member_kind?: string
           name?: string
+          name_unknown?: boolean
+          native_place?: string | null
+          origin_village_id?: string | null
           parent_id?: string | null
           phone?: string | null
+          phone_dup_ok?: boolean
           relation?: string | null
           sort_order?: number
           updated_at?: string
@@ -1652,6 +2042,13 @@ export type Database = {
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "members_origin_village_id_fkey"
+            columns: ["origin_village_id"]
+            isOneToOne: false
+            referencedRelation: "origin_villages"
             referencedColumns: ["id"]
           },
           {
@@ -1675,9 +2072,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          description_hi: string | null
           display_homepage: boolean
           external_url: string | null
           id: string
+          organization_id: string
           published_at: string | null
           seo_description: string | null
           seo_title: string | null
@@ -1686,6 +2085,7 @@ export type Database = {
           status: Database["public"]["Enums"]["content_status"]
           thumbnail: string | null
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -1693,9 +2093,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_homepage?: boolean
           external_url?: string | null
           id?: string
+          organization_id: string
           published_at?: string | null
           seo_description?: string | null
           seo_title?: string | null
@@ -1704,6 +2106,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["content_status"]
           thumbnail?: string | null
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1711,9 +2114,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_homepage?: boolean
           external_url?: string | null
           id?: string
+          organization_id?: string
           published_at?: string | null
           seo_description?: string | null
           seo_title?: string | null
@@ -1722,6 +2127,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["content_status"]
           thumbnail?: string | null
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -1730,24 +2136,30 @@ export type Database = {
       organization_settings: {
         Row: {
           about_short: string | null
+          about_short_hi: string | null
           address: string | null
           city: string | null
           created_at: string
           district: string | null
           donation_text: string | null
+          donation_text_hi: string | null
           email: string | null
           facebook: string | null
           favicon: string | null
           footer_text: string | null
+          footer_text_hi: string | null
           id: string
           instagram: string | null
           linkedin: string | null
           logo: string | null
+          organization_id: string
           organization_name: string
+          organization_name_hi: string | null
           phone: string | null
           pincode: string | null
           state: string | null
           tagline: string | null
+          tagline_hi: string | null
           telegram: string | null
           updated_at: string
           updated_by: string | null
@@ -1758,24 +2170,30 @@ export type Database = {
         }
         Insert: {
           about_short?: string | null
+          about_short_hi?: string | null
           address?: string | null
           city?: string | null
           created_at?: string
           district?: string | null
           donation_text?: string | null
+          donation_text_hi?: string | null
           email?: string | null
           facebook?: string | null
           favicon?: string | null
           footer_text?: string | null
+          footer_text_hi?: string | null
           id?: string
           instagram?: string | null
           linkedin?: string | null
           logo?: string | null
+          organization_id: string
           organization_name?: string
+          organization_name_hi?: string | null
           phone?: string | null
           pincode?: string | null
           state?: string | null
           tagline?: string | null
+          tagline_hi?: string | null
           telegram?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -1786,24 +2204,30 @@ export type Database = {
         }
         Update: {
           about_short?: string | null
+          about_short_hi?: string | null
           address?: string | null
           city?: string | null
           created_at?: string
           district?: string | null
           donation_text?: string | null
+          donation_text_hi?: string | null
           email?: string | null
           facebook?: string | null
           favicon?: string | null
           footer_text?: string | null
+          footer_text_hi?: string | null
           id?: string
           instagram?: string | null
           linkedin?: string | null
           logo?: string | null
+          organization_id?: string
           organization_name?: string
+          organization_name_hi?: string | null
           phone?: string | null
           pincode?: string | null
           state?: string | null
           tagline?: string | null
+          tagline_hi?: string | null
           telegram?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -1814,6 +2238,92 @@ export type Database = {
         }
         Relationships: []
       }
+      origin_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          final_name: string | null
+          final_region_id: string | null
+          id: string
+          name: string
+          region_id: string | null
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          final_name?: string | null
+          final_region_id?: string | null
+          id?: string
+          name: string
+          region_id?: string | null
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          final_name?: string | null
+          final_region_id?: string | null
+          id?: string
+          name?: string
+          region_id?: string | null
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "origin_requests_final_region_id_fkey"
+            columns: ["final_region_id"]
+            isOneToOne: false
+            referencedRelation: "social_regions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "origin_requests_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "social_regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      origin_villages: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          region_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          region_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          region_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "origin_villages_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "social_regions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_settings: {
         Row: {
           created_at: string
@@ -1823,6 +2333,7 @@ export type Database = {
           max_donation_amount: number
           min_donation_amount: number
           online_payments_enabled: boolean
+          organization_id: string
           receipt_footer_note: string | null
           receipt_prefix: string
           suggested_amounts: number[]
@@ -1838,6 +2349,7 @@ export type Database = {
           max_donation_amount?: number
           min_donation_amount?: number
           online_payments_enabled?: boolean
+          organization_id: string
           receipt_footer_note?: string | null
           receipt_prefix?: string
           suggested_amounts?: number[]
@@ -1853,6 +2365,7 @@ export type Database = {
           max_donation_amount?: number
           min_donation_amount?: number
           online_payments_enabled?: boolean
+          organization_id?: string
           receipt_footer_note?: string | null
           receipt_prefix?: string
           suggested_amounts?: number[]
@@ -1873,6 +2386,7 @@ export type Database = {
           event: string | null
           id: string
           method: string | null
+          organization_id: string
           provider: string
           purpose: string
           raw: Json | null
@@ -1892,6 +2406,7 @@ export type Database = {
           event?: string | null
           id?: string
           method?: string | null
+          organization_id: string
           provider?: string
           purpose?: string
           raw?: Json | null
@@ -1911,6 +2426,7 @@ export type Database = {
           event?: string | null
           id?: string
           method?: string | null
+          organization_id?: string
           provider?: string
           purpose?: string
           raw?: Json | null
@@ -1935,6 +2451,7 @@ export type Database = {
           event: string
           event_id: string
           id: string
+          organization_id: string | null
           payload: Json
           processed_at: string | null
           processing_error: string | null
@@ -1945,6 +2462,7 @@ export type Database = {
           event: string
           event_id: string
           id?: string
+          organization_id?: string | null
           payload: Json
           processed_at?: string | null
           processing_error?: string | null
@@ -1955,6 +2473,7 @@ export type Database = {
           event?: string
           event_id?: string
           id?: string
+          organization_id?: string | null
           payload?: Json
           processed_at?: string | null
           processing_error?: string | null
@@ -1965,36 +2484,83 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          admin_scope: string
+          blood_group: string | null
+          can_see_contacts: boolean
+          consent_at: string | null
           created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          details_done_at: string | null
+          district: string | null
+          dob: string | null
           email: string | null
+          father_name: string | null
           full_name: string | null
           id: string
           phone: string | null
           role: string
           status: string
+          super_admin: boolean
           updated_at: string
+          village: string | null
         }
         Insert: {
+          address?: string | null
+          admin_scope?: string
+          blood_group?: string | null
+          can_see_contacts?: boolean
+          consent_at?: string | null
           created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          details_done_at?: string | null
+          district?: string | null
+          dob?: string | null
           email?: string | null
+          father_name?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
           role?: string
           status?: string
+          super_admin?: boolean
           updated_at?: string
+          village?: string | null
         }
         Update: {
+          address?: string | null
+          admin_scope?: string
+          blood_group?: string | null
+          can_see_contacts?: boolean
+          consent_at?: string | null
           created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          details_done_at?: string | null
+          district?: string | null
+          dob?: string | null
           email?: string | null
+          father_name?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
           role?: string
           status?: string
+          super_admin?: boolean
           updated_at?: string
+          village?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reels: {
         Row: {
@@ -2004,9 +2570,11 @@ export type Database = {
           description: string | null
           display_order: number
           id: string
+          organization_id: string
           platform: string
           thumbnail: string | null
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
           video_url: string
@@ -2018,9 +2586,11 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          organization_id: string
           platform?: string
           thumbnail?: string | null
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url: string
@@ -2032,12 +2602,35 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          organization_id?: string
           platform?: string
           thumbnail?: string | null
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url?: string
+        }
+        Relationships: []
+      }
+      region_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
         }
         Relationships: []
       }
@@ -2071,6 +2664,103 @@ export type Database = {
         }
         Relationships: []
       }
+      same_person_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          existing_label: string | null
+          existing_member_id: string | null
+          family_id: string
+          id: string
+          is_deceased: boolean
+          member_kind: string
+          name: string
+          native_place: string | null
+          parent_id: string | null
+          phone: string
+          relation: string | null
+          requested_by: string
+          status: string
+          village_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          existing_label?: string | null
+          existing_member_id?: string | null
+          family_id: string
+          id?: string
+          is_deceased?: boolean
+          member_kind?: string
+          name: string
+          native_place?: string | null
+          parent_id?: string | null
+          phone: string
+          relation?: string | null
+          requested_by: string
+          status?: string
+          village_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          existing_label?: string | null
+          existing_member_id?: string | null
+          family_id?: string
+          id?: string
+          is_deceased?: boolean
+          member_kind?: string
+          name?: string
+          native_place?: string | null
+          parent_id?: string | null
+          phone?: string
+          relation?: string | null
+          requested_by?: string
+          status?: string
+          village_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "same_person_requests_existing_member_id_fkey"
+            columns: ["existing_member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "same_person_requests_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "same_person_requests_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      server_secrets: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       seva_projects: {
         Row: {
           active: boolean
@@ -2079,18 +2769,23 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          description_hi: string | null
           display_order: number
           featured_image: string | null
           icon: string | null
           id: string
           location: string | null
           name: string
+          name_hi: string | null
+          organization_id: string
           phone: string | null
           seo_description: string | null
           seo_title: string | null
           short_description: string | null
+          short_description_hi: string | null
           slug: string
           state: string | null
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -2101,18 +2796,23 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           featured_image?: string | null
           icon?: string | null
           id?: string
           location?: string | null
           name: string
+          name_hi?: string | null
+          organization_id: string
           phone?: string | null
           seo_description?: string | null
           seo_title?: string | null
           short_description?: string | null
+          short_description_hi?: string | null
           slug: string
           state?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2123,18 +2823,23 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          description_hi?: string | null
           display_order?: number
           featured_image?: string | null
           icon?: string | null
           id?: string
           location?: string | null
           name?: string
+          name_hi?: string | null
+          organization_id?: string
           phone?: string | null
           seo_description?: string | null
           seo_title?: string | null
           short_description?: string | null
+          short_description_hi?: string | null
           slug?: string
           state?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2191,6 +2896,38 @@ export type Database = {
         }
         Relationships: []
       }
+      social_regions: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_regions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "region_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           address: string | null
@@ -2208,6 +2945,7 @@ export type Database = {
           id_document: string | null
           institution: string | null
           mobile: string
+          organization_id: string
           photo_url: string | null
           pincode: string | null
           state: string | null
@@ -2234,6 +2972,7 @@ export type Database = {
           id_document?: string | null
           institution?: string | null
           mobile: string
+          organization_id: string
           photo_url?: string | null
           pincode?: string | null
           state?: string | null
@@ -2260,6 +2999,7 @@ export type Database = {
           id_document?: string | null
           institution?: string | null
           mobile?: string
+          organization_id?: string
           photo_url?: string | null
           pincode?: string | null
           state?: string | null
@@ -2282,9 +3022,12 @@ export type Database = {
           display_order: number
           id: string
           message: string
+          message_hi: string | null
           name: string
+          organization_id: string
           photo: string | null
           role: string | null
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -2297,9 +3040,12 @@ export type Database = {
           display_order?: number
           id?: string
           message: string
+          message_hi?: string | null
           name: string
+          organization_id: string
           photo?: string | null
           role?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2312,9 +3058,12 @@ export type Database = {
           display_order?: number
           id?: string
           message?: string
+          message_hi?: string | null
           name?: string
+          organization_id?: string
           photo?: string | null
           role?: string | null
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -2352,9 +3101,11 @@ export type Database = {
           description: string | null
           display_order: number
           id: string
+          organization_id: string
           platform: string
           thumbnail: string | null
           title: string
+          title_hi: string | null
           updated_at: string
           updated_by: string | null
           video_url: string
@@ -2366,9 +3117,11 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          organization_id: string
           platform?: string
           thumbnail?: string | null
           title: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url: string
@@ -2380,9 +3133,11 @@ export type Database = {
           description?: string | null
           display_order?: number
           id?: string
+          organization_id?: string
           platform?: string
           thumbnail?: string | null
           title?: string
+          title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
           video_url?: string
@@ -2431,6 +3186,7 @@ export type Database = {
           mobile: string
           name: string
           occupation: string | null
+          organization_id: string
           payment_reference: string | null
           payment_status: string
           photo: string | null
@@ -2466,6 +3222,7 @@ export type Database = {
           mobile: string
           name: string
           occupation?: string | null
+          organization_id: string
           payment_reference?: string | null
           payment_status?: string
           photo?: string | null
@@ -2501,6 +3258,7 @@ export type Database = {
           mobile?: string
           name?: string
           occupation?: string | null
+          organization_id?: string
           payment_reference?: string | null
           payment_status?: string
           photo?: string | null
@@ -2523,8 +3281,56 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_origin_villages: {
+        Args: { p_names: string[]; p_region: string }
+        Returns: number
+      }
+      add_parent_above: {
+        Args: {
+          p_deceased?: boolean
+          p_member: string
+          p_name: string
+          p_relation?: string
+          p_unknown?: boolean
+        }
+        Returns: string
+      }
+      add_region_category: { Args: { p_name: string }; Returns: string }
+      admin_access_list: {
+        Args: never
+        Returns: {
+          admin_scope: string
+          can_see_contacts: boolean
+          id: string
+          super_admin: boolean
+        }[]
+      }
+      admin_can_manage_family: {
+        Args: { p_admin: string; p_family: string }
+        Returns: boolean
+      }
+      admin_only: { Args: never; Returns: undefined }
+      already_covered_members: {
+        Args: { p_ceremony: string; p_deceased: string }
+        Returns: {
+          member_id: string
+        }[]
+      }
+      can_manage_family: { Args: { p_family: string }; Returns: boolean }
+      can_manage_profile: { Args: { p: string }; Returns: boolean }
+      can_manage_village: { Args: { v: string }; Returns: boolean }
+      can_see_contacts: { Args: never; Returns: boolean }
+      can_see_link: {
+        Args: { p_child: string; p_pmember: string; p_requester: string }
+        Returns: boolean
+      }
+      claim_admin_families: { Args: never; Returns: number }
       create_letter_recipients: {
-        Args: { p_letter_id: string; p_member_ids: string[] }
+        Args: {
+          p_allow_repeat?: boolean
+          p_letter_id: string
+          p_member_ids: string[]
+        }
         Returns: {
           father_name: string
           member_id: string
@@ -2534,6 +3340,49 @@ export type Database = {
         }[]
       }
       dashboard_stats: { Args: never; Returns: Json }
+      decide_family: {
+        Args: { p_id: string; p_note?: string; p_status: string }
+        Returns: Json
+      }
+      decide_family_link: {
+        Args: { p_id: string; p_status: string }
+        Returns: Json
+      }
+      decide_letter: {
+        Args: { p_id: string; p_note?: string; p_status: string }
+        Returns: Json
+      }
+      decide_origin_request: {
+        Args: {
+          p_approve: boolean
+          p_id: string
+          p_name?: string
+          p_region?: string
+        }
+        Returns: string
+      }
+      decide_same_person: {
+        Args: { p_approve: boolean; p_id: string }
+        Returns: string
+      }
+      decide_suggestion: {
+        Args: { p_id: string; p_name?: string; p_status: string }
+        Returns: Json
+      }
+      decide_user: { Args: { p_id: string; p_status: string }; Returns: Json }
+      delete_origin_village: { Args: { p_id: string }; Returns: undefined }
+      delete_region_category: { Args: { p_id: string }; Returns: undefined }
+      delete_social_region: { Args: { p_id: string }; Returns: undefined }
+      directory_families: {
+        Args: { p_village?: string }
+        Returns: {
+          family_name: string
+          head_name: string
+          id: string
+          village_id: string
+          village_name: string
+        }[]
+      }
       directory_members: {
         Args: { p_village?: string }
         Returns: {
@@ -2542,20 +3391,394 @@ export type Database = {
           father_name: string
           has_phone: boolean
           is_head: boolean
+          lineage_id: string
           member_id: string
+          member_kind: string
           member_name: string
+          native_place: string
+          parent_deceased: boolean
+          region_id: string
+          region_name: string
+          region_sort: number
           relation: string
           village_id: string
           village_name: string
         }[]
       }
+      family_is_below: {
+        Args: { p_root: string; p_target: string }
+        Returns: boolean
+      }
+      family_link_info: {
+        Args: { p_family: string }
+        Returns: {
+          direction: string
+          link_id: string
+          member_id: string
+          member_name: string
+          note: string
+          other_family_id: string
+          other_family_name: string
+          status: string
+        }[]
+      }
+      family_tree: {
+        Args: { p_family: string }
+        Returns: {
+          id: string
+          is_deceased: boolean
+          is_head: boolean
+          member_kind: string
+          name: string
+          name_unknown: boolean
+          native_place: string
+          parent_id: string
+          relation: string
+          sort_order: number
+          village_name: string
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
+      is_super: { Args: never; Returns: boolean }
+      k1_assign_role: {
+        Args: { p_email: string; p_org: string; p_role_id: string }
+        Returns: string
+      }
+      k1_can: { Args: { p_org: string; p_perm: string }; Returns: boolean }
+      k1_is_platform_admin: { Args: never; Returns: boolean }
+      k1_my_orgs: {
+        Args: never
+        Returns: {
+          name: string
+          name_hi: string
+          organization_id: string
+          permissions: string[]
+          role_keys: string[]
+          slug: string
+        }[]
+      }
+      k1_org_by_slug: {
+        Args: { p_slug: string }
+        Returns: {
+          branding: Json
+          name: string
+          name_hi: string
+          organization_id: string
+          short_name: string
+          slug: string
+        }[]
+      }
+      k1_org_roles: {
+        Args: { p_org: string }
+        Returns: {
+          is_system: boolean
+          key: string
+          name: string
+          name_hi: string
+          permissions: string[]
+          role_id: string
+        }[]
+      }
+      k1_org_team: {
+        Args: { p_org: string }
+        Returns: {
+          assignment_id: string
+          email: string
+          full_name: string
+          mobile: string
+          role_id: string
+          role_key: string
+          role_name: string
+          user_id: string
+        }[]
+      }
+      k1_remove_role: { Args: { p_assignment: string }; Returns: undefined }
+      k1_resolve_host: {
+        Args: { p_host: string }
+        Returns: {
+          branding: Json
+          name: string
+          name_hi: string
+          organization_id: string
+          short_name: string
+          slug: string
+        }[]
+      }
+      lineage_roots: {
+        Args: never
+        Returns: {
+          family_id: string
+          root_id: string
+        }[]
+      }
+      lineage_tree: {
+        Args: { p_family: string }
+        Returns: {
+          family_id: string
+          family_name: string
+          id: string
+          is_deceased: boolean
+          is_head: boolean
+          member_kind: string
+          name: string
+          name_unknown: boolean
+          native_place: string
+          parent_id: string
+          relation: string
+          sort_order: number
+          village_name: string
+        }[]
+      }
+      merge_families: {
+        Args: { p_from: string; p_parent?: string; p_to: string }
+        Returns: undefined
+      }
+      merge_families_same_father: {
+        Args: {
+          p_from: string
+          p_from_node: string
+          p_to: string
+          p_to_node: string
+        }
+        Returns: number
+      }
+      merge_villages: { Args: { p_from: string; p_to: string }; Returns: Json }
+      move_member: {
+        Args: { p_member: string; p_new_parent: string }
+        Returns: undefined
+      }
+      my_profile: {
+        Args: never
+        Returns: {
+          address: string | null
+          admin_scope: string
+          blood_group: string | null
+          can_see_contacts: boolean
+          consent_at: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          details_done_at: string | null
+          district: string | null
+          dob: string | null
+          email: string | null
+          father_name: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: string
+          status: string
+          super_admin: boolean
+          updated_at: string
+          village: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       my_role: { Args: never; Returns: string }
       my_status: { Args: never; Returns: string }
       next_donation_id: { Args: never; Returns: string }
-      next_receipt_number: { Args: never; Returns: string }
+      next_receipt_number:
+        | { Args: never; Returns: string }
+        | { Args: { p_org: string }; Returns: string }
+      notify_admin_whatsapp: { Args: { p_text: string }; Returns: undefined }
+      notify_village_admins: {
+        Args: { p_text: string; p_village: string }
+        Returns: undefined
+      }
+      notify_whatsapp_phone: {
+        Args: { p_phone: string; p_text: string }
+        Returns: undefined
+      }
+      pending_family_links: {
+        Args: never
+        Returns: {
+          child_family_id: string
+          child_family_name: string
+          child_head: string
+          created_at: string
+          id: string
+          note: string
+          parent_family_id: string
+          parent_family_name: string
+          parent_member_name: string
+          requested_by_name: string
+        }[]
+      }
+      pending_letters: {
+        Args: never
+        Returns: {
+          by_village: Json
+          ceremony_date: string
+          created_at: string
+          creator_name: string
+          creator_phone: string
+          deceased_name: string
+          id: string
+          total: number
+        }[]
+      }
+      pending_origin_requests: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          members: number
+          name: string
+          region_id: string
+          requested_by_name: string
+        }[]
+      }
+      pending_same_person: {
+        Args: never
+        Returns: {
+          created_at: string
+          existing_label: string
+          family_name: string
+          id: string
+          name: string
+          phone_last4: string
+          requester: string
+        }[]
+      }
+      phone_check: {
+        Args: { p_exclude_member?: string; p_family?: string; p_phone: string }
+        Returns: {
+          family_id: string
+          family_name: string
+          father_name: string
+          is_head: boolean
+          kind: string
+          member_id: string
+          name: string
+          village_name: string
+        }[]
+      }
+      phone_taken: {
+        Args: { p_exclude_member?: string; p_family?: string; p_phone: string }
+        Returns: boolean
+      }
+      profile_contacts: {
+        Args: { p_ids: string[] }
+        Returns: {
+          address: string
+          id: string
+          phone: string
+        }[]
+      }
+      profile_details: {
+        Args: { p_id: string }
+        Returns: {
+          address: string | null
+          admin_scope: string
+          blood_group: string | null
+          can_see_contacts: boolean
+          consent_at: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          details_done_at: string | null
+          district: string | null
+          dob: string | null
+          email: string | null
+          father_name: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          role: string
+          status: string
+          super_admin: boolean
+          updated_at: string
+          village: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       queue_letter: { Args: { p_letter_id: string }; Returns: number }
+      remove_member_keep_children: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      rename_region_category: {
+        Args: { p_id: string; p_name: string }
+        Returns: undefined
+      }
+      rename_social_region: {
+        Args: { p_id: string; p_name: string }
+        Returns: undefined
+      }
+      reopen_family: { Args: { p_id: string }; Returns: undefined }
+      reopen_letter: { Args: { p_id: string }; Returns: undefined }
+      request_family_link: {
+        Args: { p_child: string; p_note?: string; p_parent_member: string }
+        Returns: Json
+      }
+      request_origin_village: {
+        Args: { p_name: string; p_region?: string }
+        Returns: string
+      }
+      request_same_person: {
+        Args: {
+          p_deceased: boolean
+          p_existing: string
+          p_family: string
+          p_kind: string
+          p_label: string
+          p_name: string
+          p_native: string
+          p_parent: string
+          p_phone: string
+          p_relation: string
+          p_village: string
+        }
+        Returns: undefined
+      }
+      restore_family: { Args: { p_id: string }; Returns: string }
+      save_social_region: {
+        Args: { p_category: string; p_id?: string; p_name: string }
+        Returns: string
+      }
+      send_admin_digest: { Args: never; Returns: undefined }
+      send_letters_tick: { Args: never; Returns: undefined }
+      set_admin_access: {
+        Args: { p_admin: string; p_contacts: boolean; p_scope: string }
+        Returns: undefined
+      }
+      set_admin_regions: {
+        Args: { p_admin: string; p_regions: string[] }
+        Returns: undefined
+      }
+      set_family_head: { Args: { p_member: string }; Returns: undefined }
+      submit_letter: { Args: { p_letter_id: string }; Returns: Json }
+      suggest_member: {
+        Args: {
+          p_deceased?: boolean
+          p_family: string
+          p_name: string
+          p_native?: string
+          p_note: string
+          p_parent: string
+          p_phone: string
+          p_relation: string
+          p_village: string
+        }
+        Returns: Json
+      }
+      trash_family: { Args: { p_id: string }; Returns: undefined }
+      unlink_family: { Args: { p_child: string }; Returns: undefined }
+      update_origin_village: {
+        Args: { p_id: string; p_name: string; p_region: string }
+        Returns: undefined
+      }
       village_stats: {
         Args: never
         Returns: {

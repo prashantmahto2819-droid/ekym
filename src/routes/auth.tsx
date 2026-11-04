@@ -1,7 +1,9 @@
+import { useTenant } from "@/core/tenant-context";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { siteName } from "@/core/seo";
 
 import { Field } from "@/components/site/Field";
 import { Button } from "@/components/ui/button";
@@ -16,16 +18,16 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Sign in — Ekatm Kalar Yuva Manch" },
+      { title: `Sign in — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Sign in to your Ekatm Kalar Yuva Manch account to manage your volunteering, donations and applications.",
+          `Sign in to your ${siteName(matches)} account to manage your volunteering, donations and applications.`,
       },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Sign in — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Sign in — ${siteName(matches)}` },
       { property: "og:description", content: "Access your foundation account." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -40,6 +42,7 @@ function safePath(value?: string) {
 }
 
 function AuthPage() {
+  const tenant = useTenant();
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
   const { user, loading } = useSession();
@@ -53,7 +56,7 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-secondary/50 px-4 py-12">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-6 block text-center font-display text-lg font-semibold">
-          Ekatm Kalar Yuva Manch
+          {tenant.name}
         </Link>
         <div className="surface-card p-6">
           <Tabs defaultValue="signin">

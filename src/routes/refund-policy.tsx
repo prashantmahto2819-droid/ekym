@@ -1,17 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 
 export const Route = createFileRoute("/refund-policy")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Donation & refund policy — Ekatm Kalar Yuva Manch" },
+      { title: `Donation & refund policy — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "How Ekatm Kalar Yuva Manch handles donations, receipts and refund requests for mistaken or duplicate contributions.",
+          `How ${siteName(matches)} handles donations, receipts and refund requests for mistaken or duplicate contributions.`,
       },
-      { property: "og:title", content: "Donation & refund policy — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Donation & refund policy — ${siteName(matches)}` },
       { property: "og:description", content: "Receipts, corrections and refund requests." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

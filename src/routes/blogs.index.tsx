@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { siteName } from "@/core/seo";
 
 import { BlogCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -9,15 +10,15 @@ import { blogListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/blogs/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(blogListQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Daily seva blogs — Ekatm Kalar Yuva Manch" },
+      { title: `Daily seva blogs — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Daily field reports from Ekatm Kalar Yuva Manch volunteers — meals served, blood donated, books shared and lives touched.",
+          `Daily field reports from ${siteName(matches)} volunteers — meals served, blood donated, books shared and lives touched.`,
       },
-      { property: "og:title", content: "Daily seva blogs — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Daily seva blogs — ${siteName(matches)}` },
       { property: "og:description", content: "Stories from the field, published every day." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

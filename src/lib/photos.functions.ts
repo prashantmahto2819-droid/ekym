@@ -5,8 +5,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const PHOTO_BUCKET = "volunteer-photos";
 
-/** Roles allowed to see and replace an applicant's photo. */
-const MANAGER_ROLES = ["SUPER_ADMIN", "ADMIN", "VOLUNTEER_MANAGER", "STAFF"];
+/** Permission check in the organization of the site being viewed (user's JWT, so core.can applies to them). */
+async function canHere(supabase: any, perm: string) {
+  const { tenantId } = await import("@/core/tenant.server");
+  const { data } = await supabase.rpc("k1_can", { p_org: await tenantId(), p_perm: perm });
+  return data === true;
+}
 
 const MAX_BYTES = 400 * 1024; // photos are compressed in the browser before upload
 
@@ -47,9 +51,8 @@ export const uploadApplicantPhoto = createServerFn({ method: "POST" })
     return { path };
   });
 
-async function isManager(supabase: any, userId: string) {
-  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-  return (data ?? []).some((r: { role: string }) => MANAGER_ROLES.includes(r.role));
+async function isManager(supabase: any, _userId: string) {
+  return canHere(supabase, "community.volunteer.manage");
 }
 
 /** Short-lived signed URL for a stored applicant photo. */
@@ -117,8 +120,6 @@ export const SLIP_BUCKET = "blood-requisitions";
 
 const SLIP_MAX_BYTES = 1500 * 1024;
 
-/** Roles allowed to open an uploaded hospital requisition slip. */
-const BLOOD_ROLES = ["SUPER_ADMIN", "ADMIN", "BLOOD_MANAGER", "STAFF"];
 
 const slipSchema = z.object({
   dataUrl: z
@@ -172,12 +173,7 @@ export const requisitionSlipUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { path: string }) => z.object({ path: z.string().trim().min(3) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: roles } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const allowed = (roles ?? []).some((r: { role: string }) => BLOOD_ROLES.includes(r.role));
-    if (!allowed) throw new Error("Not allowed");
+    if (!(await canHere(context.supabase, "community.blood.manage"))) throw new Error("Not allowed");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed, error } = await supabaseAdmin.storage

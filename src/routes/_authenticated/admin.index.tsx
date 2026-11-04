@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -35,12 +36,13 @@ const CARDS: { table: string; label: string; to: string; filter?: [string, strin
 ];
 
 function AdminDashboard() {
+  const tenant = useTenant();
   const counts = useQuery({
-    queryKey: ["admin", "dashboard-counts"],
+    queryKey: ["admin", "dashboard-counts", tenant.organization_id],
     queryFn: async () => {
       const entries = await Promise.all(
         CARDS.map(async (c) => {
-          let query = supabase.from(c.table as any).select("id", { count: "exact", head: true });
+          let query = supabase.from(c.table as any).select("id", { count: "exact", head: true }).eq("organization_id", tenant.organization_id);
           if (c.filter) query = query.eq(c.filter[0], c.filter[1]);
           const { count } = await query;
           return [c.label, count ?? 0] as const;

@@ -75,7 +75,7 @@ export async function renderReceiptPdf(input: ReceiptDocInput): Promise<Uint8Arr
   const M = 48;
 
   page.drawRectangle({ x: 0, y: height - 120, width, height: 120, color: TEAL });
-  page.drawText(input.organization.organization_name ?? "Ekatm Kalar Yuva Manch", {
+  page.drawText(input.organization.organization_name ?? "Kalchuri One", {
     x: M,
     y: height - 58,
     size: 20,
@@ -230,7 +230,7 @@ export async function renderVolunteerIdCard(input: VolunteerDocInput): Promise<U
   const { width, height } = page.getSize();
 
   page.drawRectangle({ x: 0, y: height - 30, width, height: 30, color: TEAL });
-  page.drawText((input.organization.organization_name ?? "Ekatm Kalar Yuva Manch").slice(0, 34), {
+  page.drawText((input.organization.organization_name ?? "Kalchuri One").slice(0, 34), {
     x: 10,
     y: height - 19,
     size: 9,
@@ -308,7 +308,7 @@ export async function renderVolunteerCertificate(input: VolunteerDocInput): Prom
     borderWidth: 0.8,
   });
 
-  page.drawText((input.organization.organization_name ?? "Ekatm Kalar Yuva Manch").toUpperCase(), {
+  page.drawText((input.organization.organization_name ?? "Kalchuri One").toUpperCase(), {
     x: M + 20,
     y: height - 92,
     size: 18,

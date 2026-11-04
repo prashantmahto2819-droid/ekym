@@ -12,31 +12,36 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { useLang, type TKey } from "@/core/i18n";
+import { useTenant } from "@/core/tenant-context";
 import { telHref } from "@/lib/format";
 import { organizationQuery } from "@/lib/queries";
 
-const primaryNav = [
-  { label: "About", to: "/about" },
-  { label: "Seva Prakalp", to: "/seva" },
-  { label: "Blood", to: "/blood" },
-  { label: "Library", to: "/library" },
-  { label: "Volunteer", to: "/volunteer" },
-] as const;
+const primaryNav: { key: TKey; to: string }[] = [
+  { key: "about", to: "/about" },
+  { key: "seva", to: "/seva" },
+  { key: "blood", to: "/blood" },
+  { key: "library", to: "/library" },
+  { key: "volunteer", to: "/volunteer" },
+];
 
-const moreNav = [
-  { label: "Blogs", to: "/blogs" },
-  { label: "News", to: "/news" },
-  { label: "Campaigns", to: "/campaigns" },
-  { label: "Gallery", to: "/gallery" },
-  { label: "Videos", to: "/videos" },
-  { label: "Reels", to: "/reels" },
-  { label: "Internship", to: "/internship" },
-  { label: "Contact", to: "/contact" },
-] as const;
+const moreNav: { key: TKey; to: string }[] = [
+  { key: "blogs", to: "/blogs" },
+  { key: "news", to: "/news" },
+  { key: "campaigns", to: "/campaigns" },
+  { key: "gallery", to: "/gallery" },
+  { key: "videos", to: "/videos" },
+  { key: "reels", to: "/reels" },
+  { key: "internship", to: "/internship" },
+  { key: "contact", to: "/contact" },
+];
 
 export function Header() {
   const { data: org } = useSuspenseQuery(organizationQuery());
   const { user, isStaff } = useAuth();
+  const { t, lang, setLang, loc } = useLang();
+  const tenant = useTenant();
+  const orgName = loc(org, "organization_name") || (lang === "hi" && tenant.name_hi) || tenant.name;
   const [open, setOpen] = useState(false);
 
   return (
@@ -52,10 +57,10 @@ export function Header() {
           )}
           <span className="min-w-0">
             <span className="block truncate font-display text-sm font-semibold leading-tight sm:text-base">
-              {org?.organization_name ?? "Ekatm Kalar Yuva Manch"}
+              {orgName}
             </span>
-            {org?.tagline ? (
-              <span className="hidden truncate text-xs text-muted-foreground sm:block">{org.tagline}</span>
+            {loc(org, "tagline") ? (
+              <span className="hidden truncate text-xs text-muted-foreground sm:block">{loc(org, "tagline")}</span>
             ) : null}
           </span>
         </Link>
@@ -68,19 +73,19 @@ export function Header() {
               className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground"
               activeProps={{ className: "bg-secondary text-foreground" }}
             >
-              {item.label}
+              {t(item.key)}
             </Link>
           ))}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1 text-sm font-medium">
-                More <ChevronDown className="size-4" />
+                {lang === "hi" ? "और" : "More"} <ChevronDown className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               {moreNav.map((item) => (
                 <DropdownMenuItem key={item.to} asChild>
-                  <Link to={item.to}>{item.label}</Link>
+                  <Link to={item.to}>{t(item.key)}</Link>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -97,14 +102,24 @@ export function Header() {
               {org.phone}
             </a>
           ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="font-semibold"
+            onClick={() => setLang(lang === "hi" ? "en" : "hi")}
+            aria-label={lang === "hi" ? "Switch to English" : "हिंदी में देखें"}
+          >
+            {t("switch_lang")}
+          </Button>
           <Button asChild variant="default" size="sm" className="hidden sm:inline-flex">
-            <Link to="/donate">Donate</Link>
+            <Link to="/donate">{t("donate")}</Link>
           </Button>
           {user ? (
             <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
               <Link to={isStaff ? "/admin" : "/account"}>
                 <ShieldCheck className="size-4" />
-                {isStaff ? "Admin" : "My account"}
+                {isStaff ? t("admin_panel") : t("my_account")}
               </Link>
             </Button>
           ) : (
@@ -121,11 +136,11 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] max-w-sm overflow-y-auto">
               <SheetTitle className="px-4 pt-4 font-display">
-                {org?.organization_name ?? "Ekatm Kalar Yuva Manch"}
+                {orgName}
               </SheetTitle>
               <nav className="flex flex-col gap-1 p-4">
                 <Link to="/" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
-                  Home
+                  {t("home")}
                 </Link>
                 {[...primaryNav, ...moreNav].map((item) => (
                   <Link
@@ -135,17 +150,17 @@ export function Header() {
                     className="rounded-md px-3 py-2 text-sm hover:bg-secondary"
                     activeProps={{ className: "bg-secondary font-medium" }}
                   >
-                    {item.label}
+                    {t(item.key)}
                   </Link>
                 ))}
                 <Button asChild className="mt-3">
                   <Link to="/donate" onClick={() => setOpen(false)}>
-                    Donate
+                    {t("donate")}
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="mt-2">
                   <Link to={user ? (isStaff ? "/admin" : "/account") : "/auth"} onClick={() => setOpen(false)}>
-                    {user ? (isStaff ? "Admin panel" : "My account") : "Sign in"}
+                    {user ? (isStaff ? t("admin_panel") : t("my_account")) : "Sign in"}
                   </Link>
                 </Button>
               </nav>

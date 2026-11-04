@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { formatDate } from "@/lib/format";
@@ -6,16 +7,16 @@ import { verifyVolunteerReference } from "@/lib/volunteer-docs.functions";
 
 export const Route = createFileRoute("/verify/volunteer/$ref")({
   loader: ({ params }) => verifyVolunteerReference({ data: { ref: params.ref } }),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Verify volunteer ID — Ekatm Kalar Yuva Manch" },
+      { title: `Verify volunteer ID — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Check whether a Ekatm Kalar Yuva Manch volunteer ID card or service certificate is genuine.",
+          `Check whether a ${siteName(matches)} volunteer ID card or service certificate is genuine.`,
       },
       { property: "og:title", content: "Verify a volunteer ID" },
-      { property: "og:description", content: "Confirm a Ekatm Kalar Yuva Manch volunteer record." },
+      { property: "og:description", content: `Confirm a ${siteName(matches)} volunteer record.` },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

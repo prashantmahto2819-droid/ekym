@@ -1,9 +1,11 @@
+import { useTenant } from "@/core/tenant-context";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { BookOpen, Droplet, HandCoins, Package, Phone } from "lucide-react";
 import { toast } from "sonner";
+import { siteName } from "@/core/seo";
 
 import { DonateForm } from "@/components/donate/DonateForm";
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
@@ -29,15 +31,15 @@ export const Route = createFileRoute("/donate")({
     return out;
   },
   loader: ({ context }) => context.queryClient.ensureQueryData(organizationQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Donate — Ekatm Kalar Yuva Manch" },
+      { title: `Donate — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Support Ekatm Kalar Yuva Manch with funds, food material, books or your time. Every contribution goes straight into daily seva.",
+          `Support ${siteName(matches)} with funds, food material, books or your time. Every contribution goes straight into daily seva.`,
       },
-      { property: "og:title", content: "Donate to Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Donate to ${siteName(matches)}` },
       { property: "og:description", content: "Sponsor meals, books, medicines or a full seva day." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -63,6 +65,7 @@ const ways = [
 
 function DonatePage() {
   const { data: org } = useSuspenseQuery(organizationQuery());
+  const tenant = useTenant();
   const search = Route.useSearch();
   const [sent, setSent] = useState(false);
   const [pickup, setPickup] = useState(false);
@@ -117,7 +120,7 @@ function DonatePage() {
               subtitle="Your receipt is generated the moment the payment is confirmed on our server."
             />
             <DonateForm
-              orgName={org?.organization_name ?? "Ekatm Kalar Yuva Manch"}
+              orgName={org?.organization_name ?? tenant.name}
               defaultType={(search.type as string) ?? "general"}
               campaignSlug={search.campaign}
               sevaSlug={search.seva}

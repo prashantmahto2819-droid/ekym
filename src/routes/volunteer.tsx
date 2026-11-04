@@ -1,8 +1,10 @@
+import { useTenant } from "@/core/tenant-context";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { toast } from "sonner";
+import { siteName } from "@/core/seo";
 
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { PhotoUpload } from "@/components/site/PhotoUpload";
@@ -19,15 +21,15 @@ import { sevaListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/volunteer")({
   loader: ({ context }) => context.queryClient.ensureQueryData(sevaListQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Volunteer with us — Ekatm Kalar Yuva Manch" },
+      { title: `Volunteer with us — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Join Ekatm Kalar Yuva Manch as a volunteer. Help with meals, blood donation drives, the library, teaching, health camps and more.",
+          `Join ${siteName(matches)} as a volunteer. Help with meals, blood donation drives, the library, teaching, health camps and more.`,
       },
-      { property: "og:title", content: "Volunteer with Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Volunteer with ${siteName(matches)}` },
       { property: "og:description", content: "Give a few hours a week and change someone's day." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -37,6 +39,7 @@ export const Route = createFileRoute("/volunteer")({
 });
 
 function VolunteerPage() {
+  const tenant = useTenant();
   const { data: seva } = useSuspenseQuery(sevaListQuery());
   const [sent, setSent] = useState(false);
   const [interests, setInterests] = useState<string[]>([]);
@@ -172,7 +175,7 @@ function VolunteerPage() {
               <label className="flex items-start gap-3 text-sm sm:col-span-2">
                 <Checkbox checked={consent} onCheckedChange={(v) => setConsent(v === true)} />
                 <span className="text-muted-foreground">
-                  I agree to be contacted by Ekatm Kalar Yuva Manch and to follow the organisation's
+                  I agree to be contacted by {tenant.name} and to follow the organisation's
                   code of conduct while volunteering.
                 </span>
               </label>

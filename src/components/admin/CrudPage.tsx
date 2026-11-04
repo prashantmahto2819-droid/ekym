@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
 export type AdminField = {
@@ -74,15 +75,17 @@ export function CrudPage({
   defaults?: Record<string, unknown>;
 }) {
   const qc = useQueryClient();
+  const tenant = useTenant();
   const [editing, setEditing] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
 
   const list = useQuery({
-    queryKey: ["admin", table],
+    queryKey: ["admin", table, tenant.organization_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from(table as any)
         .select("*")
+        .eq("organization_id", tenant.organization_id)
         .order(orderBy, { ascending })
         .limit(500);
       if (error) throw error;
@@ -92,7 +95,7 @@ export function CrudPage({
 
   const save = useMutation({
     mutationFn: async (values: Record<string, any>) => {
-      const payload: Record<string, any> = { ...defaults, ...values };
+      const payload: Record<string, any> = { ...defaults, ...values, organization_id: tenant.organization_id };
       if (slugFrom && !payload["slug"] && payload[slugFrom]) {
         payload["slug"] = slugify(String(payload[slugFrom]));
       }

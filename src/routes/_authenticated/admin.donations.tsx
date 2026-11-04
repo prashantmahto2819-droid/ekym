@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 import { receiptDownloadUrl } from "@/lib/donations.functions";
 import { formatCurrency, formatDateTime } from "@/lib/format";
@@ -87,14 +88,16 @@ function AdminDonations() {
   const [to, setTo] = useState("");
   const download = useServerFn(receiptDownloadUrl);
 
+  const tenant = useTenant();
   const q = useQuery({
-    queryKey: ["admin", "donations", status, from, to],
+    queryKey: ["admin", "donations", tenant.organization_id, status, from, to],
     queryFn: async () => {
       let query = supabase
         .from("donations")
         .select(
           "id,donation_id,donor_name,donor_mobile,donor_email,pan,city,state,amount,status,donation_type,purpose,payment_method,razorpay_payment_id,paid_at,created_at,donation_receipts(receipt_number)",
         )
+        .eq("organization_id", tenant.organization_id)
         .order("created_at", { ascending: false })
         .limit(1000);
       if (status !== "ALL") query = query.eq("status", status as never);

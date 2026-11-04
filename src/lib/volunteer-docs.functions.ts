@@ -4,7 +4,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PHOTO_BUCKET } from "@/lib/photos.functions";
 
-const MANAGER_ROLES = ["SUPER_ADMIN", "ADMIN", "VOLUNTEER_MANAGER", "STAFF"];
 
 function siteUrl() {
   return (process.env["PUBLIC_SITE_URL"] ?? "http://localhost:8080").replace(/\/$/, "");
@@ -32,16 +31,13 @@ export const volunteerDocument = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { renderVolunteerIdCard, renderVolunteerCertificate } = await import("@/lib/pdf.server");
 
-    const { data: roleRows } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId);
-    const manager = (roleRows ?? []).some((r: { role: string }) => MANAGER_ROLES.includes(r.role));
-    if (!manager) throw new Error("Not allowed");
+    const { tenantId } = await import("@/core/tenant.server");
+    const { data: allowed } = await context.supabase.rpc("k1_can", { p_org: await tenantId(), p_perm: "community.volunteer.manage" });
+    if (allowed !== true) throw new Error("Not allowed");
 
     const { data: row, error } = await supabaseAdmin
       .from("volunteer_applications")
-      .select("id,application_id,name,designation,city,state,mobile,photo,status")
+      .select("id,application_id,name,designation,city,state,mobile,photo,status,organization_id")
       .eq("id", data.id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -65,7 +61,7 @@ export const volunteerDocument = createServerFn({ method: "POST" })
     const { data: orgRow } = await supabaseAdmin
       .from("organization_settings")
       .select("organization_name,address,city,state,pincode,phone,email,website")
-      .limit(1)
+      .eq("organization_id", (row as { organization_id: string }).organization_id)
       .maybeSingle();
 
     const reference = v.application_id ?? v.id.slice(0, 8).toUpperCase();
@@ -78,7 +74,7 @@ export const volunteerDocument = createServerFn({ method: "POST" })
       mobile: v.mobile,
       issuedOn: new Date().toISOString().slice(0, 10),
       organization: (orgRow ?? {
-        organization_name: "Ekatm Kalar Yuva Manch",
+        organization_name: "Kalchuri One",
         address: null,
         city: null,
         state: null,

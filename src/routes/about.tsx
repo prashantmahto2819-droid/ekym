@@ -1,6 +1,8 @@
+import { useTenant } from "@/core/tenant-context";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HandHeart, HeartHandshake, ShieldCheck, Users } from "lucide-react";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { SectionHeading } from "@/components/site/SectionHeading";
@@ -14,15 +16,15 @@ export const Route = createFileRoute("/about")({
       context.queryClient.ensureQueryData(sevaListQuery()),
     ]);
   },
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "About us — Ekatm Kalar Yuva Manch" },
+      { title: `About us — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Ekatm Kalar Yuva Manch is a youth-led community organisation running seva prakalp across food, blood donation, education, health and community care.",
+          `${siteName(matches)} is a youth-led community organisation running seva prakalp across food, blood donation, education, health and community care.`,
       },
-      { property: "og:title", content: "About Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `About ${siteName(matches)}` },
       {
         property: "og:description",
         content: "Who we are, what we believe, and how our seva is organised.",
@@ -59,12 +61,13 @@ const values = [
 
 function AboutPage() {
   const { data: org } = useSuspenseQuery(organizationQuery());
+  const tenant = useTenant();
   const { data: seva } = useSuspenseQuery(sevaListQuery());
 
   return (
     <>
       <PageHeader
-        title={`About ${org?.organization_name ?? "Ekatm Kalar Yuva Manch"}`}
+        title={`About ${org?.organization_name ?? tenant.name}`}
         description={org?.tagline ?? undefined}
         crumbs={[{ label: "About" }]}
       />
@@ -73,8 +76,7 @@ function AboutPage() {
         <div className="container-page grid gap-10 lg:grid-cols-[2fr_1fr]">
           <div className="prose-content">
             <p>
-              {org?.about_short ??
-                "Ekatm Kalar Yuva Manch is a volunteer-driven organisation working with families who need a hand today, not next month. We cook and serve meals, connect blood donors with patients, run a free community library, and support health, education and environment work in our district."}
+              {org?.about_short ?? `${tenant.name} is a community organisation. Its introduction can be written from the admin panel (Organization settings → Short about text).`}
             </p>
             <p>
               Our work is organised into {seva.length || 21} seva prakalp. Each has a small team, a

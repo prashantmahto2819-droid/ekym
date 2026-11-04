@@ -1,17 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Terms of use — Ekatm Kalar Yuva Manch" },
+      { title: `Terms of use — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Terms for using the Ekatm Kalar Yuva Manch website, including donor registration, blood requirements and volunteering.",
+          `Terms for using the ${siteName(matches)} website, including donor registration, blood requirements and volunteering.`,
       },
-      { property: "og:title", content: "Terms of use — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Terms of use — ${siteName(matches)}` },
       { property: "og:description", content: "The terms that apply when you use this website." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

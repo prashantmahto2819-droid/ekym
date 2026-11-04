@@ -1,8 +1,10 @@
+import { useTenant } from "@/core/tenant-context";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { toast } from "sonner";
+import { siteName } from "@/core/seo";
 
 import { BloodRequirementCard } from "@/components/home/sections";
 import { DocumentUpload } from "@/components/site/DocumentUpload";
@@ -28,15 +30,15 @@ const GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export const Route = createFileRoute("/blood")({
   loader: ({ context }) => context.queryClient.ensureQueryData(bloodRequirementQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Blood donation & requirements — Ekatm Kalar Yuva Manch" },
+      { title: `Blood donation & requirements — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "See verified blood requirements, register as a blood donor, or raise a requirement for a patient. Ekatm Kalar Yuva Manch's blood seva team responds fast.",
+          `See verified blood requirements, register as a blood donor, or raise a requirement for a patient. ${siteName(matches)}'s blood seva team responds fast.`,
       },
-      { property: "og:title", content: "Blood seva — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Blood seva — ${siteName(matches)}` },
       {
         property: "og:description",
         content: "Register as a donor or raise a blood requirement for a patient.",
@@ -124,6 +126,7 @@ function GroupSelect({ value, onChange }: { value: string; onChange: (v: string)
 }
 
 function DonorForm() {
+  const tenant = useTenant();
   const [sent, setSent] = useState(false);
   const [group, setGroup] = useState("");
   const [consent, setConsent] = useState(false);
@@ -222,7 +225,7 @@ function DonorForm() {
       <label className="flex items-start gap-3 text-sm sm:col-span-2">
         <Checkbox checked={consent} onCheckedChange={(v) => setConsent(v === true)} />
         <span className="text-muted-foreground">
-          I consent to Ekatm Kalar Yuva Manch storing my details and contacting me about blood
+          I consent to {tenant.name} storing my details and contacting me about blood
           requirements. My contact details are never shown publicly.
         </span>
       </label>

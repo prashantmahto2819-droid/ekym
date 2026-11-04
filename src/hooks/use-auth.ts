@@ -3,29 +3,17 @@ import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole =
-  | "SUPER_ADMIN"
-  | "ADMIN"
-  | "CONTENT_MANAGER"
-  | "STAFF"
-  | "AUDITOR"
-  | "USER"
-  | "BLOOD_MANAGER"
-  | "LIBRARY_MANAGER"
-  | "VOLUNTEER_MANAGER"
-  | "INTERNSHIP_MANAGER"
-  | "HR_MANAGER"
-  | "ACCOUNTANT"
-  | "AMBULANCE_MANAGER"
-  | "JOB_MANAGER"
-  | "DONOR"
-  | "VOLUNTEER"
-  | "INTERN"
-  | "STUDENT"
-  | "JOB_SEEKER"
-  | "EMPLOYER";
+export type OrgMembership = {
+  organization_id: string;
+  slug: string;
+  name: string;
+  name_hi: string | null;
+  role_keys: string[];
+  permissions: string[];
+};
 
 /** Live Supabase session for the current browser. */
 export function useSession() {
@@ -52,24 +40,37 @@ export function useSession() {
   return { session, user: session?.user ?? null, loading };
 }
 
-/** Session plus role helpers. Roles always come from the database, never from the browser. */
+/** Does this permission list grant `perm`? Mirrors core.can(): exact key, `module.*`, or `*`. */
+export function grants(perms: string[] | undefined, perm: string) {
+  if (!perms) return false;
+  return perms.includes("*") || perms.includes(perm) || perms.includes(perm.split(".")[0] + ".*");
+}
+
+/**
+ * Session plus permissions in the organization whose site is being viewed.
+ * Permissions always come from the database (k1_my_orgs), never from the browser.
+ */
 export function useAuth() {
   const { session, user, loading } = useSession();
+  const tenant = useTenant();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const rolesQuery = useQuery({
-    queryKey: ["my-roles", user?.id],
+  const orgsQuery = useQuery({
+    queryKey: ["my-orgs", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", user!.id);
+      const { data, error } = await supabase.rpc("k1_my_orgs");
       if (error) throw error;
-      return (data ?? []).map((r) => r.role as AppRole);
+      return (data ?? []) as OrgMembership[];
     },
   });
 
-  const roles = rolesQuery.data ?? [];
-  const has = (...wanted: AppRole[]) => wanted.some((r) => roles.includes(r));
+  const orgs = orgsQuery.data ?? [];
+  const current = orgs.find((o) => o.organization_id === tenant.organization_id);
+  const perms = current?.permissions ?? [];
+  const can = (perm: string) => grants(perms, perm);
+  const isPlatformAdmin = orgs.some((o) => o.role_keys.includes("platform_admin")) || perms.includes("*") && current?.role_keys.includes("platform_admin") === true;
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -81,27 +82,23 @@ export function useAuth() {
   return {
     session,
     user,
-    loading: loading || (!!user && rolesQuery.isLoading),
-    roles,
-    has,
-    isSuperAdmin: has("SUPER_ADMIN"),
-    isAdmin: has("SUPER_ADMIN", "ADMIN"),
-    canManageContent: has("SUPER_ADMIN", "ADMIN", "CONTENT_MANAGER"),
-    canManageBlood: has("SUPER_ADMIN", "ADMIN", "BLOOD_MANAGER"),
-    canManageLibrary: has("SUPER_ADMIN", "ADMIN", "LIBRARY_MANAGER"),
-    isStaff: has(
-      "SUPER_ADMIN",
-      "ADMIN",
-      "CONTENT_MANAGER",
-      "STAFF",
-      "AUDITOR",
-      "BLOOD_MANAGER",
-      "LIBRARY_MANAGER",
-      "VOLUNTEER_MANAGER",
-      "INTERNSHIP_MANAGER",
-      "HR_MANAGER",
-      "ACCOUNTANT",
-    ),
+    loading: loading || (!!user && orgsQuery.isLoading),
+    orgs,
+    currentOrg: current ?? null,
+    permissions: perms,
+    can,
+    isPlatformAdmin,
+    isSuperAdmin: isPlatformAdmin || perms.includes("*"),
+    isAdmin: can("org.settings.edit"),
+    canManageContent: can("cms.post.publish"),
+    canManageBlood: can("community.blood.manage"),
+    canManageLibrary: can("community.library.manage"),
+    canManageVolunteers: can("community.volunteer.manage"),
+    canManageInternships: can("community.internship.manage"),
+    canViewDonations: can("community.donation.view") || can("fin.report.view"),
+    canManageMessages: can("community.messages.manage"),
+    /** Any role at all in this organization (team member). */
+    isStaff: !!current && perms.length > 0,
     signOut,
   };
 }

@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarDays, MapPin } from "lucide-react";
+import { siteName } from "@/core/seo";
 
 import { BlogCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/blogs/$slug")({
     if (!data?.blog) throw notFound();
     return data;
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, matches }) => {
     if (!loaderData) {
       return { meta: [{ title: "Blog not found" }, { name: "robots", content: "noindex" }] };
     }
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/blogs/$slug")({
     const desc = truncate(b.excerpt ?? b.content, 155);
     return {
       meta: [
-        { title: `${b.title} — Ekatm Kalar Yuva Manch` },
+        { title: `${b.title} — ${siteName(matches)}` },
         { name: "description", content: desc },
         { property: "og:title", content: b.title },
         { property: "og:description", content: desc },

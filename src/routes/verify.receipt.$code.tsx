@@ -2,21 +2,22 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BadgeCheck, XCircle } from "lucide-react";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { verifyReceiptCode } from "@/lib/donations.functions";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/verify/receipt/$code")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Verify donation receipt — Ekatm Kalar Yuva Manch" },
+      { title: `Verify donation receipt — ${siteName(matches)}` },
       {
         name: "description",
-        content: "Check whether a Ekatm Kalar Yuva Manch donation receipt is genuine.",
+        content: `Check whether a ${siteName(matches)} donation receipt is genuine.`,
       },
       { property: "og:title", content: "Verify donation receipt" },
-      { property: "og:description", content: "Receipt verification for Ekatm Kalar Yuva Manch." },
+      { property: "og:description", content: `Receipt verification for ${siteName(matches)}.` },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

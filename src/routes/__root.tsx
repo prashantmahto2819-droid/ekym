@@ -15,6 +15,11 @@ import { Header } from "@/components/site/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { organizationQuery } from "@/lib/queries";
+import { getTenant } from "@/core/tenant.functions";
+import { getLang } from "@/core/lang.functions";
+import { TenantProvider } from "@/core/tenant-context";
+import { LangProvider, type Lang } from "@/core/i18n";
+import type { Tenant } from "@/core/tenant.server";
 
 import appCss from "../styles.css?url";
 
@@ -74,19 +79,25 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: ({ context }) => context.queryClient.ensureQueryData(organizationQuery()),
-  head: () => ({
+  loader: async ({ context }) => {
+    const [tenant, lang, org] = await Promise.all([
+      getTenant() as Promise<Tenant>,
+      getLang() as Promise<Lang>,
+      context.queryClient.ensureQueryData(organizationQuery()),
+    ]);
+    return { tenant, lang, org };
+  },
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ekatm Kalar Yuva Manch — Youth united for community service" },
+      { title: loaderData?.org?.tagline ? `${loaderData.tenant.name} — ${loaderData.org.tagline}` : loaderData?.tenant.name ?? "Kalchuri One" },
       {
         name: "description",
-        content:
-          "Ekatm Kalar Yuva Manch runs Seva Prakalp across food, health, blood donation, education and community welfare.",
+        content: loaderData?.org?.about_short ?? "Community organization on Kalchuri One.",
       },
       { name: "robots", content: "index, follow" },
-      { property: "og:site_name", content: "Ekatm Kalar Yuva Manch" },
+      { property: "og:site_name", content: loaderData?.tenant.name ?? "Kalchuri One" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -108,8 +119,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const data = Route.useLoaderData();
   return (
-    <html lang="en">
+    <html lang={data?.lang ?? "en"}>
       <head>
         <HeadContent />
       </head>
@@ -138,19 +150,24 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const chromeless = pathname.startsWith("/admin") || pathname.startsWith("/auth");
+  const { tenant, lang } = Route.useLoaderData();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthWatcher queryClient={queryClient} />
-      <div className="flex min-h-screen flex-col">
-        {chromeless ? null : <Header />}
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        {chromeless ? null : <Footer />}
-      </div>
-      <Toaster richColors position="top-center" />
+      <TenantProvider tenant={tenant}>
+        <LangProvider initial={lang}>
+          <AuthWatcher queryClient={queryClient} />
+          <div className="flex min-h-screen flex-col">
+            {chromeless ? null : <Header />}
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <main className="flex-1">
+              <Outlet />
+            </main>
+            {chromeless ? null : <Footer />}
+          </div>
+          <Toaster richColors position="top-center" />
+        </LangProvider>
+      </TenantProvider>
     </QueryClientProvider>
   );
 }

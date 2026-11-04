@@ -6,6 +6,7 @@ import { Field } from "@/components/site/Field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -13,8 +14,10 @@ export const Route = createFileRoute("/_authenticated/admin/settings")({
 });
 
 const TEXT_FIELDS: { key: string; label: string; full?: boolean }[] = [
-  { key: "organization_name", label: "Organization name", full: true },
-  { key: "tagline", label: "Tagline", full: true },
+  { key: "organization_name", label: "Organization name (English)", full: true },
+  { key: "organization_name_hi", label: "संगठन का नाम (हिंदी)", full: true },
+  { key: "tagline", label: "Tagline (English)", full: true },
+  { key: "tagline_hi", label: "टैगलाइन (हिंदी)", full: true },
   { key: "logo", label: "Logo URL" },
   { key: "favicon", label: "Favicon URL" },
   { key: "email", label: "Email" },
@@ -35,24 +38,34 @@ const TEXT_FIELDS: { key: string; label: string; full?: boolean }[] = [
 ];
 
 const LONG_FIELDS: { key: string; label: string }[] = [
-  { key: "about_short", label: "Short about text" },
-  { key: "donation_text", label: "Donation call-to-action text" },
+  { key: "about_short", label: "Short about text (English)" },
+  { key: "about_short_hi", label: "संक्षिप्त परिचय (हिंदी)" },
+  { key: "donation_text", label: "Donation call-to-action text (English)" },
+  { key: "donation_text_hi", label: "दान अपील (हिंदी)" },
   { key: "footer_text", label: "Footer text" },
 ];
 
 function SettingsAdmin() {
   const qc = useQueryClient();
+  const tenant = useTenant();
 
   const settings = useQuery({
-    queryKey: ["admin", "organization_settings"],
+    queryKey: ["admin", "organization_settings", tenant.organization_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("organization_settings")
         .select("*")
-        .limit(1)
+        .eq("organization_id", tenant.organization_id)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      if (data) return data;
+      const { data: created, error: cErr } = await supabase
+        .from("organization_settings")
+        .insert({ organization_id: tenant.organization_id, organization_name: tenant.name, organization_name_hi: tenant.name_hi } as never)
+        .select("*")
+        .single();
+      if (cErr) throw cErr;
+      return created;
     },
   });
 

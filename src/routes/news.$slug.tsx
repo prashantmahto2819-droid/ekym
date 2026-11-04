@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { ShareButtons } from "@/components/site/ShareButtons";
@@ -14,14 +15,14 @@ export const Route = createFileRoute("/news/$slug")({
     if (!item) throw notFound();
     return item;
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, matches }) => {
     if (!loaderData) {
       return { meta: [{ title: "News not found" }, { name: "robots", content: "noindex" }] };
     }
     const desc = truncate(loaderData.description, 155);
     return {
       meta: [
-        { title: `${loaderData.title} — Ekatm Kalar Yuva Manch` },
+        { title: `${loaderData.title} — ${siteName(matches)}` },
         { name: "description", content: desc },
         { property: "og:title", content: loaderData.title },
         { property: "og:description", content: desc },

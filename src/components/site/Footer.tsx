@@ -13,40 +13,45 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/use-auth";
+import { useLang, type TKey } from "@/core/i18n";
+import { useTenant } from "@/core/tenant-context";
 import { telHref } from "@/lib/format";
 import { organizationQuery } from "@/lib/queries";
 
-const sevaLinks = [
-  { label: "Seva Prakalp", to: "/seva" },
-  { label: "Blood donation", to: "/blood" },
-  { label: "Community library", to: "/library" },
-  { label: "Campaigns", to: "/campaigns" },
+const sevaLinks: { key: TKey; to: string }[] = [
+  { key: "seva", to: "/seva" },
+  { key: "blood", to: "/blood" },
+  { key: "library", to: "/library" },
+  { key: "campaigns", to: "/campaigns" },
 ];
 
-const getInvolved = [
-  { label: "Volunteer with us", to: "/volunteer" },
-  { label: "Internship", to: "/internship" },
-  { label: "Donate", to: "/donate" },
-  { label: "Contact us", to: "/contact" },
+const getInvolved: { key: TKey; to: string }[] = [
+  { key: "volunteer", to: "/volunteer" },
+  { key: "internship", to: "/internship" },
+  { key: "donate", to: "/donate" },
+  { key: "contact", to: "/contact" },
 ];
 
-const readLinks = [
-  { label: "Blogs", to: "/blogs" },
-  { label: "News", to: "/news" },
-  { label: "Gallery", to: "/gallery" },
-  { label: "Videos", to: "/videos" },
-  { label: "Reels", to: "/reels" },
+const readLinks: { key: TKey; to: string }[] = [
+  { key: "blogs", to: "/blogs" },
+  { key: "news", to: "/news" },
+  { key: "gallery", to: "/gallery" },
+  { key: "videos", to: "/videos" },
+  { key: "reels", to: "/reels" },
 ];
 
-const legalLinks = [
-  { label: "Privacy policy", to: "/privacy-policy" },
-  { label: "Terms", to: "/terms" },
-  { label: "Refund policy", to: "/refund-policy" },
+const legalLinks: { key: TKey; to: string }[] = [
+  { key: "privacy", to: "/privacy-policy" },
+  { key: "terms", to: "/terms" },
+  { key: "refund", to: "/refund-policy" },
 ];
 
 export function Footer() {
   const { data: org } = useSuspenseQuery(organizationQuery());
   const { user, isStaff } = useAuth();
+  const { t, lang, loc } = useLang();
+  const tenant = useTenant();
+  const orgName = loc(org, "organization_name") || (lang === "hi" && tenant.name_hi) || tenant.name;
 
   const socials = [
     { href: org?.instagram, icon: Instagram, label: "Instagram" },
@@ -66,10 +71,10 @@ export function Footer() {
       <div className="container-page grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-4">
         <div>
           <h2 className="font-display text-lg font-semibold">
-            {org?.organization_name ?? "Ekatm Kalar Yuva Manch"}
+            {orgName}
           </h2>
-          {org?.about_short ? (
-            <p className="mt-3 text-sm opacity-80">{org.about_short}</p>
+          {loc(org, "about_short") ? (
+            <p className="mt-3 text-sm opacity-80">{loc(org, "about_short")}</p>
           ) : null}
           <ul className="mt-4 space-y-2 text-sm opacity-90">
             {address ? (
@@ -111,21 +116,21 @@ export function Footer() {
           ) : null}
         </div>
 
-        <FooterColumn title="Our seva" links={sevaLinks} />
-        <FooterColumn title="Get involved" links={getInvolved} />
+        <FooterColumn title={t("our_seva")} links={sevaLinks} />
+        <FooterColumn title={t("get_involved")} links={getInvolved} />
         <div className="space-y-6">
-          <FooterColumn title="Read & watch" links={readLinks} />
-          <FooterColumn title="Policies" links={legalLinks} />
+          <FooterColumn title={t("read_watch")} links={readLinks} />
+          <FooterColumn title={t("policies")} links={legalLinks} />
         </div>
       </div>
 
       <div className="border-t border-sidebar-border">
         <div className="container-page flex flex-col gap-2 py-5 text-xs opacity-75 sm:flex-row sm:items-center sm:justify-between">
-          <p>{org?.footer_text ?? `© ${new Date().getFullYear()} Ekatm Kalar Yuva Manch`}</p>
+          <p>{loc(org, "footer_text") || `© ${new Date().getFullYear()} ${orgName}`}</p>
           <div className="flex items-center gap-4">
             <span>© {new Date().getFullYear()}</span>
             <Link to={user ? (isStaff ? "/admin" : "/account") : "/auth"} className="hover:underline">
-              {user ? (isStaff ? "Admin panel" : "My account") : "Staff sign in"}
+              {user ? (isStaff ? t("admin_panel") : t("my_account")) : t("staff_sign_in")}
             </Link>
           </div>
         </div>
@@ -134,7 +139,7 @@ export function Footer() {
       {/* Platform credit: fixed for every organisation's site, not editable from org settings. */}
       <div className="border-t border-sidebar-border">
         <p className="container-page py-3 text-center text-xs opacity-70">
-          Designed &amp; Developed by{" "}
+          {t("designed_by")}{" "}
           <a
             href="https://vividbrandify.com"
             target="_blank"
@@ -149,7 +154,8 @@ export function Footer() {
   );
 }
 
-function FooterColumn({ title, links }: { title: string; links: { label: string; to: string }[] }) {
+function FooterColumn({ title, links }: { title: string; links: { key: TKey; to: string }[] }) {
+  const { t } = useLang();
   return (
     <div>
       <h3 className="font-display text-sm font-semibold uppercase tracking-wider opacity-70">{title}</h3>
@@ -157,7 +163,7 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
         {links.map((l) => (
           <li key={l.to}>
             <Link to={l.to} className="opacity-90 hover:opacity-100 hover:underline">
-              {l.label}
+              {t(l.key)}
             </Link>
           </li>
         ))}

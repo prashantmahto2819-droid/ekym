@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { CalendarClock, GraduationCap, Users } from "lucide-react";
 import { toast } from "sonner";
+import { siteName } from "@/core/seo";
 
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { LocationFields } from "@/components/site/LocationFields";
@@ -18,15 +19,15 @@ import { formatCurrency } from "@/lib/format";
 
 export const Route = createFileRoute("/internship")({
   loader: ({ context }) => context.queryClient.ensureQueryData(internshipQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Internships — Ekatm Kalar Yuva Manch" },
+      { title: `Internships — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Apply for a social work, communications or field operations internship with Ekatm Kalar Yuva Manch and get real NGO experience.",
+          `Apply for a social work, communications or field operations internship with ${siteName(matches)} and get real NGO experience.`,
       },
-      { property: "og:title", content: "Internships at Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Internships at ${siteName(matches)}` },
       { property: "og:description", content: "Learn social work by doing it, with our field teams." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

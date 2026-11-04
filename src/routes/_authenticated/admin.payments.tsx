@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/payments")({
@@ -29,14 +30,23 @@ type Settings = {
 
 function PaymentSettings() {
   const qc = useQueryClient();
+  const tenant = useTenant();
   const [form, setForm] = useState<Settings | null>(null);
 
   const q = useQuery({
-    queryKey: ["admin", "payment-settings"],
+    queryKey: ["admin", "payment-settings", tenant.organization_id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("payment_settings").select("*").limit(1).single();
+      const { data, error } = await supabase.from("payment_settings").select("*").eq("organization_id", tenant.organization_id).maybeSingle();
       if (error) throw error;
-      return data as unknown as Settings;
+      if (data) return data as unknown as Settings;
+      // first visit for a new organization: create its settings row with defaults
+      const { data: created, error: cErr } = await supabase
+        .from("payment_settings")
+        .insert({ organization_id: tenant.organization_id, receipt_prefix: "KC" } as never)
+        .select("*")
+        .single();
+      if (cErr) throw cErr;
+      return created as unknown as Settings;
     },
   });
 

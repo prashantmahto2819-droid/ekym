@@ -1,9 +1,11 @@
+import { useTenant } from "@/core/tenant-context";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
+import { siteName } from "@/core/seo";
 
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { LocationFields } from "@/components/site/LocationFields";
@@ -17,15 +19,15 @@ import { telHref, whatsappHref } from "@/lib/format";
 
 export const Route = createFileRoute("/contact")({
   loader: ({ context }) => context.queryClient.ensureQueryData(organizationQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Contact us — Ekatm Kalar Yuva Manch" },
+      { title: `Contact us — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Reach Ekatm Kalar Yuva Manch by phone, WhatsApp or email, or send us a message about seva, donations and volunteering.",
+          `Reach ${siteName(matches)} by phone, WhatsApp or email, or send us a message about seva, donations and volunteering.`,
       },
-      { property: "og:title", content: "Contact Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Contact ${siteName(matches)}` },
       { property: "og:description", content: "Call, message or write to our seva team." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -36,6 +38,7 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const { data: org } = useSuspenseQuery(organizationQuery());
+  const tenant = useTenant();
   const [sent, setSent] = useState(false);
   const form = useForm<ContactInput>();
   const [formError, setFormError] = useState<string | null>(null);
@@ -81,7 +84,7 @@ function ContactPage() {
                 <p className="flex items-center gap-2">
                   <MessageCircle className="size-4 text-primary" />
                   <a
-                    href={whatsappHref(org.whatsapp, "Hello Ekatm Kalar Yuva Manch,")}
+                    href={whatsappHref(org.whatsapp, `Hello ${tenant.name},`)}
                     target="_blank"
                     rel="noreferrer noopener"
                     className="hover:underline"

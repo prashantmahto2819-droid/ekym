@@ -1,17 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 
 export const Route = createFileRoute("/privacy-policy")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Privacy policy — Ekatm Kalar Yuva Manch" },
+      { title: `Privacy policy — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "How Ekatm Kalar Yuva Manch collects, uses and protects the personal information of donors, volunteers and people we serve.",
+          `How ${siteName(matches)} collects, uses and protects the personal information of donors, volunteers and people we serve.`,
       },
-      { property: "og:title", content: "Privacy policy — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Privacy policy — ${siteName(matches)}` },
       { property: "og:description", content: "How we handle your personal information." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

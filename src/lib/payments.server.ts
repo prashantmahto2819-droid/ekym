@@ -34,6 +34,7 @@ const DONATION_LABELS: Record<string, string> = {
 
 export type DonationRow = {
   id: string;
+  organization_id: string;
   donation_id: string;
   donor_name: string;
   donor_email: string | null;
@@ -87,6 +88,7 @@ export async function markDonationPaid(input: {
   const captured = payment.status === "captured" || payment.status === "authorized";
 
   await supabaseAdmin.from("payment_transactions").insert({
+    organization_id: donation.organization_id,
     donation_id: donation.id,
     purpose: "DONATION",
     razorpay_order_id: input.orderId,
@@ -157,12 +159,13 @@ export async function ensureDonationReceipt(donationRowId: string) {
     | null;
 
   if (!receipt) {
-    const { data: numberData, error: nErr } = await supabaseAdmin.rpc("next_receipt_number" as never);
+    const { data: numberData, error: nErr } = await supabaseAdmin.rpc("next_receipt_number" as never, { p_org: (donation as { organization_id: string }).organization_id } as never);
     if (nErr) throw new Error(nErr.message);
     const verificationCode = crypto.randomUUID().replace(/-/g, "").slice(0, 16).toUpperCase();
     const { data: created, error: cErr } = await supabaseAdmin
       .from("donation_receipts")
       .insert({
+        organization_id: (donation as { organization_id: string }).organization_id,
         donation_id: donationRowId,
         receipt_number: numberData as unknown as string,
         verification_code: verificationCode,
@@ -187,15 +190,16 @@ export async function ensureDonationReceipt(donationRowId: string) {
   if (!receipt) throw new Error("Could not create the receipt");
 
   if (!receipt.storage_path) {
+    const orgId = (donation as { organization_id: string }).organization_id;
     const { data: org } = await supabaseAdmin
       .from("organization_settings")
       .select("*")
-      .limit(1)
+      .eq("organization_id", orgId)
       .maybeSingle();
     const { data: settings } = await supabaseAdmin
       .from("payment_settings")
       .select("receipt_footer_note")
-      .limit(1)
+      .eq("organization_id", orgId)
       .maybeSingle();
 
     const verificationUrl = `${siteUrl()}/verify/receipt/${receipt.verification_code}`;
@@ -204,7 +208,7 @@ export async function ensureDonationReceipt(donationRowId: string) {
       documentNumber: receipt.receipt_number,
       issuedOn: new Date(receipt.issued_on).toLocaleDateString("en-IN"),
       organization: (org as never) ?? {
-        organization_name: "Ekatm Kalar Yuva Manch",
+        organization_name: "Kalchuri One",
         address: null,
         city: null,
         state: null,

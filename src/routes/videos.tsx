@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteName } from "@/core/seo";
 
 import { VideoCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -7,15 +8,15 @@ import { videoQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/videos")({
   loader: ({ context }) => context.queryClient.ensureQueryData(videoQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Videos — Ekatm Kalar Yuva Manch" },
+      { title: `Videos — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Watch Ekatm Kalar Yuva Manch's seva in action — kitchens, blood camps, library sessions and community drives.",
+          `Watch ${siteName(matches)}'s seva in action — kitchens, blood camps, library sessions and community drives.`,
       },
-      { property: "og:title", content: "Videos — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Videos — ${siteName(matches)}` },
       { property: "og:description", content: "See our seva in action." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteName } from "@/core/seo";
 
 import { CampaignCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -7,15 +8,15 @@ import { campaignListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/campaigns/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(campaignListQuery()),
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Campaigns you can support — Ekatm Kalar Yuva Manch" },
+      { title: `Campaigns you can support — ${siteName(matches)}` },
       {
         name: "description",
         content:
-          "Active fundraising and seva campaigns from Ekatm Kalar Yuva Manch. Support a cause that matters to you.",
+          `Active fundraising and seva campaigns from ${siteName(matches)}. Support a cause that matters to you.`,
       },
-      { property: "og:title", content: "Campaigns — Ekatm Kalar Yuva Manch" },
+      { property: "og:title", content: `Campaigns — ${siteName(matches)}` },
       { property: "og:description", content: "Support an active seva campaign today." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -66,10 +66,12 @@ export const startDonation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { createRazorpayOrder, getRazorpayConfig } = await import("@/lib/razorpay.server");
 
+    const { tenantId } = await import("@/core/tenant.server");
+    const org = await tenantId();
     const { data: settingsRow } = await supabaseAdmin
       .from("payment_settings")
       .select("*")
-      .limit(1)
+      .eq("organization_id", org)
       .maybeSingle();
     const settings = settingsRow as {
       online_payments_enabled: boolean;
@@ -95,6 +97,7 @@ export const startDonation = createServerFn({ method: "POST" })
       const { data: c } = await supabaseAdmin
         .from("campaigns")
         .select("id,title")
+        .eq("organization_id", org)
         .eq("slug", data.campaign_slug)
         .maybeSingle();
       if (!c) throw new Error("Campaign not found");
@@ -107,6 +110,7 @@ export const startDonation = createServerFn({ method: "POST" })
       const { data: s } = await supabaseAdmin
         .from("seva_projects")
         .select("id,name")
+        .eq("organization_id", org)
         .eq("slug", data.seva_slug)
         .maybeSingle();
       if (s) {
@@ -124,6 +128,7 @@ export const startDonation = createServerFn({ method: "POST" })
       .from("donations")
       .insert(
         clean({
+          organization_id: org,
           donation_id: donationId,
           donor_name: data.donor_name,
           donor_email: data.donor_email,
@@ -163,6 +168,7 @@ export const startDonation = createServerFn({ method: "POST" })
       .eq("id", (donation as { id: string }).id);
 
     await supabaseAdmin.from("payment_transactions").insert({
+      organization_id: org,
       donation_id: (donation as { id: string }).id,
       razorpay_order_id: order.id,
       event: "ORDER_CREATED",

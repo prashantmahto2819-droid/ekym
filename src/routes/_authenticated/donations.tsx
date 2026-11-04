@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,9 @@ import { receiptDownloadUrl } from "@/lib/donations.functions";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/donations")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "My donations — Ekatm Kalar Yuva Manch" },
+      { title: `My donations — ${siteName(matches)}` },
       { name: "description", content: "Your donation history and receipts." },
       { name: "robots", content: "noindex" },
     ],

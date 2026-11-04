@@ -6,6 +6,7 @@ import { ApplicantPhotoCell } from "@/components/admin/ApplicantPhotoCell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ReviewColumn = {
@@ -40,14 +41,16 @@ export function ReviewPage({
   rowActions?: (row: any) => React.ReactNode;
 }) {
   const qc = useQueryClient();
+  const tenant = useTenant();
   const [q, setQ] = useState("");
 
   const list = useQuery({
-    queryKey: ["admin", table],
+    queryKey: ["admin", table, tenant.organization_id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from(table as any)
         .select("*")
+        .eq("organization_id", tenant.organization_id)
         .order(orderBy, { ascending: false })
         .limit(500);
       if (error) throw error;

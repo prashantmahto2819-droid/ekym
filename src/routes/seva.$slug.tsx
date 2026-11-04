@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { siteName } from "@/core/seo";
 
 import { BlogCard, VideoCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/seva/$slug")({
     if (!data?.project) throw notFound();
     return data;
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, matches }) => {
     if (!loaderData) {
       return { meta: [{ title: "Seva not found" }, { name: "robots", content: "noindex" }] };
     }
@@ -24,9 +25,9 @@ export const Route = createFileRoute("/seva/$slug")({
     const desc = truncate(p.short_description ?? p.description, 155);
     return {
       meta: [
-        { title: `${p.name} — Ekatm Kalar Yuva Manch` },
+        { title: `${p.name} — ${siteName(matches)}` },
         { name: "description", content: desc },
-        { property: "og:title", content: `${p.name} — Ekatm Kalar Yuva Manch` },
+        { property: "og:title", content: `${p.name} — ${siteName(matches)}` },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },

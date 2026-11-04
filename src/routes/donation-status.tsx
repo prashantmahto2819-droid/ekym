@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Download } from "lucide-react";
+import { siteName } from "@/core/seo";
 
 import { Field } from "@/components/site/Field";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -12,12 +13,12 @@ import { donationStatus } from "@/lib/donations.functions";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 
 export const Route = createFileRoute("/donation-status")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title: "Check donation status — Ekatm Kalar Yuva Manch" },
+      { title: `Check donation status — ${siteName(matches)}` },
       {
         name: "description",
-        content: "Look up your Ekatm Kalar Yuva Manch donation using your donation ID.",
+        content: `Look up your ${siteName(matches)} donation using your donation ID.`,
       },
       { property: "og:title", content: "Check donation status" },
       { property: "og:description", content: "Find your donation and download its receipt." },

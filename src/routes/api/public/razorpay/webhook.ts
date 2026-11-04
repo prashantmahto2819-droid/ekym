@@ -72,10 +72,10 @@ export const Route = createFileRoute("/api/public/razorpay/webhook")({
             } else if (event === "payment.failed") {
               const { data: donation } = await supabaseAdmin
                 .from("donations")
-                .select("id,status")
+                .select("id,status,organization_id")
                 .eq("razorpay_order_id", payment.order_id)
                 .maybeSingle();
-              const d = donation as { id: string; status: string } | null;
+              const d = donation as { id: string; status: string; organization_id: string } | null;
               if (d && d.status !== "PAID") {
                 await supabaseAdmin
                   .from("donations")
@@ -86,6 +86,7 @@ export const Route = createFileRoute("/api/public/razorpay/webhook")({
                   } as never)
                   .eq("id", d.id);
                 await supabaseAdmin.from("payment_transactions").insert({
+                  organization_id: d.organization_id,
                   donation_id: d.id,
                   razorpay_order_id: payment.order_id,
                   razorpay_payment_id: payment.id,
@@ -102,9 +103,18 @@ export const Route = createFileRoute("/api/public/razorpay/webhook")({
           }
 
           if (rowId) {
+            let organizationId: string | null = null;
+            if (payment?.order_id) {
+              const { data: d } = await supabaseAdmin
+                .from("donations")
+                .select("organization_id")
+                .eq("razorpay_order_id", payment.order_id)
+                .maybeSingle();
+              organizationId = (d as { organization_id: string } | null)?.organization_id ?? null;
+            }
             await supabaseAdmin
               .from("payment_webhook_events")
-              .update({ processed_at: new Date().toISOString(), processing_error: null } as never)
+              .update({ processed_at: new Date().toISOString(), processing_error: null, organization_id: organizationId } as never)
               .eq("id", rowId);
           }
           return new Response("ok", { status: 200 });

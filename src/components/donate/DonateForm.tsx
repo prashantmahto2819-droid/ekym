@@ -75,7 +75,7 @@ export function DonateForm({
   sevaSlug,
   defaultType = "general",
   suggested = [365, 501, 1100, 2100, 5100],
-  orgName = "Ekatm Kalar Yuva Manch",
+  orgName = "the organization",
   compact = false,
 }: {
   campaignSlug?: string | undefined;
