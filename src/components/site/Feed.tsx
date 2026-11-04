@@ -46,20 +46,34 @@ export function Feed({ postId }: { postId?: string }) {
   const { lang } = useLang();
   const L = lang === "hi";
   const qc = useQueryClient();
+  const [q, setQ] = useState("");
+  const [tag, setTag] = useState<string | null>(null);
+  const searching = !postId && (q.trim().length >= 2 || !!tag);
   const member = useQuery({ queryKey: ["is_member", org], enabled: !!user, queryFn: () => rpc<boolean>("k1_is_member", { p_org: org }) });
+  const tags = useQuery({ queryKey: ["cm_tags", org], enabled: !postId, staleTime: 120_000, queryFn: () => rpc<{ tag: string; n: number }[]>("k1_cm_tags", { p_org: org, p_limit: 12 }) });
   const feed = useInfiniteQuery({
-    queryKey: ["feed", org, postId ?? null],
+    queryKey: ["feed", org, postId ?? null, searching ? q.trim() : "", tag],
     initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => rpc<Post[]>("k1_feed", { p_org: org, p_before: pageParam, p_limit: 15, p_post: postId ?? null }),
+    queryFn: ({ pageParam }) => searching
+      ? rpc<Post[]>("k1_feed_search", { p_org: org, p_q: q.trim() || null, p_tag: tag, p_before: pageParam, p_limit: 15 })
+      : rpc<Post[]>("k1_feed", { p_org: org, p_before: pageParam, p_limit: 15, p_post: postId ?? null }),
     getNextPageParam: (last) => (last.length === 15 ? last[last.length - 1]!.created_at : undefined),
   });
   const posts = feed.data?.pages.flat() ?? [];
   const refresh = () => qc.invalidateQueries({ queryKey: ["feed", org] });
   return (
     <div className="mx-auto max-w-2xl space-y-4">
+      {!postId ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Input className="max-w-xs" placeholder={L ? "खोजें… (नाम, शब्द, #टैग)" : "Search… (name, words, #tag)"} value={q} onChange={(e) => { const v = e.target.value; if (v.startsWith("#") && v.length > 1) { setTag(v.slice(1)); setQ(""); } else setQ(v); }} />
+          {tag ? <Badge className="cursor-pointer" onClick={() => setTag(null)}>#{tag} ×</Badge> : null}
+          {user ? <NotificationsBell L={L} /> : null}
+        </div>
+      ) : null}
+      {!postId && !tag && tags.data?.length ? <div className="flex flex-wrap gap-1 text-xs">{tags.data.map((t) => <button key={t.tag} type="button" className="rounded-full border border-border px-2 py-0.5 hover:bg-secondary" onClick={() => setTag(t.tag)}>#{t.tag} <span className="text-muted-foreground">{t.n}</span></button>)}</div> : null}
       {!postId ? (user ? (member.data ? <Composer org={org} onPosted={refresh} L={L} /> : member.isSuccess ? <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm">{L ? "पोस्ट करने के लिए संगठन का सदस्य बनें: " : "Become a member to post: "}<Link to="/join" className="underline">{L ? "सदस्यता फ़ॉर्म" : "membership form"}</Link></p> : null) : <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm"><Link to="/auth" className="underline">{L ? "लॉगिन करें" : "Sign in"}</Link>{L ? " — फिर पोस्ट, लाइक और टिप्पणी कर सकेंगे।" : " to post, like and comment."}</p>) : null}
-      {posts.map((p, i) => <div key={p.id}><PostCard p={p} L={L} signedIn={!!user} onChange={refresh} />{i === 2 ? <AdSlot slot="feed" className="mt-4 surface-card p-3" /> : null}</div>)}
-      {feed.isSuccess && !posts.length ? <p className="text-center text-sm text-muted-foreground">{L ? "अभी कोई पोस्ट नहीं — पहली पोस्ट आप करें!" : "No posts yet — be the first!"}</p> : null}
+      {posts.map((p, i) => <div key={p.id}><PostCard p={p} L={L} signedIn={!!user} onChange={refresh} onTag={setTag} />{i === 2 ? <AdSlot slot="feed" className="mt-4 surface-card p-3" /> : null}</div>)}
+      {feed.isSuccess && !posts.length ? <p className="text-center text-sm text-muted-foreground">{searching ? (L ? "कुछ नहीं मिला।" : "Nothing found.") : (L ? "अभी कोई पोस्ट नहीं — पहली पोस्ट आप करें!" : "No posts yet — be the first!")}</p> : null}
       {feed.hasNextPage ? <div className="text-center"><Button variant="outline" onClick={() => feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>{L ? "और देखें" : "Load more"}</Button></div> : null}
     </div>
   );
@@ -103,7 +117,13 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
   );
 }
 
-function PostCard({ p, L, signedIn, onChange }: { p: Post; L: boolean; signedIn: boolean; onChange: () => void }) {
+/** Body text with clickable #hashtags. */
+function Body({ text, onTag }: { text: string; onTag?: ((t: string) => void) | undefined }) {
+  const parts = text.split(/(#[^\s#@.,!?()[\]{}"'|<>]{2,40})/g);
+  return <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed">{parts.map((x, i) => x.startsWith("#") && x.length > 1 ? <button key={i} type="button" className="text-primary hover:underline" onClick={() => onTag?.(x.slice(1).toLowerCase())}>{x}</button> : <span key={i}>{x}</span>)}</p>;
+}
+
+function PostCard({ p, L, signedIn, onChange, onTag }: { p: Post; L: boolean; signedIn: boolean; onChange: () => void; onTag?: ((t: string) => void) | undefined }) {
   const [open, setOpen] = useState(false);
   const [liked, setLiked] = useState(p.liked); const [likes, setLikes] = useState(p.like_count);
   const url = typeof window !== "undefined" ? `${window.location.origin}/community/${p.id}` : `/community/${p.id}`;
@@ -120,6 +140,7 @@ function PostCard({ p, L, signedIn, onChange }: { p: Post; L: boolean; signedIn:
       supabase.rpc("k1_post_shared", { p_post: p.id } as never).then(() => undefined, () => undefined);
     } catch { /* cancelled */ }
   }
+  async function appeal() { const note = prompt(L ? "यह पोस्ट विज्ञापन/प्रचार क्यों नहीं है? (मॉडरेटर को जाएगा)" : "Why is this not promotion? (sent to moderators)"); if (note === null) return; try { await rpc("k1_cm_appeal", { p_post: p.id, p_note: note || null }); toast.success(L ? "अनुरोध भेजा गया" : "Request sent"); } catch (e) { toast.error((e as Error).message); } }
   async function moderate(status: string | null, pinned: boolean | null) { try { await rpc("k1_post_moderate", { p_post: p.id, p_status: status, p_pinned: pinned }); onChange(); } catch (e) { toast.error((e as Error).message); } }
   async function remove() { if (!confirm(L ? "पोस्ट हटाएँ?" : "Delete this post?")) return; const { error } = await supabase.from("cm_posts").delete().eq("id", p.id); if (error) toast.error(error.message); else onChange(); }
   async function report() { const r = prompt(L ? "क्या गलत है? (एडमिन देखेगा)" : "What's wrong? (sent to moderators)"); if (!r) return; const uid = (await supabase.auth.getUser()).data.user?.id; const { error } = await supabase.from("cm_post_reports").insert({ post_id: p.id, organization_id: (await supabase.from("cm_posts").select("organization_id").eq("id", p.id).single()).data?.organization_id, reporter_id: uid, reason: r } as never); if (error) toast.error(error.message); else toast.success(L ? "रिपोर्ट भेजी" : "Reported"); }
@@ -130,8 +151,8 @@ function PostCard({ p, L, signedIn, onChange }: { p: Post; L: boolean; signedIn:
         <div className="min-w-0 flex-1"><p className="font-semibold">{p.author_name} {p.pinned ? <Badge className="ml-1">{L ? "पिन" : "pinned"}</Badge> : null}</p><p className="text-xs text-muted-foreground"><Link to="/community/$id" params={{ id: p.id }} className="hover:underline">{new Date(p.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</Link> · {p.visibility === "public" ? (L ? "सार्वजनिक" : "public") : (L ? "सदस्य" : "members")}</p></div>
         {(p.mine || p.can_moderate) ? <details className="relative"><summary className="cursor-pointer list-none px-2 text-muted-foreground">⋯</summary><div className="absolute right-0 z-10 mt-1 flex w-40 flex-col rounded-md border border-border bg-background p-1 text-sm shadow">{p.can_moderate ? <><button type="button" className="rounded px-2 py-1 text-left hover:bg-secondary" onClick={() => moderate(null, !p.pinned)}>{p.pinned ? (L ? "अनपिन" : "Unpin") : (L ? "पिन करें" : "Pin")}</button><button type="button" className="rounded px-2 py-1 text-left hover:bg-secondary" onClick={() => moderate("hidden", null)}>{L ? "छिपाएँ" : "Hide"}</button></> : null}{p.mine || p.can_moderate ? <button type="button" className="rounded px-2 py-1 text-left text-destructive hover:bg-secondary" onClick={remove}>{L ? "हटाएँ" : "Delete"}</button> : null}</div></details> : null}
       </header>
-      {p.reach === "limited" ? <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">{L ? "⚠️ पहुँच सीमित: यह पोस्ट प्रचार/विज्ञापन जैसी लगी, इसलिए सिर्फ़ आपको और मॉडरेटर को दिख रही है। मॉडरेटर समीक्षा करेंगे।" : "⚠️ Limited reach: this post looks like promotion/advertising, so only you and moderators can see it. A moderator will review it."}{p.can_moderate ? <> · <Link to="/admin/community" className="underline">{L ? "समीक्षा" : "review"}</Link></> : null}</p> : null}
-      {p.body ? <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed">{p.body}</p> : null}
+      {p.reach === "limited" ? <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">{L ? "⚠️ पहुँच सीमित: यह पोस्ट प्रचार/विज्ञापन जैसी लगी, इसलिए सिर्फ़ आपको और मॉडरेटर को दिख रही है। मॉडरेटर समीक्षा करेंगे।" : "⚠️ Limited reach: this post looks like promotion/advertising, so only you and moderators can see it. A moderator will review it."}{p.can_moderate ? <> · <Link to="/admin/community" className="underline">{L ? "समीक्षा" : "review"}</Link></> : null}{p.mine ? <> · <button type="button" className="underline" onClick={appeal}>{L ? "समीक्षा का अनुरोध करें" : "Request review"}</button></> : null}</p> : null}
+      {p.body ? <Body text={p.body} onTag={onTag} /> : null}
       {p.media.length ? <div className={`mt-3 grid gap-1 ${p.media.length > 1 ? "grid-cols-2" : ""}`}>{p.media.map((m, i) => <a key={i} href={mediaUrl(m.path)} target="_blank" rel="noreferrer"><img src={mediaUrl(m.path)} alt="" className={`w-full rounded-lg object-cover ${p.media.length > 1 ? "aspect-square" : "max-h-[520px]"}`} loading="lazy" /></a>)}</div> : null}
       {p.link_url ? <div className="mt-3"><LinkEmbed url={p.link_url} kind={p.link_kind} /></div> : null}
       <footer className="mt-3 flex flex-wrap items-center gap-1 border-t border-border pt-2 text-sm">
@@ -172,6 +193,25 @@ function Comments({ post, L, signedIn }: { post: Post; L: boolean; signedIn: boo
     <div className="mt-2 border-t border-border pt-2">
       {roots.map((c) => <C key={c.id} c={c} depth={0} />)}
       {signedIn ? <div className="mt-2 flex gap-2">{replyTo ? <span className="self-center text-xs text-muted-foreground">↳ {L ? "जवाब" : "reply"} <button type="button" onClick={() => setReplyTo(null)}>×</button></span> : null}<Input placeholder={L ? "टिप्पणी लिखें…" : "Write a comment…"} value={body} onChange={(e) => setBody(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(); }} /><Button size="sm" onClick={send}>{L ? "भेजें" : "Send"}</Button></div> : null}
+    </div>
+  );
+}
+
+type Notif = { id: string; kind: string; text: string | null; post_id: string | null; comment_id: string | null; read_at: string | null; created_at: string; unread: number };
+function NotificationsBell({ L }: { L: boolean }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const q = useQuery({ queryKey: ["cm_notifications"], refetchInterval: 60_000, queryFn: () => rpc<Notif[]>("k1_cm_notifications", { p_limit: 30 }) });
+  const unread = q.data?.[0]?.unread ?? 0;
+  async function markAll() { await rpc("k1_cm_notifications_read", { p_ids: null }); qc.invalidateQueries({ queryKey: ["cm_notifications"] }); }
+  const icon: Record<string, string> = { like: "👍", comment: "💬", reply: "↩️", moderation: "🛡️", appeal: "🙋" };
+  return (
+    <div className="relative ml-auto">
+      <Button size="sm" variant="outline" onClick={() => { setOpen((v) => !v); if (!open && unread) void markAll(); }}>🔔 {L ? "सूचनाएँ" : "Notifications"}{unread ? <span className="ml-1 rounded-full bg-destructive px-1.5 text-[10px] text-destructive-foreground">{unread}</span> : null}</Button>
+      {open ? <div className="absolute right-0 z-20 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-border bg-background p-1 text-sm shadow-lg">
+        {(q.data ?? []).map((n) => <Link key={n.id} to="/community/$id" params={{ id: n.post_id ?? "" }} disabled={!n.post_id} className={`block rounded px-2 py-1.5 hover:bg-secondary ${n.read_at ? "text-muted-foreground" : "font-medium"}`} onClick={() => setOpen(false)}>{icon[n.kind] ?? "•"} {n.text}<span className="block text-[11px] font-normal text-muted-foreground">{new Date(n.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</span></Link>)}
+        {q.isSuccess && !q.data.length ? <p className="p-2 text-muted-foreground">{L ? "अभी कोई सूचना नहीं।" : "No notifications yet."}</p> : null}
+      </div> : null}
     </div>
   );
 }

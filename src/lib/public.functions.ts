@@ -446,3 +446,15 @@ export const getPolls = createServerFn({ method: "GET" }).handler(async () => {
   const { data } = await sb().from("cm_polls").select("id,question,question_hi,description,options,audience,status,ends_at,open_results").eq("organization_id", org).eq("audience", "public").in("status", ["open", "closed"]).order("created_at", { ascending: false }).limit(20);
   return data ?? [];
 });
+
+/** Kalchuri One post preview for share links (anon view: only public posts; members-only posts get a generic card). */
+export const getPostMeta = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: string }) => ({ id: str(d?.id) }))
+  .handler(async ({ data }) => {
+    const org = await tenantId();
+    const { data: rows } = await sb().rpc("k1_feed", { p_org: org, p_before: null, p_limit: 1, p_post: data.id } as never);
+    const p = (rows as unknown as { author_name: string; body: string | null; media: { path: string }[]; link_url: string | null }[] | null)?.[0];
+    if (!p) return null;
+    const image = p.media?.[0]?.path ? sb().storage.from("community").getPublicUrl(p.media[0].path).data.publicUrl : null;
+    return { author: p.author_name, body: p.body, image, link: p.link_url };
+  });

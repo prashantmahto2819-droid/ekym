@@ -1159,6 +1159,60 @@ export type Database = {
           },
         ]
       }
+      cm_notifications: {
+        Row: {
+          actor_id: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          organization_id: string
+          post_id: string | null
+          read_at: string | null
+          text: string | null
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          organization_id: string
+          post_id?: string | null
+          read_at?: string | null
+          text?: string | null
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          organization_id?: string
+          post_id?: string | null
+          read_at?: string | null
+          text?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_notifications_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "cm_post_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "cm_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cm_polls: {
         Row: {
           anonymous: boolean
@@ -1354,6 +1408,7 @@ export type Database = {
           reach: string
           share_count: number
           status: string
+          tags: string[]
           updated_at: string
           visibility: string
         }
@@ -1375,6 +1430,7 @@ export type Database = {
           reach?: string
           share_count?: number
           status?: string
+          tags?: string[]
           updated_at?: string
           visibility?: string
         }
@@ -1396,6 +1452,7 @@ export type Database = {
           reach?: string
           share_count?: number
           status?: string
+          tags?: string[]
           updated_at?: string
           visibility?: string
         }
@@ -6537,6 +6594,14 @@ export type Database = {
         }[]
       }
       k1_claim_memberships: { Args: never; Returns: number }
+      k1_cm_actor_name: {
+        Args: { p_org: string; p_user: string }
+        Returns: string
+      }
+      k1_cm_appeal: {
+        Args: { p_note?: string; p_post: string }
+        Returns: undefined
+      }
       k1_cm_default_keywords: { Args: never; Returns: string[] }
       k1_cm_flagged: {
         Args: { p_org: string }
@@ -6554,6 +6619,35 @@ export type Database = {
       }
       k1_cm_moderation_result: {
         Args: { p_ai: Json; p_post: string }
+        Returns: undefined
+      }
+      k1_cm_notifications: {
+        Args: { p_limit?: number }
+        Returns: {
+          comment_id: string
+          created_at: string
+          id: string
+          kind: string
+          post_id: string
+          read_at: string
+          text: string
+          unread: number
+        }[]
+      }
+      k1_cm_notifications_read: {
+        Args: { p_ids?: string[] }
+        Returns: undefined
+      }
+      k1_cm_notify: {
+        Args: {
+          p_actor: string
+          p_comment: string
+          p_kind: string
+          p_org: string
+          p_post: string
+          p_text: string
+          p_user: string
+        }
         Returns: undefined
       }
       k1_cm_notify_moderators: {
@@ -6578,6 +6672,13 @@ export type Database = {
       k1_cm_review: {
         Args: { p_action: string; p_post: string }
         Returns: undefined
+      }
+      k1_cm_tags: {
+        Args: { p_limit?: number; p_org: string }
+        Returns: {
+          n: number
+          tag: string
+        }[]
       }
       k1_comms_channel_runtime: {
         Args: { p_channel: string }
@@ -6804,6 +6905,36 @@ export type Database = {
           p_limit?: number
           p_org: string
           p_post?: string
+        }
+        Returns: {
+          author_id: string
+          author_name: string
+          author_photo: string
+          body: string
+          can_moderate: boolean
+          comment_count: number
+          created_at: string
+          id: string
+          like_count: number
+          liked: boolean
+          link_kind: string
+          link_url: string
+          media: Json
+          mine: boolean
+          moderation_status: string
+          pinned: boolean
+          reach: string
+          share_count: number
+          visibility: string
+        }[]
+      }
+      k1_feed_search: {
+        Args: {
+          p_before?: string
+          p_limit?: number
+          p_org: string
+          p_q?: string
+          p_tag?: string
         }
         Returns: {
           author_id: string

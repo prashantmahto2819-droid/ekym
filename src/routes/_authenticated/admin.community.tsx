@@ -152,7 +152,7 @@ function FeedModeration({ org }: { org: string }) {
   );
 }
 
-type Flag = { id: string; author_name: string; body: string | null; link_url: string | null; media: { path: string }[]; moderation: { heuristic?: { score: number; hits: string[] }; ai?: { promotional: boolean; confidence: number; category: string; reason: string; model: string } }; moderation_status: string; reach: string; created_at: string };
+type Flag = { id: string; author_name: string; body: string | null; link_url: string | null; media: { path: string }[]; moderation: { heuristic?: { score: number; hits: string[] }; ai?: { promotional: boolean; confidence: number; category: string; reason: string; model: string }; appeal?: { at: string; note: string } }; moderation_status: string; reach: string; created_at: string };
 function Flagged({ org }: { org: string }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["cm_flagged", org], queryFn: async () => (await rpc("k1_cm_flagged", { p_org: org })) as Flag[] });
@@ -169,6 +169,7 @@ function Flagged({ org }: { org: string }) {
             <p><b>{p.author_name}</b> <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleString("en-IN")}</span> <a className="ml-1 text-xs underline" href={`/community/${p.id}`} target="_blank" rel="noreferrer">view</a></p>
             <p className="line-clamp-2">{p.body ?? p.link_url ?? "(photo)"}</p>
             {p.media?.length ? <div className="mt-1 flex gap-1">{p.media.slice(0, 4).map((m, i) => <img key={i} src={supabase.storage.from("community").getPublicUrl(m.path).data.publicUrl} alt="" className="h-12 w-12 rounded object-cover" />)}</div> : null}
+            {p.moderation?.appeal ? <p className="mt-1 rounded bg-amber-100 px-2 py-1 text-xs dark:bg-amber-900/40">🙋 {new Date(p.moderation.appeal.at).toLocaleString("en-IN")} — author asks for review{p.moderation.appeal.note ? `: ${p.moderation.appeal.note}` : ""}</p> : null}
             <p className="text-xs text-muted-foreground">{ai?.reason ? `AI (${ai.category}, ${Math.round(ai.confidence * 100)}%): ${ai.reason}` : ai?.model ? `AI: ${ai.model}` : "AI: pending"}{h?.hits?.length ? ` · keywords: ${h.hits.join(", ")} (score ${h.score})` : ""}</p>
           </div>
           <span className="flex gap-1"><Button size="sm" onClick={() => review(p.id, "allow")}>Allow (full reach)</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => review(p.id, "remove")}>Remove</Button></span>
