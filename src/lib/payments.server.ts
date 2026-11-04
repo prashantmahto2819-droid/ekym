@@ -7,7 +7,7 @@ import { fetchRazorpayPayment } from "@/lib/razorpay.server";
 const RECEIPT_BUCKET = "receipts";
 
 export function siteUrl() {
-  return (process.env["PUBLIC_SITE_URL"] ?? "https://seva-heartbeat.lovable.app").replace(/\/$/, "");
+  return (process.env["PUBLIC_SITE_URL"] ?? "http://localhost:8080").replace(/\/$/, "");
 }
 
 export function financialYear(d = new Date()) {

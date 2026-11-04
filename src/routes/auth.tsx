@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 
 const searchSchema = z.object({
   redirect: z.string().optional(),
@@ -95,16 +94,14 @@ function GoogleButton({ target }: { target: string }) {
   async function signIn() {
     setBusy(true);
     try {
-      sessionStorage.setItem("post_auth_redirect", target);
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth?redirect=${encodeURIComponent(target)}` },
       });
-      if (result.error) {
+      if (error) {
         toast.error("Google sign-in failed. Please try again.");
-        return;
       }
-      if (result.redirected) return;
-      window.location.assign(target);
+      // On success the browser goes to Google, then back to /auth?redirect=…, which forwards once the session exists.
     } finally {
       setBusy(false);
     }

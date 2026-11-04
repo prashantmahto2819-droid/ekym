@@ -7,7 +7,7 @@ import { PHOTO_BUCKET } from "@/lib/photos.functions";
 const MANAGER_ROLES = ["SUPER_ADMIN", "ADMIN", "VOLUNTEER_MANAGER", "STAFF"];
 
 function siteUrl() {
-  return (process.env["PUBLIC_SITE_URL"] ?? "https://seva-heartbeat.lovable.app").replace(/\/$/, "");
+  return (process.env["PUBLIC_SITE_URL"] ?? "http://localhost:8080").replace(/\/$/, "");
 }
 
 type VolunteerRow = {
