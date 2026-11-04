@@ -1,6 +1,9 @@
 # Changelog
 
 ## 2026-11-04 — Phase 14 (Kalchuri One polish)
+- `perf_02_rls_initplan`: public/core/storage की सभी RLS policies में `auth.uid()` → `(select auth.uid())` (ALTER POLICY से, बिना drop); advisor initplan warnings हटीं।
+- `.github/workflows/storage-backup.yml`: Supabase Storage → Cloudflare R2 weekly rclone sync (secrets देखें)।
+- `docs/kalchuri-one/SETUP_CHECKLIST_HI.md`: Cloudflare + Supabase का पूरा go-live क्रम links सहित (deploy अभी secrets के इंतज़ार में)।
 - निर्णय: वीडियो upload नहीं बनेगा (owner) — सिर्फ़ links।
 - Migration `cm_04_notifications_search`: `cm_notifications` (like — एक पोस्ट के like एक ही unread row में जुड़ते हैं, comment, reply, moderation निर्णय), triggers; `k1_cm_notifications`, `k1_cm_notifications_read`; `k1_cm_appeal` (लेखक सीमित पोस्ट पर "समीक्षा का अनुरोध" → moderators को WhatsApp, `moderation.appeal`); hashtags: `cm_posts.tags[]` (trigger `trg_cm_post_tags`, Devanagari-safe regex) + gin, `pg_trgm` (`cm_04a_pg_trgm`), `k1_feed_search(q, tag)`, `k1_cm_tags` (30-दिन trending); comments पर भी promo heuristic: score ≥ threshold → `status='hidden'` + auto report (`trg_cm_comment_screen/report`)।
 - UI: feed पर search box (#टैग टाइप करने पर tag filter), trending tags, पोस्ट में #tags clickable, 🔔 सूचनाएँ (unread badge, खोलते ही read), सीमित पोस्ट पर "समीक्षा का अनुरोध करें"; admin flagged panel में appeal नोट; `/community/<id>` share link पर og:title/description/image (public posts)।
