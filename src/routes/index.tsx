@@ -20,13 +20,15 @@ import {
   VideoSection,
   VolunteerCta,
 } from "@/components/home/sections";
-import { homeQuery, organizationQuery } from "@/lib/queries";
+import { Blocks, type Block } from "@/components/site/Blocks";
+import { homePageQuery, homeQuery, organizationQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(homeQuery()),
       context.queryClient.ensureQueryData(organizationQuery()),
+      context.queryClient.ensureQueryData(homePageQuery()),
     ]);
   },
   head: ({ matches }) => ({
@@ -53,6 +55,9 @@ export const Route = createFileRoute("/")({
 function Home() {
   const { data: home } = useSuspenseQuery(homeQuery());
   const { data: org } = useSuspenseQuery(organizationQuery());
+  const { data: custom } = useSuspenseQuery(homePageQuery());
+  // A published page marked "use as home" (website builder) replaces the default home sections.
+  if (custom) return <Blocks blocks={(custom.blocks as unknown as Block[]) ?? []} />;
 
   const bhojan = home.seva.find(
     (s: any) => s.slug?.includes("bhojan") || s.name?.toLowerCase().includes("bhojan"),

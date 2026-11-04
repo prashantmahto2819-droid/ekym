@@ -20,6 +20,9 @@ import {
   getCentralFeed,
   getIssues,
   getIssue,
+  getPage,
+  getHomePage,
+  getMenus,
 } from "./public.functions";
 
 export const organizationQuery = () =>
@@ -69,3 +72,7 @@ export const internshipQuery = () =>
 export const centralFeedQuery = () => queryOptions({ queryKey: ["central-feed"], queryFn: () => getCentralFeed() });
 export const issuesQuery = () => queryOptions({ queryKey: ["issues"], queryFn: () => getIssues() });
 export const issueQuery = (slug: string) => queryOptions({ queryKey: ["issue", slug], queryFn: () => getIssue({ data: { slug } }) });
+
+export const pageQuery = (slug: string) => queryOptions({ queryKey: ["page", slug], queryFn: () => getPage({ data: { slug } }) });
+export const homePageQuery = () => queryOptions({ queryKey: ["home-page"], queryFn: () => getHomePage() });
+export const menusQuery = () => queryOptions({ queryKey: ["menus"], queryFn: () => getMenus(), staleTime: 60_000 });

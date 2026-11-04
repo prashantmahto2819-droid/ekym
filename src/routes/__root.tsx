@@ -20,6 +20,7 @@ import { getLang } from "@/core/lang.functions";
 import { TenantProvider } from "@/core/tenant-context";
 import { LangProvider, type Lang } from "@/core/i18n";
 import type { Tenant } from "@/core/tenant.server";
+import { themeCss, type Branding } from "@/core/theme";
 
 import appCss from "../styles.css?url";
 
@@ -126,6 +127,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang={data?.lang ?? "en"}>
       <head>
         <HeadContent />
+        {themeCss(data?.tenant?.branding as Branding) ? <style dangerouslySetInnerHTML={{ __html: themeCss(data?.tenant?.branding as Branding) }} /> : null}
       </head>
       <body>
         {children}

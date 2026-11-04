@@ -374,12 +374,41 @@ export const getIssue = createServerFn({ method: "GET" })
 export const getSitemapData = createServerFn({ method: "GET" }).handler(async () => {
   const org = await tenantId();
   const c = sb();
-  const [blogs, news, seva, campaigns, issues] = await Promise.all([
+  const [blogs, news, seva, campaigns, issues, pages] = await Promise.all([
     c.from("blogs").select("slug,updated_at,published_at,title,excerpt").eq("organization_id", org).eq("status", "published").order("published_at", { ascending: false }).limit(1000),
     c.from("news").select("slug,updated_at,published_at,title,description").eq("organization_id", org).eq("status", "published").order("published_at", { ascending: false }).limit(1000),
     c.from("seva_projects").select("slug,updated_at").eq("organization_id", org).eq("active", true).limit(500),
     c.from("campaigns").select("slug,updated_at").eq("organization_id", org).eq("status", "published").limit(500),
     c.from("pub_issues").select("slug,updated_at").eq("organization_id", org).eq("status", "published").eq("access", "public").limit(500),
+    c.from("cms_pages").select("slug,updated_at,is_home").eq("organization_id", org).eq("status", "published").limit(500),
   ]);
-  return { blogs: blogs.data ?? [], news: news.data ?? [], seva: seva.data ?? [], campaigns: campaigns.data ?? [], issues: issues.data ?? [] };
+  return { blogs: blogs.data ?? [], news: news.data ?? [], seva: seva.data ?? [], campaigns: campaigns.data ?? [], issues: issues.data ?? [], pages: pages.data ?? [] };
 });
+
+/* --------------------------- WEBSITE BUILDER (Phase 9) --------------------------- */
+export const getPage = createServerFn({ method: "GET" })
+  .inputValidator((d: { slug: string }) => ({ slug: str(d?.slug) }))
+  .handler(async ({ data }) => {
+    const org = await tenantId();
+    const { data: page } = await sb().from("cms_pages").select("id,slug,title,title_hi,blocks,seo,is_home,updated_at").eq("organization_id", org).eq("slug", data.slug).eq("status", "published").maybeSingle();
+    return page;
+  });
+
+export const getHomePage = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const { data: page } = await sb().from("cms_pages").select("id,slug,title,title_hi,blocks,seo,is_home,updated_at").eq("organization_id", org).eq("status", "published").eq("is_home", true).maybeSingle();
+  return page;
+});
+
+export const getMenus = createServerFn({ method: "GET" }).handler(async () => {
+  const org = await tenantId();
+  const c = sb();
+  const [menus, pages] = await Promise.all([
+    c.from("cms_menus").select("location,items").eq("organization_id", org),
+    c.from("cms_pages").select("slug,title,title_hi,menu_order").eq("organization_id", org).eq("status", "published").eq("show_in_menu", true).order("menu_order"),
+  ]);
+  const out: { header: MenuItem[] | null; footer: MenuItem[] | null; pages: { slug: string; title: string; title_hi: string | null }[] } = { header: null, footer: null, pages: pages.data ?? [] };
+  for (const m of menus.data ?? []) { const items = (m.items as unknown as MenuItem[]) ?? []; if (m.location === "header" && items.length) out.header = items; if (m.location === "footer" && items.length) out.footer = items; }
+  return out;
+});
+export type MenuItem = { label: string; label_hi?: string; to: string; children?: MenuItem[] };
