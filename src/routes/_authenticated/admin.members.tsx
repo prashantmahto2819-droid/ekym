@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+
+import { cleanDoc, STARTER_TEMPLATES } from "@/design-engine";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -43,6 +45,26 @@ function MembersPage() {
   const [category, setCategory] = useState("general");
   const [note, setNote] = useState("");
   const [q, setQ] = useState("");
+
+  const navigate = useNavigate();
+  /** Create an ID-card document for this member from the organization's id_card template (first one, else from the starter). */
+  async function issueCard(m: Membership & { photo_path?: string | null; blood_group?: string | null; valid_to?: string | null; valid_from?: string | null }) {
+    try {
+      let { data: tpl } = await supabase.from("docs_templates").select("id").eq("organization_id", tenant.organization_id).eq("kind", "id_card").eq("status", "active").order("is_default", { ascending: false }).limit(1).maybeSingle();
+      if (!tpl) {
+        const starter = STARTER_TEMPLATES.find((s) => s.kind === "id_card")!;
+        const design = starter.make({ name: tenant.name, name_hi: tenant.name_hi });
+        const ins = await supabase.from("docs_templates").insert({ organization_id: tenant.organization_id, kind: "id_card", name: starter.name, name_hi: starter.name_hi, design: cleanDoc(design) as never } as never).select("id").single();
+        if (ins.error) throw ins.error; tpl = ins.data as { id: string };
+      }
+      let photo = "";
+      if (m.photo_path) { const { data: su } = await supabase.storage.from("documents").createSignedUrl(m.photo_path, 60 * 60 * 24 * 30); photo = su?.signedUrl ?? ""; }
+      const fields = { member: { name: m.full_name, name_hi: m.full_name_hi ?? m.full_name, member_no: m.member_no ?? "", category: m.category, city: m.city ?? "", village: m.village ?? "", district: m.district ?? "", father_name: m.father_name ?? "", mobile: m.mobile, blood_group: m.blood_group ?? "", valid_from: m.valid_from ?? new Date().toISOString().slice(0, 10), valid_to: m.valid_to ?? "", photo } };
+      const { data, error } = await supabase.from("docs_documents").insert({ organization_id: tenant.organization_id, kind: "id_card", title: "Membership card", template_id: (tpl as { id: string }).id, recipient: { name: m.full_name, phone: m.mobile }, fields, signatories: [{ name: "", designation: "" }] } as never).select("id").single();
+      if (error) throw error;
+      navigate({ to: "/admin/letters/$id", params: { id: (data as { id: string }).id } });
+    } catch (e) { toast.error((e as Error).message); }
+  }
 
   const applications = useQuery({
     queryKey: ["admin", "org_memberships", tenant.organization_id, "applied"],
@@ -140,6 +162,7 @@ function MembersPage() {
       <CrudPage
         table="org_memberships"
         title="Members"
+        extraActions={(r) => (r.status === "active" && can("org.member.card.issue") ? <Button size="sm" variant="outline" onClick={() => void issueCard(r as Membership & { photo_path?: string | null; blood_group?: string | null; valid_to?: string | null; valid_from?: string | null })}>ID card</Button> : null)}
         description="All members of the organization. Add a member directly here; applications are approved above."
         orderBy="member_no"
         ascending

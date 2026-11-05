@@ -1,12 +1,14 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/core/tenant-context";
-import { STARTER_TEMPLATES, cleanDoc, type DesignDoc } from "@/design-engine";
+import { fromUploadedBackground, STARTER_TEMPLATES, cleanDoc, type DesignDoc } from "@/design-engine";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { publicUrl, uploadPhoto } from "@/lib/images";
 import { organizationQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/admin/studio")({
@@ -57,6 +59,24 @@ function StudioIndex() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const [upKind, setUpKind] = useState<"letter" | "certificate" | "id_card" | "receipt">("letter");
+  const [uploading, setUploading] = useState(false);
+  async function fromUpload(f: File | undefined) {
+    if (!f) return;
+    setUploading(true);
+    try {
+      const path = `${tenant.organization_id}/templates/${Date.now()}.jpg`;
+      await uploadPhoto("site-media", path, f, 2400);
+      const design = fromUploadedBackground(upKind, publicUrl("site-media", path), { name: org?.organization_name ?? tenant.name, name_hi: org?.organization_name_hi ?? tenant.name_hi, logo: org?.logo });
+      const names: Record<string, [string, string]> = { letter: ["My letterhead", "मेरा लेटरहेड"], certificate: ["My certificate", "मेरा प्रमाणपत्र"], id_card: ["My ID card", "मेरा पहचान-पत्र"], receipt: ["My receipt", "मेरी रसीद"] };
+      const { data, error } = await supabase.from("docs_templates").insert({ organization_id: tenant.organization_id, kind: upKind === "letter" ? "letterhead" : upKind, name: names[upKind]![0], name_hi: names[upKind]![1], design: cleanDoc(design) as never } as never).select("id").single();
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] });
+      toast.success("Template created — drag the fields into place and Save");
+      navigate({ to: "/admin/studio/$id", params: { id: (data as { id: string }).id } });
+    } catch (e) { toast.error((e as Error).message); } finally { setUploading(false); }
+  }
+
   const duplicate = useMutation({
     mutationFn: async (t: TemplateRow) => {
       const { data: full, error: e1 } = await supabase.from("docs_templates").select("design").eq("id", t.id).single();
@@ -104,6 +124,18 @@ function StudioIndex() {
               {s.name} · {s.name_hi}
             </Button>
           ))}
+        </div>
+      ) : null}
+      {canEdit ? (
+        <div className="rounded-lg border border-dashed border-border bg-secondary/30 p-3 text-sm">
+          <p className="font-medium">अपना छपा हुआ letterhead / कार्ड डिज़ाइन इस्तेमाल करें · Use your own printed letterhead / card artwork</p>
+          <p className="text-xs text-muted-foreground">Upload a photo/scan (JPG/PNG, full page). It becomes the background; the Ref no, Date, Body / member fields sit on top — open the template and drag them to the right place.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={upKind} onChange={(e) => setUpKind(e.target.value as typeof upKind)}>
+              <option value="letter">Letterhead → letters / notices</option><option value="certificate">Certificate artwork</option><option value="id_card">ID card artwork (85.6×54 mm)</option><option value="receipt">Receipt artwork</option>
+            </select>
+            <label className="cursor-pointer rounded-md border border-border bg-background px-3 py-1.5">{uploading ? "…" : "📷 Upload & create template"}<input type="file" accept="image/*" hidden disabled={uploading} onChange={(e) => void fromUpload(e.target.files?.[0])} /></label>
+          </div>
         </div>
       ) : null}
       {[...byKind.entries()].map(([kind, rows]) => (

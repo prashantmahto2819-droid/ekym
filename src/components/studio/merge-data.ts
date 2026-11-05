@@ -77,7 +77,7 @@ export const SAMPLE_DATA: MergeData = {
   recipient: { name: "Shri Ramesh Kumar", designation: "President", organization: "Kalchuri Samaj, Raipur", address: "Main Road, Raipur" },
   signatory: { name: "Prashant Mahto", designation: "Secretary" },
   receipt: { payer_name: "Shri Ramesh Kumar", amount: 1100, purpose: "General donation", mode: "UPI", instrument: "TXN123456", payer_mobile: "98xxxxxx10", payer_address: "Raipur", payer_pan: "", footer_note: "This receipt is computer generated." },
-  member: { name: "Ramesh Kumar", name_hi: "रमेश कुमार", member_no: "EKYM/M/0001", category: "Life", city: "Raipur", valid_from: "2026-11-04", valid_to: "2031-11-03", photo: "" },
+  member: { name: "Ramesh Kumar", name_hi: "रमेश कुमार", member_no: "EKYM/M/0001", category: "Life", city: "Raipur", village: "Kharora", district: "Raipur", father_name: "Shri Mohan Kumar", mobile: "98765 43210", blood_group: "B+", valid_from: "2026-11-04", valid_to: "2031-11-03", photo: "" },
   event: { title_hi: "वार्षिक स्नेह मिलन", date: "15-12-2026", time: "सुबह 10 बजे", venue_hi: "सामुदायिक भवन, रायपुर", message: "आप सपरिवार सादर आमंत्रित हैं।", organizer: "आयोजन समिति", contact: "98xxxxxx10" },
   guest: { name: "श्री रमेश कुमार", group: "कुसमुण्डा", rsvp_url: "https://example.org/rsvp/abc" },
   shok: { deceased: "श्री संतोष कुमार कश्यप", death_date: "2026-11-01", ceremony_date: "2026-11-11", venue: "नगर पालिका सामुदायिक भवन, आदर्श नगर, कुसमुण्डा", family: "कश्यप परिवार, कुसमुण्डा" },

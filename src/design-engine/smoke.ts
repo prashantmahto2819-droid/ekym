@@ -12,7 +12,7 @@ const data = {
   shok: { deceased: "श्री संतोष कुमार कश्यप", death_date: "2026-11-01", ceremony_date: "2026-11-11", venue: "नगर पालिका सामुदायिक भवन, आदर्श नगर, कुसमुण्डा", family: "कश्यप परिवार, कुसमुण्डा" },
   signatory: { name: "Prashant Mahto", designation: "Secretary" },
   receipt: { payer_name: "Ramesh Kumar", amount: 1100.5, purpose: "General donation", mode: "UPI", instrument: "TXN1", payer_mobile: "98xxxxxx10", payer_address: "Raipur", payer_pan: "", footer_note: "Computer generated." },
-  member: { name: "Ramesh Kumar", name_hi: "रमेश कुमार", member_no: "EKYM/M/0001", category: "Life", city: "Raipur", valid_from: "2026-11-04", valid_to: "2031-11-03", photo: "" },
+  member: { name: "Ramesh Kumar", name_hi: "रमेश कुमार", member_no: "EKYM/M/0001", category: "Life", city: "Raipur", village: "Kharora", district: "Raipur", father_name: "Shri Mohan Kumar", mobile: "98765 43210", blood_group: "B+", valid_from: "2026-11-04", valid_to: "2031-11-03", photo: "" },
 };
 
 window.__smoke = async () => {

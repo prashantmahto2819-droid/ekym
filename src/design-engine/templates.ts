@@ -1,4 +1,5 @@
 // Built-in starter templates. Organizations copy these and edit them in the Studio.
+import { pagePx } from "./model";
 import { mm, newDoc, uid, type DesignDoc, type Layer } from "./model";
 
 export type Brand = { name: string; name_hi?: string | null | undefined; tagline?: string | null | undefined; address?: string | null | undefined; phone?: string | null | undefined; email?: string | null | undefined; website?: string | null | undefined; logo?: string | null | undefined; color?: string | undefined };
@@ -139,15 +140,16 @@ export function idCardTemplate(b: Brand): DesignDoc {
   const W = Math.round(mm(85.6)), H = Math.round(mm(54));
   doc.master = [
     { id: uid(), type: "rect", name: "Header band", x: 0, y: 0, w: W, h: mm(14), fill: accent },
-    { id: uid(), type: "text", name: "Organization", text: "{{org.name}}", x: mm(3), y: mm(2.5), w: W - mm(6), size: 11, weight: 700, font: "sora", color: "#ffffff", lh: 14, fit: true },
-    { id: uid(), type: "text", name: "Card type", text: "{{doc.title|upper}}", x: mm(3), y: mm(8.5), w: W - mm(6), size: 7, weight: 600, font: "manrope", color: "#e6fffa", lh: 9 },
+    { id: uid(), type: "text", name: "Organization", text: "{{org.name}}", x: mm(3), y: mm(2), w: W - mm(6), size: 10, weight: 700, font: "sora", color: "#ffffff", lh: 12, fit: true },
+    { id: uid(), type: "text", name: "Organization Hindi", text: "{{org.name_hi}}", x: mm(3), y: mm(6.5), w: W - mm(6), size: 7, weight: 700, font: "tiro", color: "#ffffff", lh: 9, fit: true },
+    { id: uid(), type: "text", name: "Card type", text: "{{doc.title|upper}} · {{org.name}}", x: mm(3), y: mm(10), w: W - mm(6), size: 5.5, weight: 600, font: "manrope", color: "#e6fffa", lh: 7 },
     { id: uid(), type: "text", name: "Footer", text: "{{org.phone}} · {{org.website}}", x: mm(3), y: H - mm(5), w: W - mm(6), size: 5.5, font: "manrope", color: "#6b7280", lh: 7 },
   ];
   doc.pages[0]!.layers = [
     { id: uid(), type: "image", name: "Photo", src: "{{member.photo}}", x: mm(3), y: mm(17), w: mm(20), h: mm(25), shape: "rect", radius: 4, ring: 1, color: accent },
     { id: uid(), type: "text", name: "Name", text: "{{member.name}}", x: mm(26), y: mm(17), w: mm(42), h: mm(7), size: 11, weight: 700, font: "sora", color: ink, lh: 14, fit: true },
     { id: uid(), type: "text", name: "Name Hindi", text: "{{member.name_hi}}", x: mm(26), y: mm(23), w: mm(42), size: 9, weight: 700, font: "tiro", color: ink, lh: 12, fit: true },
-    { id: uid(), type: "text", name: "Details", text: "Member No: **{{member.member_no}}**\n{{member.category}} member\n{{member.city}}\nValid: {{member.valid_from|date}} – {{member.valid_to|date}}", x: mm(26), y: mm(29), w: mm(42), size: 6.5, font: "manrope", color: ink, lh: 9 },
+    { id: uid(), type: "text", name: "Details", text: "Member No: **{{member.member_no}}**   Blood: **{{member.blood_group}}**\nS/o {{member.father_name}}\n{{member.village}} {{member.city}}\nMob: {{member.mobile}}\nValid: {{member.valid_from|date}} – {{member.valid_to|date}}", x: mm(26), y: mm(29), w: mm(42), size: 6, font: "manrope", color: ink, lh: 8 },
     { id: uid(), type: "qr", name: "Verify QR", data: "{{doc.verify_url}}", x: W - mm(16), y: mm(28), w: mm(13), h: mm(13), color: ink },
   ];
   doc.fields = [];
@@ -219,6 +221,18 @@ export function invitationTemplate(b: Brand): DesignDoc {
     { key: "guest.name", label: "Guest name (per person)", label_hi: "अतिथि", sample: "श्री रमेश कुमार" },
   ];
   return doc;
+}
+
+/** Start from the organization's own printed letterhead / card artwork: the uploaded picture fills the page as the
+ *  master layer and the movable fields (ref no, date, body / member details) sit on top — drag them into place. */
+export function fromUploadedBackground(kind: "letter" | "certificate" | "id_card" | "receipt", src: string, b: Brand, orientation: "portrait" | "landscape" = "portrait"): DesignDoc {
+  const base = kind === "id_card" ? idCardTemplate(b) : kind === "certificate" ? certificateTemplate(b) : kind === "receipt" ? receiptTemplate(b) : letterTemplate(b);
+  const { W, H } = pagePx(base);
+  void orientation;
+  base.master = [{ id: uid(), type: "image", name: "My letterhead / artwork", src, x: 0, y: 0, w: W, h: H, fit: "cover" }];
+  // keep only the merge-field layers (drop decorative shapes/text that the artwork already carries)
+  for (const pg of base.pages) pg.layers = pg.layers.filter((l) => l.type === "flow" || l.type === "qr" || l.type === "image" || (l.type === "text" && /\{\{/.test(l.text)));
+  return base;
 }
 
 export const STARTER_TEMPLATES: { kind: string; name: string; name_hi: string; make: (b: Brand) => DesignDoc }[] = [
