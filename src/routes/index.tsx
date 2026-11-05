@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { siteName } from "@/core/seo";
+import { homeMeta } from "@/core/seo";
 
 import {
   BhojanSeva,
@@ -35,24 +35,7 @@ export const Route = createFileRoute("/")({
       context.queryClient.ensureQueryData(homePageQuery()),
     ]);
   },
-  head: ({ matches }) => ({
-    meta: [
-      { title: `${siteName(matches)} — Seva Prakalp for people in need` },
-      {
-        name: "description",
-        content:
-          `${siteName(matches)} runs seva prakalp across food, blood donation, education, health and community care. Volunteer, donate or request help.`,
-      },
-      { property: "og:title", content: `${siteName(matches)} — Seva, every single day` },
-      {
-        property: "og:description",
-        content:
-          "Daily bhojan seva, blood donation support, free library, volunteering and internships. Join the seva.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => homeMeta(matches),
   component: Home,
 });
 

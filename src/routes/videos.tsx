@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { VideoCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -8,20 +8,7 @@ import { videoQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/videos")({
   loader: ({ context }) => context.queryClient.ensureQueryData(videoQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Videos — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Watch ${siteName(matches)}'s seva in action — kitchens, blood camps, library sessions and community drives.`,
-      },
-      { property: "og:title", content: `Videos — ${siteName(matches)}` },
-      { property: "og:description", content: "See our seva in action." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Videos", hi: "वीडियो" }, { en: "Videos from our events and programmes.", hi: "हमारे आयोजनों और कार्यक्रमों के वीडियो।" }),
   component: VideosPage,
 });
 

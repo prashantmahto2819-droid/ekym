@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { NewsCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -8,20 +8,7 @@ import { newsListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/news/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(newsListQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `News & press coverage — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Press coverage, announcements and media mentions of ${siteName(matches)}'s seva work.`,
-      },
-      { property: "og:title", content: `News & press coverage — ${siteName(matches)}` },
-      { property: "og:description", content: "Announcements and media coverage of our work." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "News", hi: "समाचार" }, { en: "Announcements, notices and media coverage.", hi: "घोषणाएँ, सूचनाएँ और मीडिया कवरेज।" }),
   component: NewsList,
 });
 

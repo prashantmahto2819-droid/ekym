@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useMemo, useState } from "react";
 import { BookOpen } from "lucide-react";
 import { toast } from "sonner";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { LocationFields } from "@/components/site/LocationFields";
@@ -20,20 +20,7 @@ import { libraryQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/library")({
   loader: ({ context }) => context.queryClient.ensureQueryData(libraryQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Community library — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Browse the free community library catalogue of ${siteName(matches)}, or donate books so more students can read.`,
-      },
-      { property: "og:title", content: `Free community library — ${siteName(matches)}` },
-      { property: "og:description", content: "Search our catalogue or donate books." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Community library", hi: "पुस्तकालय" }, { en: "Search the catalogue or donate books.", hi: "सूची खोजें या पुस्तकें दान करें।" }),
   component: LibraryPage,
 });
 

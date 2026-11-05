@@ -2,17 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { useLang } from "@/core/i18n";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 import { getTeam } from "@/lib/public.functions";
 
 export const Route = createFileRoute("/team")({
   loader: () => getTeam(),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Our team — ${siteName(matches)}` },
-      { name: "description", content: `Committees and office bearers of ${siteName(matches)}.` },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Our team", hi: "हमारी टीम" }, { en: "Committees and office bearers.", hi: "समितियाँ और पदाधिकारी।" }),
   component: TeamPage,
 });
 

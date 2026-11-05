@@ -66,7 +66,7 @@ function VerifyReceipt() {
                 <XCircle className="size-5" /> No receipt found for this code
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Please check the code on the receipt, or contact the foundation office.
+                Please check the code on the receipt, or contact the organization office.
               </p>
             </div>
           )}

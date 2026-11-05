@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { BookOpen, Droplet, HandCoins, Package, Phone } from "lucide-react";
 import { toast } from "sonner";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { DonateForm } from "@/components/donate/DonateForm";
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
@@ -31,20 +31,7 @@ export const Route = createFileRoute("/donate")({
     return out;
   },
   loader: ({ context }) => context.queryClient.ensureQueryData(organizationQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Donate — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Support ${siteName(matches)} with funds, food material, books or your time. Every contribution goes straight into daily seva.`,
-      },
-      { property: "og:title", content: `Donate to ${siteName(matches)}` },
-      { property: "og:description", content: "Sponsor meals, books, medicines or a full seva day." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Donate", hi: "दान करें" }, { en: "Support the organization's work with a donation; receipts are issued online.", hi: "संगठन के कार्य में दान से सहयोग करें; रसीद ऑनलाइन मिलती है।" }),
   component: DonatePage,
 });
 

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { CampaignCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -8,20 +8,7 @@ import { campaignListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/campaigns/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(campaignListQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Campaigns you can support — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Active fundraising and seva campaigns from ${siteName(matches)}. Support a cause that matters to you.`,
-      },
-      { property: "og:title", content: `Campaigns — ${siteName(matches)}` },
-      { property: "og:description", content: "Support an active seva campaign today." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Campaigns", hi: "अभियान" }, { en: "Active campaigns of the organization and how to support them.", hi: "संगठन के चल रहे अभियान और सहयोग के तरीके।" }),
   component: CampaignList,
 });
 

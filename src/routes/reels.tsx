@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { VideoCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -8,19 +8,7 @@ import { reelQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/reels")({
   loader: ({ context }) => context.queryClient.ensureQueryData(reelQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Reels — ${siteName(matches)}` },
-      {
-        name: "description",
-        content: `Short vertical videos from ${siteName(matches)}'s daily seva activities.`,
-      },
-      { property: "og:title", content: `Reels — ${siteName(matches)}` },
-      { property: "og:description", content: "Quick glimpses of seva, every week." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Reels", hi: "रील्स" }, { en: "Short videos from the organization.", hi: "संगठन के छोटे वीडियो।" }),
   component: ReelsPage,
 });
 

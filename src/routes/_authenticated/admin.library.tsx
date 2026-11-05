@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/admin/library")({
     <CrudPage
       table="books"
       title="Library catalogue"
-      description="Books available in the foundation's reading rooms."
+      description="Books in the organization's library."
       defaults={{ status: "active" }}
       columns={[
         { key: "title", label: "Title" },

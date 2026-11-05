@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/admin/seva")({
     <CrudPage
       table="seva_projects"
       title="Seva projects"
-      description="The foundation's service verticals."
+      description="Service projects of the organization."
       slugFrom="name"
       orderBy="display_order"
       ascending

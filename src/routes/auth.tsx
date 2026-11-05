@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { Field } from "@/components/site/Field";
 import { Button } from "@/components/ui/button";
@@ -18,21 +18,7 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Sign in — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Sign in to your ${siteName(matches)} account to manage your volunteering, donations and applications.`,
-      },
-      { name: "robots", content: "noindex" },
-      { property: "og:title", content: `Sign in — ${siteName(matches)}` },
-      { property: "og:description", content: "Access your foundation account." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Sign in", hi: "लॉगिन" }, { en: "Sign in with WhatsApp OTP or email to your member account.", hi: "WhatsApp OTP या ईमेल से अपने सदस्य खाते में लॉगिन करें।" }, [{ name: "robots", content: "noindex" }]),
   component: AuthPage,
 });
 

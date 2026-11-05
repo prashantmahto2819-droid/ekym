@@ -347,7 +347,7 @@ export async function renderVolunteerCertificate(input: VolunteerDocInput): Prom
   page.drawText(input.name, { x: M + 20, y: height - 228, size: 26, font: bold, color: INK });
 
   const place = [input.city, input.state].filter(Boolean).join(", ");
-  const body = `has served as a ${input.designation ?? "volunteer"} with the foundation${
+  const body = `has served as a ${input.designation ?? "volunteer"} with the organization${
     place ? ` at ${place}` : ""
   }, giving time and care to our seva work with sincerity and compassion.`;
   const words = body.split(" ");

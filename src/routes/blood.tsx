@@ -4,7 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { toast } from "sonner";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { BloodRequirementCard } from "@/components/home/sections";
 import { DocumentUpload } from "@/components/site/DocumentUpload";
@@ -30,23 +30,7 @@ const GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export const Route = createFileRoute("/blood")({
   loader: ({ context }) => context.queryClient.ensureQueryData(bloodRequirementQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Blood donation & requirements — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `See verified blood requirements, register as a blood donor, or raise a requirement for a patient. ${siteName(matches)}'s blood seva team responds fast.`,
-      },
-      { property: "og:title", content: `Blood seva — ${siteName(matches)}` },
-      {
-        property: "og:description",
-        content: "Register as a donor or raise a blood requirement for a patient.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Blood donors & requirements", hi: "रक्तदाता व रक्त आवश्यकता" }, { en: "Register as a blood donor or raise a requirement for a patient.", hi: "रक्तदाता के रूप में पंजीयन करें या किसी मरीज़ के लिए रक्त की आवश्यकता दर्ज करें।" }),
   component: BloodPage,
 });
 

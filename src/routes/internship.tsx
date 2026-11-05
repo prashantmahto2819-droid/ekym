@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { CalendarClock, GraduationCap, Users } from "lucide-react";
 import { toast } from "sonner";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { LocationFields } from "@/components/site/LocationFields";
@@ -20,20 +20,7 @@ import { formatCurrency } from "@/lib/format";
 
 export const Route = createFileRoute("/internship")({
   loader: ({ context }) => context.queryClient.ensureQueryData(internshipQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Internships — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Apply for a social work, communications or field operations internship with ${siteName(matches)} and get real NGO experience.`,
-      },
-      { property: "og:title", content: `Internships at ${siteName(matches)}` },
-      { property: "og:description", content: "Learn social work by doing it, with our field teams." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Research & internship", hi: "शोध एवं इंटर्नशिप" }, { en: "Research and internship on Kalchuri history, genealogy, villages and culture.", hi: "कलचुरी इतिहास, वंशावली, गाँव और संस्कृति पर शोध एवं इंटर्नशिप।" }),
   component: InternshipPage,
 });
 

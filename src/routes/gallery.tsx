@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { SectionHeading } from "@/components/site/SectionHeading";
@@ -10,20 +10,7 @@ import { galleryQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/gallery")({
   loader: ({ context }) => context.queryClient.ensureQueryData(galleryQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Photo gallery — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Photographs from ${siteName(matches)}'s kitchens, blood donation camps, library and community programmes.`,
-      },
-      { property: "og:title", content: `Photo gallery — ${siteName(matches)}` },
-      { property: "og:description", content: "Moments from our seva, captured by our volunteers." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Photo gallery", hi: "फोटो गैलरी" }, { en: "Photos from our events and programmes.", hi: "हमारे आयोजनों और कार्यक्रमों की तस्वीरें।" }),
   component: GalleryPage,
 });
 

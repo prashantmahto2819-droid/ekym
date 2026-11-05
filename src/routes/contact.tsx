@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 import { useLang } from "@/core/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -21,20 +21,7 @@ import { telHref, whatsappHref } from "@/lib/format";
 
 export const Route = createFileRoute("/contact")({
   loader: ({ context }) => context.queryClient.ensureQueryData(organizationQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Contact us — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Reach ${siteName(matches)} by phone, WhatsApp or email, or send us a message about seva, donations and volunteering.`,
-      },
-      { property: "og:title", content: `Contact ${siteName(matches)}` },
-      { property: "og:description", content: "Call, message or write to our seva team." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Contact us", hi: "संपर्क करें" }, { en: "Write to the organization — membership, family tree, shok sandesh, events or any other matter.", hi: "संगठन को लिखें — सदस्यता, वंश वृक्ष, शोक संदेश, आयोजन या कोई भी विषय।" }),
   component: ContactPage,
 });
 

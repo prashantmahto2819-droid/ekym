@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { SevaGrid } from "@/components/home/sections";
 import { ActivitiesSection } from "@/components/home/Network";
@@ -10,23 +10,7 @@ import { sevaListQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/seva/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(sevaListQuery()),
-  head: ({ matches }) => ({
-    meta: [
-      { title: `Seva Prakalp — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `Explore all seva prakalp of ${siteName(matches)} — food, blood donation, education, health, environment and community care.`,
-      },
-      { property: "og:title", content: `Seva Prakalp — ${siteName(matches)}` },
-      {
-        property: "og:description",
-        content: "Every seva project we run, and how you can be part of it.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "Seva projects", hi: "सेवा प्रकल्प" }, { en: "The service projects the organization runs and how to take part.", hi: "संगठन के सेवा प्रकल्प और उनमें भाग लेने के तरीके।" }),
   component: SevaList,
 });
 

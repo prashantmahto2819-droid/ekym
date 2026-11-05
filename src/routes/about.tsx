@@ -6,7 +6,7 @@ import { Committees } from "@/components/site/Committees";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HandHeart, HeartHandshake, ShieldCheck, Users } from "lucide-react";
-import { siteName } from "@/core/seo";
+import { pageMeta } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { SectionHeading } from "@/components/site/SectionHeading";
@@ -20,23 +20,7 @@ export const Route = createFileRoute("/about")({
       context.queryClient.ensureQueryData(sevaListQuery()),
     ]);
   },
-  head: ({ matches }) => ({
-    meta: [
-      { title: `About us — ${siteName(matches)}` },
-      {
-        name: "description",
-        content:
-          `${siteName(matches)} is a youth-led community organisation running seva prakalp across food, blood donation, education, health and community care.`,
-      },
-      { property: "og:title", content: `About ${siteName(matches)}` },
-      {
-        property: "og:description",
-        content: "Who we are, what we believe, and how our seva is organised.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ matches }) => pageMeta(matches, { en: "About us", hi: "हमारे बारे में" }, { en: "Who we are, our objectives, office bearers and how the organization works.", hi: "हम कौन हैं, हमारे उद्देश्य, पदाधिकारी और संगठन की कार्यप्रणाली।" }),
   component: AboutPage,
 });
 
