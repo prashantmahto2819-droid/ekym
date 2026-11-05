@@ -154,7 +154,7 @@ function QuestionBank({ org }: { org: string }) {
         <Textarea className="mt-2 font-mono text-xs" rows={6} value={txt} onChange={(e) => setTxt(e.target.value)} placeholder={'गणित,भिन्न,6,8,easy,hi,"1/2 + 1/4 = ?",1/6,3/4,2/6,1/8,B,"समान हर बनाकर जोड़ें"'} />
         <Button size="sm" className="mt-2" onClick={imp} disabled={busy}>जोड़ें</Button>
       </div>
-      <CrudPage table="ex_questions" title="प्रश्न-बैंक" description="विकल्प JSON array में (जैसे [\"3\",\"4\",\"5\"]) और correct में सही विकल्प का index (0 से; जैसे [1])। retired प्रश्न पेपर में नहीं आते।" orderBy="created_at" createdBy
+      <CrudPage table="ex_questions" title="प्रश्न-बैंक" description={'विकल्प JSON array में (जैसे ["3","4","5"]) और correct में सही विकल्प का index (0 से; जैसे [1])। retired प्रश्न पेपर में नहीं आते।'} orderBy="created_at" createdBy
         defaults={{ status: "active", difficulty: "medium", lang: "hi", qtype: "mcq", options: ["", "", "", ""], correct: [0] }}
         columns={[{ key: "subject", label: "विषय" }, { key: "question", label: "प्रश्न", render: (r) => <span className="line-clamp-1">{r.question_hi || r.question}</span> }, { key: "class_from", label: "कक्षा", render: (r) => (r.class_from ? `${r.class_from}–${r.class_to ?? r.class_from}` : "—") }, { key: "difficulty", label: "कठिनाई" }, { key: "lang", label: "भाषा" }, { key: "status", label: "स्थिति" }]}
         fields={[
