@@ -6683,6 +6683,10 @@ export type Database = {
         Args: { p_email: string; p_org: string; p_role_id: string }
         Returns: string
       }
+      k1_assign_role_user: {
+        Args: { p_org: string; p_role_id: string; p_user: string }
+        Returns: string
+      }
       k1_can: { Args: { p_org: string; p_perm: string }; Returns: boolean }
       k1_cancel_document: {
         Args: { p_id: string; p_reason: string }
@@ -7125,6 +7129,18 @@ export type Database = {
           share_count: number
           tags: string[]
           visibility: string
+        }[]
+      }
+      k1_find_users: {
+        Args: { p_limit?: number; p_org: string; p_q: string }
+        Returns: {
+          email: string
+          full_name: string
+          mobile: string
+          roles: string[]
+          source: string
+          user_id: string
+          village: string
         }[]
       }
       k1_health: { Args: never; Returns: Json }

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-11-05 — Phase 22 (टीम व भूमिकाएँ: नाम/मोबाइल से खोज)
+- Admin → टीम व भूमिकाएँ अब हिंदी में; भूमिका देने के लिए व्यक्ति को नाम / मोबाइल / ईमेल से खोजें (RPC `k1_find_users`: auth.users + site_profiles + shokpatra profiles + memberships; स्रोत बताता है सदस्य/शोकपत्र/खाता, और इस org में पहले से मिली भूमिकाएँ), चुनकर `k1_assign_role_user`। Migration `core_08_find_users_assign_by_id`.
+
 ## 2026-11-05 — Phase 21 (एडमिन सूचनाएँ: नया सदस्य आते ही)
 - निर्णय (owner): platform पर कहीं भी नया सदस्य आए तो platform admins को सूचना; Kalchuri One और प्रगतिशील समाज प्राथमिकता (⭐, सूची में पहले), बाकी संगठन भी पर नीचे।
 - Migration `k1_01_admin_notifications`: table `k1_admin_notifications` (in-app, per user), `k1_admin_notify(org, perm, …)` (उस org की टीम जिसके पास permission + सभी platform admins; WhatsApp उस org के channel से और owner के gateway `notify_admin_whatsapp` से), triggers: नई membership (pending) → `trg_membership_alert`; नया संगठन पंजीकरण; संपर्क संदेश (in-app)। RPCs `k1_admin_notifications`, `k1_admin_unread`, `k1_admin_notifications_read`, `k1_pending_memberships` (platform admin = सभी org, priority पहले)। `branding.priority_alerts=true` से किसी और org को भी प्राथमिकता दी जा सकती है।
