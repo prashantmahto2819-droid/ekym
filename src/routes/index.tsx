@@ -21,6 +21,10 @@ import {
   VolunteerCta,
 } from "@/components/home/sections";
 import { Blocks, type Block } from "@/components/site/Blocks";
+import { ActivitiesSection, NetworkSection } from "@/components/home/Network";
+import { moduleOn, NAV_MODULE } from "@/core/modules";
+import { useLang } from "@/core/i18n";
+import { useTenant } from "@/core/tenant-context";
 import { homePageQuery, homeQuery, organizationQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
@@ -53,6 +57,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const tenant = useTenant();
+  const { lang } = useLang();
   const { data: home } = useSuspenseQuery(homeQuery());
   const { data: org } = useSuspenseQuery(organizationQuery());
   const { data: custom } = useSuspenseQuery(homePageQuery());
@@ -65,14 +71,18 @@ function Home() {
 
   return (
     <>
-      {home.sections.map((section: any) => {
+      {home.sections.filter((section: any) => !NAV_MODULE[section.section_key as string] || moduleOn(tenant.branding, NAV_MODULE[section.section_key as string]!)).map((section: any) => {
         const key = section.section_key as string;
-        const title = section.title as string;
-        const subtitle = section.subtitle as string | null;
+        const title = (lang === "hi" && section.title_hi ? section.title_hi : section.title) as string;
+        const subtitle = (lang === "hi" && section.subtitle_hi ? section.subtitle_hi : section.subtitle) as string | null;
 
         switch (key) {
           case "hero":
             return <HeroSlider key={key} slides={home.slides} />;
+          case "network":
+            return <NetworkSection key={key} title={title} subtitle={subtitle} />;
+          case "activities":
+            return <ActivitiesSection key={key} title={title} subtitle={subtitle} />;
           case "festival":
             return <FestivalSlider key={key} festivals={home.festivals} />;
           case "seva":

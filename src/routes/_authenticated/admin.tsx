@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
+import { moduleOn } from "@/core/modules";
 import { useTenant } from "@/core/tenant-context";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const NAV: { to: string; label: string; group: string }[] = [
+const ALL_NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin", label: "Dashboard", group: "Overview" },
   { to: "/admin/members", label: "Members", group: "Organization" },
   { to: "/admin/committees", label: "Committees & office bearers", group: "Organization" },
@@ -48,7 +49,8 @@ const NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/blood", label: "Blood seva", group: "Operations" },
   { to: "/admin/library", label: "Library", group: "Operations" },
   { to: "/admin/volunteers", label: "Volunteer applications", group: "Operations" },
-  { to: "/admin/interns", label: "Internship applications", group: "Operations" },
+  { to: "/admin/programs", label: "Research & internship programmes", group: "Operations" },
+  { to: "/admin/interns", label: "Research & internship applications", group: "Operations" },
   { to: "/admin/messages", label: "Contact inbox", group: "Operations" },
   { to: "/admin/ads", label: "Ads & revenue", group: "Administration" },
   { to: "/admin/payments", label: "Payment settings", group: "Administration" },
@@ -85,6 +87,8 @@ function AdminLayout() {
     );
   }
 
+  const NAV_MOD: Record<string, string> = { "/admin/library": "library", "/admin/blood": "blood", "/admin/interns": "internship", "/admin/programs": "internship", "/admin/volunteers": "volunteer", "/admin/seva": "seva", "/admin/campaigns": "campaigns", "/admin/events": "events", "/admin/community": "community" };
+  const NAV = ALL_NAV.filter((n) => !NAV_MOD[n.to] || moduleOn(tenant.branding, NAV_MOD[n.to]!));
   const groups = Array.from(new Set(NAV.map((n) => n.group)));
 
   return (

@@ -16,6 +16,7 @@ import { useTenant } from "@/core/tenant-context";
 import { submitMembership, type MembershipInput } from "@/lib/forms.functions";
 
 export const Route = createFileRoute("/join")({
+  validateSearch: (s: Record<string, unknown>) => ({ interest: typeof s["interest"] === "string" ? (s["interest"] as string) : undefined }),
   head: ({ matches }) => ({
     meta: [
       { title: `Become a member — ${siteName(matches)}` },
@@ -37,7 +38,10 @@ function JoinPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [commsConsent, setCommsConsent] = useState(true);
-  const form = useForm<MembershipInput>({ defaultValues: { category: "general" } });
+  const { interest } = Route.useSearch();
+  const form = useForm<MembershipInput>({ defaultValues: { category: "general", volunteer: { interested: interest === "volunteer" } } });
+  const volunteerOn = form.watch("volunteer.interested");
+  const inTree = form.watch("in_family_tree");
   const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
 
   const onSubmit = handleSubmit(async (values) => {
@@ -130,6 +134,32 @@ function JoinPage() {
               <Field label={hi ? "पता" : "Address"} className="sm:col-span-2">
                 <Textarea rows={3} {...register("address")} />
               </Field>
+
+              <div className="rounded-lg border border-border bg-secondary/30 p-4 sm:col-span-2">
+                <p className="font-display font-semibold">{hi ? "वंश वृक्ष (परिवार)" : "Family tree"}</p>
+                <p className="text-xs text-muted-foreground">{hi ? "समाज के वंश वृक्ष में हर सदस्य अपने परिवार से जुड़ा रहता है। मंज़ूरी के बाद एडमिन आपको सही परिवार से जोड़ देगा; परिवार न हो तो नया बनेगा।" : "Every member is linked to their family in the community family tree. After approval the admin links you to the right family, or creates one."}</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <Field label={hi ? "मूल गाँव (मूल निवास)" : "Native village (origin)"}><Input {...register("native_place")} /></Field>
+                  <Field label={hi ? "परिवार के मुखिया / दादा का नाम" : "Family head / grandfather's name"}><Input {...register("family_head_name")} /></Field>
+                  <label className="flex items-center gap-2 text-sm sm:col-span-2"><input type="checkbox" {...register("in_family_tree")} /> {hi ? "मेरा परिवार पहले से वंश वृक्ष में दर्ज है" : "My family is already in the family tree"}</label>
+                  {inTree ? <p className="text-xs text-muted-foreground sm:col-span-2">{hi ? "ठीक है — एडमिन आपके गाँव और मुखिया के नाम से परिवार खोजकर आपको उसमें जोड़ देगा।" : "Good — the admin will find the family by village and head name and add you to it."}</p> : null}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border bg-secondary/30 p-4 sm:col-span-2">
+                <label className="flex items-center gap-2 font-display font-semibold"><input type="checkbox" {...register("volunteer.interested")} /> {hi ? "मैं स्वयंसेवा (volunteer) करना चाहता/चाहती हूँ" : "I want to volunteer"}</label>
+                {volunteerOn ? (
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <Field label={hi ? "किन क्षेत्रों में" : "Areas"} className="sm:col-span-2">
+                      <div className="flex flex-wrap gap-3 text-sm">{[["seva", hi ? "सेवा / राहत" : "Seva / relief"], ["blood", hi ? "रक्तदान" : "Blood donation"], ["events", hi ? "आयोजन" : "Events"], ["education", hi ? "शिक्षा" : "Education"], ["history", hi ? "इतिहास / वंशावली शोध" : "History / genealogy research"], ["media", hi ? "मीडिया / लेखन" : "Media / writing"], ["tech", hi ? "तकनीक" : "Tech"]].map(([v, l]) => <label key={v} className="flex items-center gap-1"><input type="checkbox" value={v} {...register("volunteer.areas")} /> {l}</label>)}</div>
+                    </Field>
+                    <Field label={hi ? "समय उपलब्धता" : "Availability"}>
+                      <select className={selectClass} {...register("volunteer.availability")}><option value="">—</option><option value="weekends">{hi ? "सप्ताहांत" : "Weekends"}</option><option value="evenings">{hi ? "शाम" : "Evenings"}</option><option value="events">{hi ? "सिर्फ़ आयोजनों में" : "Events only"}</option><option value="anytime">{hi ? "कभी भी" : "Anytime"}</option></select>
+                    </Field>
+                    <Field label={hi ? "कौशल" : "Skills"}><Input {...register("volunteer.skills")} placeholder={hi ? "जैसे: फोटोग्राफी, लेखन, लेखा" : "e.g. photography, writing, accounts"} /></Field>
+                  </div>
+                ) : null}
+              </div>
               <label className="flex items-start gap-3 text-sm sm:col-span-2">
                 <Checkbox checked={consent} onCheckedChange={(v) => setConsent(v === true)} />
                 <span className="text-muted-foreground">

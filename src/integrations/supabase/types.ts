@@ -2058,6 +2058,7 @@ export type Database = {
           state: string | null
           status: string
           subject: string | null
+          topic: string | null
           updated_at: string
         }
         Insert: {
@@ -2073,6 +2074,7 @@ export type Database = {
           state?: string | null
           status?: string
           subject?: string | null
+          topic?: string | null
           updated_at?: string
         }
         Update: {
@@ -2088,6 +2090,7 @@ export type Database = {
           state?: string | null
           status?: string
           subject?: string | null
+          topic?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -3974,6 +3977,7 @@ export type Database = {
           dob: string | null
           duration: string | null
           email: string | null
+          expected_output: string | null
           gender: string | null
           id: string
           mobile: string
@@ -3984,6 +3988,8 @@ export type Database = {
           photo: string | null
           preferred_department: string | null
           program_id: string | null
+          proposal: string | null
+          research_topic: string | null
           resume: string | null
           review_notes: string | null
           reviewed_by: string | null
@@ -4007,6 +4013,7 @@ export type Database = {
           dob?: string | null
           duration?: string | null
           email?: string | null
+          expected_output?: string | null
           gender?: string | null
           id?: string
           mobile: string
@@ -4017,6 +4024,8 @@ export type Database = {
           photo?: string | null
           preferred_department?: string | null
           program_id?: string | null
+          proposal?: string | null
+          research_topic?: string | null
           resume?: string | null
           review_notes?: string | null
           reviewed_by?: string | null
@@ -4040,6 +4049,7 @@ export type Database = {
           dob?: string | null
           duration?: string | null
           email?: string | null
+          expected_output?: string | null
           gender?: string | null
           id?: string
           mobile?: string
@@ -4050,6 +4060,8 @@ export type Database = {
           photo?: string | null
           preferred_department?: string | null
           program_id?: string | null
+          proposal?: string | null
+          research_topic?: string | null
           resume?: string | null
           review_notes?: string | null
           reviewed_by?: string | null
@@ -4086,12 +4098,14 @@ export type Database = {
           end_date: string | null
           fee: number
           id: string
+          kind: string
           name: string
           name_hi: string | null
           organization_id: string
           seats: number | null
           slug: string
           start_date: string | null
+          theme: string | null
           title_hi: string | null
           updated_at: string
           updated_by: string | null
@@ -4109,12 +4123,14 @@ export type Database = {
           end_date?: string | null
           fee?: number
           id?: string
+          kind?: string
           name: string
           name_hi?: string | null
           organization_id: string
           seats?: number | null
           slug: string
           start_date?: string | null
+          theme?: string | null
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -4132,12 +4148,14 @@ export type Database = {
           end_date?: string | null
           fee?: number
           id?: string
+          kind?: string
           name?: string
           name_hi?: string | null
           organization_id?: string
           seats?: number | null
           slug?: string
           start_date?: string | null
+          theme?: string | null
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -4814,13 +4832,17 @@ export type Database = {
           dob: string | null
           education: string | null
           email: string | null
+          family_head_name: string | null
+          family_id: string | null
           father_name: string | null
           full_name: string
           full_name_hi: string | null
           gender: string | null
           id: string
+          in_family_tree: boolean | null
           member_no: string | null
           mobile: string
+          native_place: string | null
           occupation: string | null
           organization_id: string
           photo_path: string | null
@@ -4832,6 +4854,7 @@ export type Database = {
           valid_from: string | null
           valid_to: string | null
           village: string | null
+          volunteer: Json
           whatsapp: string | null
         }
         Insert: {
@@ -4850,13 +4873,17 @@ export type Database = {
           dob?: string | null
           education?: string | null
           email?: string | null
+          family_head_name?: string | null
+          family_id?: string | null
           father_name?: string | null
           full_name: string
           full_name_hi?: string | null
           gender?: string | null
           id?: string
+          in_family_tree?: boolean | null
           member_no?: string | null
           mobile: string
+          native_place?: string | null
           occupation?: string | null
           organization_id: string
           photo_path?: string | null
@@ -4868,6 +4895,7 @@ export type Database = {
           valid_from?: string | null
           valid_to?: string | null
           village?: string | null
+          volunteer?: Json
           whatsapp?: string | null
         }
         Update: {
@@ -4886,13 +4914,17 @@ export type Database = {
           dob?: string | null
           education?: string | null
           email?: string | null
+          family_head_name?: string | null
+          family_id?: string | null
           father_name?: string | null
           full_name?: string
           full_name_hi?: string | null
           gender?: string | null
           id?: string
+          in_family_tree?: boolean | null
           member_no?: string | null
           mobile?: string
+          native_place?: string | null
           occupation?: string | null
           organization_id?: string
           photo_path?: string | null
@@ -4904,9 +4936,18 @@ export type Database = {
           valid_from?: string | null
           valid_to?: string | null
           village?: string | null
+          volunteer?: Json
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "org_memberships_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       org_milestones: {
         Row: {
@@ -6757,6 +6798,14 @@ export type Database = {
         Args: { p_at?: string; p_provider_id: string; p_status: string }
         Returns: undefined
       }
+      k1_contact_targets: {
+        Args: { p_org: string }
+        Returns: {
+          id: string
+          name: string
+          name_hi: string
+        }[]
+      }
       k1_decide_document: {
         Args: { p_approve: boolean; p_id: string; p_note?: string }
         Returns: {
@@ -6818,13 +6867,17 @@ export type Database = {
           dob: string | null
           education: string | null
           email: string | null
+          family_head_name: string | null
+          family_id: string | null
           father_name: string | null
           full_name: string
           full_name_hi: string | null
           gender: string | null
           id: string
+          in_family_tree: boolean | null
           member_no: string | null
           mobile: string
+          native_place: string | null
           occupation: string | null
           organization_id: string
           photo_path: string | null
@@ -6836,6 +6889,7 @@ export type Database = {
           valid_from: string | null
           valid_to: string | null
           village: string | null
+          volunteer: Json
           whatsapp: string | null
         }
         SetofOptions: {
@@ -7066,11 +7120,22 @@ export type Database = {
           slug: string
         }[]
       }
+      k1_network: { Args: { p_limit?: number; p_org: string }; Returns: Json }
       k1_next_number: {
         Args: { p_kind: string; p_org: string }
         Returns: string
       }
       k1_norm_contact: { Args: { p: string }; Returns: string }
+      k1_notify_org_admins: {
+        Args: {
+          p_body: string
+          p_org: string
+          p_perm: string
+          p_ref?: string
+          p_ref_table?: string
+        }
+        Returns: number
+      }
       k1_org_by_slug: {
         Args: { p_slug: string }
         Returns: {

@@ -8,6 +8,7 @@ import {
   getCampaigns,
   getGalleries,
   getHomeData,
+  getNetwork,
   getInternshipPrograms,
   getLibraryData,
   getNewsItem,
@@ -44,6 +45,9 @@ export const blogListQuery = () => queryOptions({ queryKey: ["blogs"], queryFn: 
 
 export const blogQuery = (slug: string) =>
   queryOptions({ queryKey: ["blog", slug], queryFn: () => getBlog({ data: { slug } }) });
+
+export const networkQuery = () =>
+  queryOptions({ queryKey: ["network"], queryFn: () => getNetwork() });
 
 export const newsListQuery = () =>
   queryOptions({ queryKey: ["news"], queryFn: () => getNewsList() });

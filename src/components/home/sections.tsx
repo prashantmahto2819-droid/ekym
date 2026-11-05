@@ -710,7 +710,7 @@ export function VolunteerCta({ title, subtitle }: { title: string; subtitle?: st
         </div>
         <div className="flex flex-col gap-3">
           <Button asChild size="lg">
-            <Link to="/volunteer">Become a volunteer</Link>
+            <Link to="/join">Become a volunteer</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link to="/internship">Apply for internship</Link>

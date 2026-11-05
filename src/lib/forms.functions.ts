@@ -62,13 +62,23 @@ const contactSchema = z.object({
   message: z.string().trim().min(10, "Please write at least 10 characters"),
   city: optional,
   state: optional,
+  topic: optional,
+  organization_id: optional,
 });
 export type ContactInput = z.input<typeof contactSchema>;
 
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((d: ContactInput) => parse(contactSchema, d))
   .handler(async ({ data }) => {
-    const { error } = await sb().from("contact_messages").insert({ ...clean(data), organization_id: await tenantId() } as any);
+    const me = await tenantId();
+    const { organization_id, ...rest } = data;
+    // a visitor may address a member organization of this platform (must be in this tenant's subtree)
+    let target = me;
+    if (organization_id && organization_id !== me) {
+      const { data: ok } = await sb().rpc("k1_contact_targets", { p_org: me } as never);
+      if ((ok as { id: string }[] | null)?.some((o) => o.id === organization_id)) target = organization_id;
+    }
+    const { error } = await sb().from("contact_messages").insert({ ...clean(rest), organization_id: target } as any);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -187,6 +197,9 @@ const internSchema = z.object({
   skills: optional,
   preferred_department: optional,
   duration: optional,
+  research_topic: optional,
+  proposal: optional,
+  expected_output: optional,
 });
 export type InternInput = z.input<typeof internSchema>;
 
@@ -275,6 +288,10 @@ const membershipSchema = z.object({
   education: optional,
   blood_group: optional,
   category: z.enum(["general", "life", "patron"]).default("general"),
+  native_place: optional,
+  family_head_name: optional,
+  in_family_tree: z.boolean().optional(),
+  volunteer: z.object({ interested: z.boolean().optional(), areas: z.array(z.string()).optional(), availability: z.string().optional(), skills: z.string().optional() }).optional(),
   consent: z.literal(true, { errorMap: () => ({ message: "Please accept the declaration" }) }),
   comms_consent: z.boolean().optional(),
 });

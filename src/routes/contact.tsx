@@ -1,11 +1,13 @@
 import { useTenant } from "@/core/tenant-context";
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { siteName } from "@/core/seo";
+import { useLang } from "@/core/i18n";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { LocationFields } from "@/components/site/LocationFields";
@@ -37,8 +39,11 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const { data: org } = useSuspenseQuery(organizationQuery());
   const tenant = useTenant();
+  const { data: org } = useSuspenseQuery(organizationQuery());
+  const { lang } = useLang();
+  const hi = lang === "hi";
+  const targets = useQuery({ queryKey: ["contact_targets", tenant.organization_id], queryFn: async () => { const { data } = await supabase.rpc("k1_contact_targets", { p_org: tenant.organization_id } as never); return (data ?? []) as unknown as { id: string; name: string; name_hi: string | null }[]; } });
   const [sent, setSent] = useState(false);
   const form = useForm<ContactInput>();
   const [formError, setFormError] = useState<string | null>(null);
@@ -127,6 +132,18 @@ function ContactPage() {
                 <Input type="email" {...register("email")} />
               </Field>
               <LocationFields form={form} includeDistrict={false} />
+              <Field label={hi ? "विषय" : "Topic"}>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...register("topic")}>
+                  {[["सदस्यता", "Membership"], ["सहयोग / दान", "Support / donation"], ["सुझाव", "Suggestion"], ["शिकायत", "Complaint"], ["संस्था को मंच पर जोड़ना", "Bring our organization onto the platform"], ["अन्य", "Other"]].map(([h, e]) => <option key={h} value={h}>{hi ? h : e}</option>)}
+                </select>
+              </Field>
+              {targets.data && targets.data.length > 1 ? (
+                <Field label={hi ? "किस संस्था के लिए" : "For which organization"}>
+                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...register("organization_id")}>
+                    {targets.data.map((o) => <option key={o.id} value={o.id}>{hi && o.name_hi ? o.name_hi : o.name}</option>)}
+                  </select>
+                </Field>
+              ) : null}
               <Field label="Subject" className="sm:col-span-2" error={errors.subject?.message}>
                 <Input {...register("subject")} />
               </Field>

@@ -9,6 +9,7 @@ import { siteName } from "@/core/seo";
 import { Field, FormSuccess, FormError } from "@/components/site/Field";
 import { LocationFields } from "@/components/site/LocationFields";
 import { PageHeader } from "@/components/site/PageHeader";
+import { useLang } from "@/core/i18n";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,8 @@ export const Route = createFileRoute("/internship")({
 
 function InternshipPage() {
   const { data: programs } = useSuspenseQuery(internshipQuery());
+  const { lang } = useLang();
+  const hi = lang === "hi";
   const [sent, setSent] = useState(false);
   const [programId, setProgramId] = useState<string>("");
   const form = useForm<InternInput>();
@@ -64,14 +67,17 @@ function InternshipPage() {
   return (
     <>
       <PageHeader
-        title="Internships"
-        description="Structured, mentored internships with real field responsibility."
-        crumbs={[{ label: "Internship" }]}
+        title={hi ? "शोध एवं इंटर्नशिप — कलचुरी इतिहास" : "Research & internships — Kalchuri history"}
+        description={hi ? "कलचुरी समाज के इतिहास, वंशावली, गाँवों और संस्कृति पर शोध कार्यक्रम, और संस्थाओं में मार्गदर्शित इंटर्नशिप। स्वीकृत शोध कार्य पत्रिका और वेबसाइट पर प्रकाशित होता है।" : "Research programmes on the history, genealogy, villages and culture of the Kalchuri community, plus mentored internships with member organizations. Accepted research is published in the magazine and on the website."}
+        crumbs={[{ label: hi ? "शोध एवं इंटर्नशिप" : "Research & internship" }]}
       />
+      <section className="section-y pb-0"><div className="container-page grid gap-4 md:grid-cols-4">
+        {[["इतिहास", "History", "राजवंश, शिलालेख, स्थानीय इतिहास के स्रोत"], ["वंशावली", "Genealogy", "परिवारों का वंश वृक्ष, मूल गाँव, प्रवास"], ["गाँव-दस्तावेज़ीकरण", "Village documentation", "गाँव, कुलदेवी, मंदिर, परंपराएँ, मौखिक इतिहास"], ["संस्कृति", "Culture", "रीति-रिवाज, लोकगीत, पर्व, व्यंजन"]].map(([h, e, d]) => <div key={e} className="surface-card p-4"><p className="font-display font-semibold">{hi ? h : e}</p><p className="mt-1 text-xs text-muted-foreground">{d}</p></div>)}
+      </div></section>
 
       <section className="section-y">
         <div className="container-page">
-          <SectionHeading eyebrow="Open programmes" title="Choose a programme" />
+          <SectionHeading eyebrow={hi ? "खुले कार्यक्रम" : "Open programmes"} title={hi ? "कार्यक्रम चुनें" : "Choose a programme"} />
           <div className="grid gap-4 md:grid-cols-2">
             {programs.map((p: any) => (
               <article
@@ -81,7 +87,8 @@ function InternshipPage() {
                 <span className="bg-primary-soft text-primary-deep flex size-11 items-center justify-center rounded-lg">
                   <GraduationCap className="size-5" />
                 </span>
-                <h3 className="mt-4 font-display text-lg font-semibold">{p.name}</h3>
+                <h3 className="mt-4 font-display text-lg font-semibold">{hi && p.name_hi ? p.name_hi : p.name}</h3>
+                <p className="text-xs uppercase tracking-wide text-primary">{p.kind === "research" ? (hi ? "शोध" : "Research") : (hi ? "इंटर्नशिप" : "Internship")}{p.theme ? ` · ${p.theme}` : ""}</p>
                 {p.department ? (
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">{p.department}</p>
                 ) : null}
@@ -125,7 +132,7 @@ function InternshipPage() {
 
       <section id="apply" className="bg-secondary/60 section-y">
         <div className="container-page max-w-3xl">
-          <SectionHeading eyebrow="Application" title="Apply for an internship" />
+          <SectionHeading eyebrow={hi ? "आवेदन" : "Application"} title={hi ? "शोध / इंटर्नशिप के लिए आवेदन" : "Apply for research / internship"} />
           {sent ? (
             <FormSuccess
               title="Application submitted"
@@ -166,6 +173,15 @@ function InternshipPage() {
               </Field>
               <Field label="Preferred duration" error={errors.duration?.message}>
                 <Input {...register("duration")} />
+              </Field>
+              <Field label={hi ? "शोध विषय (शोध कार्यक्रम के लिए)" : "Research topic (for research programmes)"} className="sm:col-span-2" error={errors.research_topic?.message}>
+                <Input {...register("research_topic")} placeholder={hi ? "जैसे: हमारे गाँव के कलचुरी परिवारों का प्रवास-इतिहास" : "e.g. Migration history of Kalchuri families of our village"} />
+              </Field>
+              <Field label={hi ? "संक्षिप्त प्रस्ताव — क्या, कैसे, किन स्रोतों से" : "Short proposal — what, how, which sources"} className="sm:col-span-2" error={errors.proposal?.message}>
+                <Textarea rows={4} {...register("proposal")} />
+              </Field>
+              <Field label={hi ? "अपेक्षित परिणाम" : "Expected output"} error={errors.expected_output?.message}>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...register("expected_output")}><option value="">—</option><option value="article">{hi ? "लेख (पत्रिका/वेबसाइट)" : "Article (magazine / website)"}</option><option value="family_tree">{hi ? "वंश वृक्ष दर्ज करना" : "Family trees recorded"}</option><option value="village_profile">{hi ? "गाँव का दस्तावेज़" : "Village profile"}</option><option value="archive">{hi ? "फोटो/दस्तावेज़ संग्रह" : "Photo / document archive"}</option><option value="report">{hi ? "शोध रिपोर्ट" : "Research report"}</option></select>
               </Field>
               <Field label="Skills and interests" className="sm:col-span-2" error={errors.skills?.message}>
                 <Textarea rows={3} {...register("skills")} />

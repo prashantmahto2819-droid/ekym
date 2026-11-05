@@ -458,3 +458,13 @@ export const getPostMeta = createServerFn({ method: "GET" })
     const image = p.media?.[0]?.path ? sb().storage.from("community").getPublicUrl(p.media[0].path).data.publicUrl : null;
     return { author: p.author_name, body: p.body, image, link: p.link_url };
   });
+
+/** Umbrella organization: member organizations + their public activity (events, news, campaigns, seva). */
+export type NetworkOrg = { id: string; slug: string; name: string; name_hi: string | null; short_name: string | null; kind: string; level: string; city: string | null; district: string | null; state: string | null; logo: string | null; tagline: string | null; tagline_hi: string | null; hostname: string | null; members: number; events: number };
+export type NetworkItem = { id: string; slug: string; title?: string; title_hi?: string | null; name?: string; name_hi?: string | null; starts_at?: string; venue?: string | null; cover_image?: string | null; thumbnail?: string | null; featured_image?: string | null; icon?: string | null; published_at?: string | null; short_description?: string | null; short_description_hi?: string | null; target_amount?: number | null; raised_amount?: number | null; org: string; org_hi: string | null; org_slug: string; hostname: string | null };
+export type Network = { orgs: NetworkOrg[]; events: NetworkItem[]; news: NetworkItem[]; campaigns: NetworkItem[]; seva: NetworkItem[] };
+export const getNetwork = createServerFn({ method: "GET" }).handler(async (): Promise<Network> => {
+  const org = await tenantId();
+  const { data } = await sb().rpc("k1_network", { p_org: org, p_limit: 12 } as never);
+  return (data as unknown as Network | null) ?? { orgs: [], events: [], news: [], campaigns: [], seva: [] };
+});

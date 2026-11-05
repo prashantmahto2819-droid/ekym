@@ -13,6 +13,7 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang, type TKey } from "@/core/i18n";
+import { moduleOn, NAV_MODULE } from "@/core/modules";
 import { useTenant } from "@/core/tenant-context";
 import { telHref } from "@/lib/format";
 import { menusQuery, organizationQuery } from "@/lib/queries";
@@ -24,7 +25,7 @@ const primaryNav: { key: TKey; to: string }[] = [
   { key: "seva", to: "/seva" },
   { key: "blood", to: "/blood" },
   { key: "library", to: "/library" },
-  { key: "volunteer", to: "/volunteer" },
+  { key: "volunteer", to: "/join" },
 ];
 
 const moreNav: { key: TKey; to: string }[] = [
@@ -61,8 +62,11 @@ export function Header() {
   const mi = (m: MenuItem): NavItem => ({ label: lang === "hi" && m.label_hi ? m.label_hi : m.label, to: m.to, ...(m.children?.length ? { children: m.children.map(mi) } : {}) });
   const extraPages: NavItem[] = (menus.data?.pages ?? []).map((p) => ({ label: lang === "hi" && p.title_hi ? p.title_hi : p.title, to: `/p/${p.slug}` }));
   const custom = menus.data?.header ? menus.data.header.map(mi) : null;
-  const primary: NavItem[] = custom ? custom.filter((x) => !x.children).slice(0, 6) : primaryNav.map((i) => ({ label: t(i.key), to: i.to }));
-  const more: NavItem[] = custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...moreNav.map((i) => ({ label: t(i.key), to: i.to })), ...extraPages];
+  const on = (k: string) => !NAV_MODULE[k] || moduleOn(tenant.branding, NAV_MODULE[k]!);
+  const umbrella = (tenant.child_count ?? 0) > 0;
+  const defPrimary = [...(umbrella ? [{ key: "organizations" as TKey, to: "/organizations" }] : []), ...primaryNav].filter((i) => on(i.key));
+  const primary: NavItem[] = custom ? custom.filter((x) => !x.children).slice(0, 6) : defPrimary.slice(0, 6).map((i) => ({ label: t(i.key), to: i.to }));
+  const more: NavItem[] = custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...defPrimary.slice(6).map((i) => ({ label: t(i.key), to: i.to })), ...moreNav.filter((i) => on(i.key)).map((i) => ({ label: t(i.key), to: i.to })), ...extraPages];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">

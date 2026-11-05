@@ -6,7 +6,9 @@ import { Field } from "@/components/site/Field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MODULE_KEYS, moduleOn } from "@/core/modules";
 import { useTenant } from "@/core/tenant-context";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
@@ -108,6 +110,8 @@ function SettingsAdmin() {
         These details power the header, footer and contact pages across the website.
       </p>
 
+      <ModulesCard />
+
       <form onSubmit={onSubmit} className="surface-card mt-6 grid gap-4 p-6 sm:grid-cols-2">
         {TEXT_FIELDS.map((f) => (
           <Field key={f.key} label={f.label} className={f.full ? "sm:col-span-2" : undefined}>
@@ -125,6 +129,27 @@ function SettingsAdmin() {
           </Button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/** Module switches: stored in core.organizations.branding.modules; nav, home sections and admin menu follow them. */
+function ModulesCard() {
+  const tenant = useTenant();
+  const [mods, setMods] = useState<Record<string, boolean>>(() => Object.fromEntries(MODULE_KEYS.map(([k]) => [k, moduleOn(tenant.branding, k)])));
+  const [busy, setBusy] = useState(false);
+  async function save() {
+    setBusy(true);
+    const { error } = await supabase.rpc("k1_set_branding", { p_org: tenant.organization_id, p_branding: { modules: mods } } as never);
+    setBusy(false);
+    if (error) toast.error(error.message); else toast.success("Saved — reload to see the menu change");
+  }
+  return (
+    <div className="surface-card mt-6 p-6">
+      <p className="font-display font-semibold">Modules on this site</p>
+      <p className="text-xs text-muted-foreground">Switch a module off to hide it from the menu, the home page and the admin menu (data is kept).</p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 text-sm">{MODULE_KEYS.map(([k, label]) => <label key={k} className="flex items-center gap-2"><input type="checkbox" checked={mods[k] !== false} onChange={(e) => setMods({ ...mods, [k]: e.target.checked })} /> {label}</label>)}</div>
+      <Button type="button" size="sm" className="mt-3" onClick={save} disabled={busy}>Save modules</Button>
     </div>
   );
 }

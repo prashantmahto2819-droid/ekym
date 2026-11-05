@@ -3,6 +3,8 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { siteName } from "@/core/seo";
 
 import { SevaGrid } from "@/components/home/sections";
+import { ActivitiesSection } from "@/components/home/Network";
+import { useTenant } from "@/core/tenant-context";
 import { PageHeader } from "@/components/site/PageHeader";
 import { sevaListQuery } from "@/lib/queries";
 
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/seva/")({
 
 function SevaList() {
   const { data: seva } = useSuspenseQuery(sevaListQuery());
+  const tenant = useTenant();
   return (
     <>
       <PageHeader
@@ -38,6 +41,7 @@ function SevaList() {
         crumbs={[{ label: "Seva" }]}
       />
       <SevaGrid seva={seva} title="All seva projects" />
+      {(tenant.child_count ?? 0) > 0 ? <ActivitiesSection title="Seva across our organizations" subtitle="Seva projects, campaigns and events run by member organizations" /> : null}
     </>
   );
 }
