@@ -2778,6 +2778,7 @@ export type Database = {
           family_name: string
           id: string
           main_whatsapp: string
+          organization_id: string | null
           owner_id: string
           status: string
           status_before: string | null
@@ -2801,6 +2802,7 @@ export type Database = {
           family_name: string
           id?: string
           main_whatsapp: string
+          organization_id?: string | null
           owner_id?: string
           status?: string
           status_before?: string | null
@@ -2824,6 +2826,7 @@ export type Database = {
           family_name?: string
           id?: string
           main_whatsapp?: string
+          organization_id?: string | null
           owner_id?: string
           status?: string
           status_before?: string | null
@@ -4171,6 +4174,51 @@ export type Database = {
           title_hi?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      k1_admin_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          organization_id: string | null
+          priority: number
+          read_at: string | null
+          ref_id: string | null
+          ref_table: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          link?: string | null
+          organization_id?: string | null
+          priority?: number
+          read_at?: string | null
+          ref_id?: string | null
+          ref_table?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          organization_id?: string | null
+          priority?: number
+          read_at?: string | null
+          ref_id?: string | null
+          ref_table?: string | null
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -6596,6 +6644,40 @@ export type Database = {
         Args: { p_from: string; p_org: string; p_to: string }
         Returns: Json
       }
+      k1_admin_notifications: {
+        Args: { p_limit?: number }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          link: string
+          org_name: string
+          organization_id: string
+          priority: number
+          read_at: string
+          title: string
+        }[]
+      }
+      k1_admin_notifications_read: {
+        Args: { p_ids?: string[] }
+        Returns: number
+      }
+      k1_admin_notify: {
+        Args: {
+          p_body: string
+          p_kind: string
+          p_link: string
+          p_org: string
+          p_perm: string
+          p_ref?: string
+          p_ref_table?: string
+          p_title: string
+          p_whatsapp?: boolean
+        }
+        Returns: number
+      }
+      k1_admin_unread: { Args: never; Returns: number }
       k1_ads_for: { Args: { p_org: string; p_slot: string }; Returns: Json }
       k1_assign_role: {
         Args: { p_email: string; p_org: string; p_role_id: string }
@@ -7305,6 +7387,24 @@ export type Database = {
           organization_id: string
         }[]
       }
+      k1_pending_memberships: {
+        Args: { p_limit?: number }
+        Returns: {
+          applied_at: string
+          category: string
+          district: string
+          full_name: string
+          full_name_hi: string
+          id: string
+          mobile: string
+          org_name: string
+          org_slug: string
+          organization_id: string
+          photo_path: string
+          priority: boolean
+          village: string
+        }[]
+      }
       k1_pick_channel: {
         Args: { p_kind: string; p_org: string }
         Returns: string
@@ -7371,6 +7471,7 @@ export type Database = {
         Args: { p_id: string; p_kind: string }
         Returns: undefined
       }
+      k1_priority_org: { Args: { p_org: string }; Returns: boolean }
       k1_rate_guard: {
         Args: {
           p_col: string
@@ -7733,6 +7834,8 @@ export type Database = {
         Returns: undefined
       }
       set_family_head: { Args: { p_member: string }; Returns: undefined }
+      shok_sees_org: { Args: { p_org: string }; Returns: boolean }
+      shok_user_org: { Args: never; Returns: string }
       submit_letter: { Args: { p_letter_id: string }; Returns: Json }
       suggest_member: {
         Args: {
