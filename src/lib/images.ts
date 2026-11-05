@@ -31,6 +31,8 @@ export async function signedUrls(bucket: string, paths: string[]): Promise<Recor
   const clean = paths.filter(Boolean);
   if (!clean.length) return {};
   const { data } = await supabase.storage.from(bucket).createSignedUrls(clean, 3600);
-  return Object.fromEntries((data ?? []).filter((d) => d.signedUrl && d.path).map((d) => [d.path!, d.signedUrl]));
+  const out: Record<string, string> = {};
+  for (const d of data ?? []) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
+  return out;
 }
 export const publicUrl = (bucket: string, path: string) => supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
