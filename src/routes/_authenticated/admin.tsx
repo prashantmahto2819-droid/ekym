@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 
+import { AdminBell } from "@/components/admin/AdminBell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { moduleOn } from "@/core/modules";
@@ -141,6 +142,7 @@ function AdminLayout() {
           </div>
           <div className="ml-auto flex items-center gap-2 text-sm">
             <span className="hidden text-muted-foreground sm:inline">{user?.email}</span>
+            <AdminBell />
             <Button size="sm" variant="outline" onClick={signOut}>
               <LogOut className="size-4" /> Sign out
             </Button>

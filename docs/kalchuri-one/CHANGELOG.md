@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-05 — Phase 21 (एडमिन सूचनाएँ: नया सदस्य आते ही)
+- निर्णय (owner): platform पर कहीं भी नया सदस्य आए तो platform admins को सूचना; Kalchuri One और प्रगतिशील समाज प्राथमिकता (⭐, सूची में पहले), बाकी संगठन भी पर नीचे।
+- Migration `k1_01_admin_notifications`: table `k1_admin_notifications` (in-app, per user), `k1_admin_notify(org, perm, …)` (उस org की टीम जिसके पास permission + सभी platform admins; WhatsApp उस org के channel से और owner के gateway `notify_admin_whatsapp` से), triggers: नई membership (pending) → `trg_membership_alert`; नया संगठन पंजीकरण; संपर्क संदेश (in-app)। RPCs `k1_admin_notifications`, `k1_admin_unread`, `k1_admin_notifications_read`, `k1_pending_memberships` (platform admin = सभी org, priority पहले)। `branding.priority_alerts=true` से किसी और org को भी प्राथमिकता दी जा सकती है।
+- Admin header में 🔔 घंटी (60 s poll, unread badge); डैशबोर्ड हिंदी में: "नए सदस्य — मंज़ूरी बाकी" panel (फोटो, org, गाँव, मोबाइल; मंज़ूर/अस्वीकार वहीं से), हाल की सूचनाएँ, गिनती कार्ड।
+
 ## 2026-11-05 — Phase 20 (गति: साइट धीमी क्यों थी)
 - जाँच: DB तेज़ है (k1_resolve_host 5 ms, k1_my_orgs 21 ms), पर Worker से Supabase की हर call औसतन 250–580 ms और हर पेज पर कई calls। 3 घंटे में `k1_resolve_host` 888 बार (हर server function अलग से tenant ढूँढ रहा था, isolate cache 1 मिनट), `organization_settings` 631 बार; browser में हर query (staleTime 0) SSR के बाद दोबारा चल रही थी; हर SIGNED_IN event (session restore/टैब फोकस) पर सारी queries invalidate → लॉगिन के बाद और धीमा।
 - सुधार: root loader अब एक ही server call `getBoot` (tenant + भाषा + organization settings + origin), route `staleTime` 5 मिनट; tenant cache 10 मिनट + Cloudflare Cache API (5 मिनट, isolate restart के बाद भी); QueryClient defaults (staleTime 2 मिनट, focus पर refetch नहीं); AuthWatcher सिर्फ़ user बदलने पर invalidate; Worker पर Smart Placement (Supabase ap-south-1 के पास चले)।
