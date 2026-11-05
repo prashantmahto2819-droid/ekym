@@ -9,7 +9,7 @@ import { useLang } from "@/core/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/exams/$slug/attempt")({
-  validateSearch: (s: Record<string, unknown>): { reg?: string; practice?: boolean } => ({ reg: typeof s["reg"] === "string" ? s["reg"] : undefined, practice: s["practice"] === true || s["practice"] === "1" }),
+  validateSearch: (s: Record<string, unknown>): { reg?: string; practice?: boolean } => ({ ...(typeof s["reg"] === "string" ? { reg: s["reg"] } : {}), ...(s["practice"] === true || s["practice"] === "1" ? { practice: true } : {}) }),
   head: () => ({ meta: [{ title: "परीक्षा · Exam" }, { name: "robots", content: "noindex" }] }),
   component: AttemptPage,
 });
