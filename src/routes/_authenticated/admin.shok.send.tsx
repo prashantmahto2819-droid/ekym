@@ -171,7 +171,7 @@ function ShokSend() {
       if (res.status === "queued") supabase.functions.invoke("send-letters", { body: { action: "kick", letter_id: letterId } }).catch(() => undefined);
       // cards that go to another number (no WhatsApp on the person's own): eldest son / branch head / family main
       const review = (await rpc<{ recipient_name: string; via_name: string | null }[]>("letter_recipients_review", { p_letter_id: letterId }).catch(() => [])) ?? [];
-      const via = review.filter((r): r is { recipient_name: string; via_name: string } => !!r.via_name);
+      const via = review.filter((r) => !!r.via_name).map((r) => ({ recipient_name: r.recipient_name, via_name: String(r.via_name) }));
       setResult({ status: res.status, n: res.n, skipped, via });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setProgress(null); }
   }
