@@ -142,7 +142,7 @@ function MagazineAdmin({ org }: { org: string }) {
           <label className="cursor-pointer rounded border border-border px-2 py-1">+ Pages<input type="file" accept="image/*" multiple hidden onChange={(e) => upload(r, "pages", e.target.files)} /></label>
           {r.pages?.length ? <Button size="sm" variant="ghost" onClick={() => clearPages(r)}>clear pages</Button> : null}
           {uploading === r.id ? <span>uploading…</span> : null}
-          <Button size="sm" onClick={() => setComposing(r)}>✍️ पत्रिका बनाएँ{Array.isArray((r as { articles?: unknown[] }).articles) && (r as { articles: unknown[] }).articles.length ? ` (${(r as { articles: unknown[] }).articles.length})` : ""}</Button>
+          <Button size="sm" onClick={() => setComposing(r)}>✍️ पत्रिका बनाएँ{Array.isArray((r as unknown as { articles?: unknown[] }).articles) && (r as unknown as { articles: unknown[] }).articles.length ? ` (${(r as unknown as { articles: unknown[] }).articles.length})` : ""}</Button>
           {r.status === "published" ? <a className="underline" href={`/magazine/${r.slug}`} target="_blank" rel="noreferrer">view</a> : null}
         </span>
       )}
