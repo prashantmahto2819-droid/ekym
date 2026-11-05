@@ -41,6 +41,7 @@ const readLinks: { key: TKey; to: string }[] = [
   { key: "news", to: "/news" },
   { key: "blogs", to: "/blogs" },
   { key: "magazine", to: "/magazine" },
+  { key: "achievements", to: "/achievements" },
   { key: "gallery", to: "/gallery" },
   { key: "videos", to: "/videos" },
   { key: "reels", to: "/reels" },

@@ -10,6 +10,8 @@ import { siteName } from "@/core/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { issueQuery } from "@/lib/queries";
 import { formatDate } from "@/lib/format";
+import { MagazineReader, PrintButton, useIssueArticles, type IssueLike } from "@/components/magazine/MagazineReader";
+import { useTenant } from "@/core/tenant-context";
 
 export const Route = createFileRoute("/magazine/$slug")({
   loader: async ({ context, params }) => { const i = await context.queryClient.ensureQueryData(issueQuery(params.slug)); if (!i) throw notFound(); return i; },
@@ -27,6 +29,9 @@ function IssuePage() {
   const [page, setPage] = useState(0);
   useEffect(() => { if (issue) supabase.rpc("k1_issue_view", { p_id: issue.id } as never).then(() => undefined, () => undefined); }, [issue?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const pages = ((issue?.pages as string[] | undefined) ?? []);
+  const tenant = useTenant();
+  const composed = Array.isArray((issue as { articles?: unknown } | null)?.articles) && ((issue as { articles: unknown[] }).articles.length > 0);
+  const arts = useIssueArticles(issue?.id, composed);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "ArrowRight") setPage((p) => Math.min(pages.length - 1, p + 1)); if (e.key === "ArrowLeft") setPage((p) => Math.max(0, p - 1)); };
     window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
@@ -43,7 +48,12 @@ function IssuePage() {
             {issue.pdf_path ? <Button asChild><a href={pubUrl(issue.pdf_path)} target="_blank" rel="noreferrer">{L ? "PDF डाउनलोड" : "Download PDF"}</a></Button> : null}
             <ShareButtons path={`/magazine/${issue.slug}`} title={issue.title} />
           </div>
-          {pages.length ? (
+          {composed ? (
+            <>
+              <div className="flex gap-2"><PrintButton label={L ? "🖨️ प्रिंट / PDF सहेजें" : "🖨️ Print / save as PDF"} /></div>
+              {arts.data ? <MagazineReader issue={issue as unknown as IssueLike} orgName={(L && tenant.name_hi) || tenant.name} articles={arts.data} /> : <p className="text-sm text-muted-foreground">…</p>}
+            </>
+          ) : pages.length ? (
             <div className="rounded-xl border border-border bg-secondary/40 p-3">
               <div className="flex items-center justify-between text-sm">
                 <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}>‹ {L ? "पिछला" : "Prev"}</Button>

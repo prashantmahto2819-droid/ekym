@@ -25,6 +25,7 @@ import { ActivitiesSection, NetworkSection } from "@/components/home/Network";
 import { moduleOn, NAV_MODULE } from "@/core/modules";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
+import { AchievementsSection } from "@/components/home/Achievements";
 import { homePageQuery, homeQuery, organizationQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
@@ -104,6 +105,8 @@ function Home() {
             return <BlogGrid key={key} blogs={home.blogs} title={title} subtitle={subtitle} />;
           case "news":
             return <NewsSlider key={key} news={home.news} title={title} />;
+          case "achievements":
+            return <AchievementsSection key={key} title={title} subtitle={subtitle} />;
           case "videos":
             return <VideoSection key={key} videos={home.videos} title={title} />;
           case "reels":

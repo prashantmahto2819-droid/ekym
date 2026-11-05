@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — Phase 28 (पत्रिका builder, उपलब्धियाँ, पदाधिकारियों का परिचय, विचार)
+- Migration `pub_02_composed_magazine_achievements`: `pub_issues.articles/editorial/editor_name/theme`; `k1_magazine_sources` (ब्लॉग/समाचार/उपलब्धि/सूचनाएँ — अपनी संस्था की; Kalchuri One की पत्रिका सभी संस्थाओं की), `k1_issue_articles` (पाठक के लिए resolved), `k1_issue_set_articles`, `k1_issue_set_theme`; table `cm_achievements` (सदस्य जमा करें `k1_achievement_submit`, admin मंज़ूरी `k1_achievement_decide` → जमा करने वाले को सूचना), `gov_positions.about/about_hi/email_public` (+ public view)।
+- Admin → पत्रिका → "✍️ पत्रिका बनाएँ": सामग्री चुनें (search, श्रेणी), अपना लेख/अध्यक्ष का संदेश (markup + चित्र), खंड, क्रम, संपादकीय; **रूप-रंग**: 3 तैयार शैलियाँ (क्लासिक/आधुनिक/समाचार-पत्र), रंग (मुख्य/पृष्ठ/पाठ), फ़ॉन्ट, कॉलम, आवरण शैली, लेआउट — live preview; पूर्वावलोकन। Public `/magazine/<slug>`: वेब-पत्रिका (आवरण, संपादकीय, विषय-सूची, खंड-वार लेख) + 🖨️ प्रिंट/PDF (print CSS, page breaks)। पुराने PDF/page-image अंक वैसे ही चलते हैं।
+- `/achievements`: सदस्य उपलब्धि जमा करें (फोटो, श्रेणी), श्रेणी filter; Admin → उपलब्धियाँ व विचार (मंज़ूरी + CrudPage + testimonials CrudPage); home section `achievements` (सभी active orgs में जोड़ा); header "और" व footer में लिंक।
+- Team पेज: बड़े फोटो कार्ड + परिचय (about) + ईमेल (अनुमति पर); Admin → पदाधिकारी में परिचय fields। Kalchuri One के निदेशक: वही committee (जैसे "निदेशक मंडल") kalchuri.org के Admin में।
+
 ## 2026-11-05 — Phase 27 (सदस्य को हमारे WhatsApp से: खाता मंज़ूर, ज़िम्मेदारी; admin digest सुबह-शाम)
 - Migration `comms_03_member_whatsapp_digest`: `shok_send_whatsapp(phone, text)` (owner का gateway, किसी भी नंबर पर); `k1_send` में WhatsApp का अंतिम fallback यही; shokpatra खाता मंज़ूर/अस्वीकार → व्यक्ति को (`trg_profile_decided_notify`); सदस्यता-sync में दोहरा संदेश नहीं (`k1.sync` guard); काम/ज़िम्मेदारी सौंपने पर assignee को (`trg_task_assigned_notify`); `k1_admin_digest()` cron `k1-admin-digest` 03:00/13:00 UTC = **08:30/18:30 IST** (सिर्फ़ जब कुछ pending हो)।
 

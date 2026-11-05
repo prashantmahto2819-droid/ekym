@@ -926,6 +926,86 @@ export type Database = {
         }
         Relationships: []
       }
+      cm_achievements: {
+        Row: {
+          achieved_on: string | null
+          admin_note: string | null
+          category: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          description: string | null
+          description_hi: string | null
+          featured: boolean
+          id: string
+          membership_id: string | null
+          organization_id: string
+          person_name: string
+          person_name_hi: string | null
+          photo_path: string | null
+          status: string
+          submitted_by: string | null
+          title: string
+          title_hi: string | null
+          updated_at: string
+          village: string | null
+        }
+        Insert: {
+          achieved_on?: string | null
+          admin_note?: string | null
+          category?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string | null
+          description_hi?: string | null
+          featured?: boolean
+          id?: string
+          membership_id?: string | null
+          organization_id: string
+          person_name: string
+          person_name_hi?: string | null
+          photo_path?: string | null
+          status?: string
+          submitted_by?: string | null
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          village?: string | null
+        }
+        Update: {
+          achieved_on?: string | null
+          admin_note?: string | null
+          category?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string | null
+          description_hi?: string | null
+          featured?: boolean
+          id?: string
+          membership_id?: string | null
+          organization_id?: string
+          person_name?: string
+          person_name_hi?: string | null
+          photo_path?: string | null
+          status?: string
+          submitted_by?: string | null
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          village?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_achievements_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "org_memberships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cm_listings: {
         Row: {
           address: string | null
@@ -3650,6 +3730,8 @@ export type Database = {
       }
       gov_positions: {
         Row: {
+          about: string | null
+          about_hi: string | null
           appointed_by: string
           city: string | null
           committee_id: string
@@ -3657,6 +3739,7 @@ export type Database = {
           designation: string
           designation_hi: string | null
           email: string | null
+          email_public: boolean
           from_date: string | null
           id: string
           membership_id: string | null
@@ -3673,6 +3756,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          about?: string | null
+          about_hi?: string | null
           appointed_by?: string
           city?: string | null
           committee_id: string
@@ -3680,6 +3765,7 @@ export type Database = {
           designation: string
           designation_hi?: string | null
           email?: string | null
+          email_public?: boolean
           from_date?: string | null
           id?: string
           membership_id?: string | null
@@ -3696,6 +3782,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          about?: string | null
+          about_hi?: string | null
           appointed_by?: string
           city?: string | null
           committee_id?: string
@@ -3703,6 +3791,7 @@ export type Database = {
           designation?: string
           designation_hi?: string | null
           email?: string | null
+          email_public?: boolean
           from_date?: string | null
           id?: string
           membership_id?: string | null
@@ -5534,10 +5623,14 @@ export type Database = {
       pub_issues: {
         Row: {
           access: string
+          articles: Json
           cover_path: string | null
           created_at: string
           created_by: string | null
           description: string | null
+          editor_name: string | null
+          editorial: string | null
+          editorial_hi: string | null
           id: string
           issue_date: string
           issue_no: string | null
@@ -5546,6 +5639,7 @@ export type Database = {
           pdf_path: string | null
           slug: string
           status: string
+          theme: Json
           title: string
           title_hi: string | null
           updated_at: string
@@ -5553,10 +5647,14 @@ export type Database = {
         }
         Insert: {
           access?: string
+          articles?: Json
           cover_path?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          editor_name?: string | null
+          editorial?: string | null
+          editorial_hi?: string | null
           id?: string
           issue_date?: string
           issue_no?: string | null
@@ -5565,6 +5663,7 @@ export type Database = {
           pdf_path?: string | null
           slug: string
           status?: string
+          theme?: Json
           title: string
           title_hi?: string | null
           updated_at?: string
@@ -5572,10 +5671,14 @@ export type Database = {
         }
         Update: {
           access?: string
+          articles?: Json
           cover_path?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          editor_name?: string | null
+          editorial?: string | null
+          editorial_hi?: string | null
           id?: string
           issue_date?: string
           issue_no?: string | null
@@ -5584,6 +5687,7 @@ export type Database = {
           pdf_path?: string | null
           slug?: string
           status?: string
+          theme?: Json
           title?: string
           title_hi?: string | null
           updated_at?: string
@@ -6309,10 +6413,13 @@ export type Database = {
     Views: {
       gov_positions_public: {
         Row: {
+          about: string | null
+          about_hi: string | null
           city: string | null
           committee_id: string | null
           designation: string | null
           designation_hi: string | null
+          email: string | null
           from_date: string | null
           id: string | null
           organization_id: string | null
@@ -6324,10 +6431,13 @@ export type Database = {
           to_date: string | null
         }
         Insert: {
+          about?: string | null
+          about_hi?: string | null
           city?: string | null
           committee_id?: string | null
           designation?: string | null
           designation_hi?: string | null
+          email?: never
           from_date?: string | null
           id?: string | null
           organization_id?: string | null
@@ -6339,10 +6449,13 @@ export type Database = {
           to_date?: string | null
         }
         Update: {
+          about?: string | null
+          about_hi?: string | null
           city?: string | null
           committee_id?: string | null
           designation?: string | null
           designation_hi?: string | null
+          email?: never
           from_date?: string | null
           id?: string | null
           organization_id?: string | null
@@ -6615,6 +6728,25 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
       is_super: { Args: never; Returns: boolean }
+      k1_achievement_decide: {
+        Args: { p_approve: boolean; p_id: string; p_note?: string }
+        Returns: undefined
+      }
+      k1_achievement_submit: {
+        Args: {
+          p_achieved_on: string
+          p_category: string
+          p_description: string
+          p_org: string
+          p_person: string
+          p_person_hi: string
+          p_photo: string
+          p_title: string
+          p_title_hi: string
+          p_village: string
+        }
+        Returns: string
+      }
       k1_ad_board: {
         Args: { p_org: string }
         Returns: {
@@ -6650,6 +6782,7 @@ export type Database = {
         Args: { p_from: string; p_org: string; p_to: string }
         Returns: Json
       }
+      k1_admin_digest: { Args: never; Returns: number }
       k1_admin_notifications: {
         Args: { p_limit?: number }
         Returns: {
@@ -6764,6 +6897,7 @@ export type Database = {
           title: string
         }[]
       }
+      k1_channel_reminders: { Args: never; Returns: number }
       k1_claim_memberships: { Args: never; Returns: number }
       k1_cm_actor_name: {
         Args: { p_org: string; p_user: string }
@@ -7160,11 +7294,16 @@ export type Database = {
           village: string
         }[]
       }
+      k1_has_own_channel: {
+        Args: { p_kind: string; p_org: string }
+        Returns: boolean
+      }
       k1_health: { Args: never; Returns: Json }
       k1_in_family: { Args: { p_family: string }; Returns: boolean }
       k1_is_applicant: { Args: { p_org: string }; Returns: boolean }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
+      k1_issue_articles: { Args: { p_issue: string }; Returns: Json }
       k1_issue_document: {
         Args: { p_id: string }
         Returns: {
@@ -7203,12 +7342,40 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_issue_set_articles: {
+        Args: {
+          p_articles: Json
+          p_editor?: string
+          p_editorial?: string
+          p_editorial_hi?: string
+          p_issue: string
+        }
+        Returns: undefined
+      }
+      k1_issue_set_theme: {
+        Args: { p_issue: string; p_theme: Json }
+        Returns: undefined
+      }
       k1_issue_view: { Args: { p_id: string }; Returns: undefined }
       k1_listing_decide: {
         Args: { p_id: string; p_note?: string; p_status: string }
         Returns: undefined
       }
       k1_listing_view: { Args: { p_id: string }; Returns: undefined }
+      k1_magazine_sources: {
+        Args: { p_kind: string; p_limit?: number; p_org: string; p_q?: string }
+        Returns: {
+          excerpt: string
+          id: string
+          image: string
+          kind: string
+          org_id: string
+          org_name: string
+          published_at: string
+          title: string
+          title_hi: string
+        }[]
+      }
       k1_matrimony_browse: {
         Args: { p_gender?: string; p_org: string }
         Returns: {
@@ -7321,6 +7488,18 @@ export type Database = {
           p_perm: string
           p_ref?: string
           p_ref_table?: string
+        }
+        Returns: number
+      }
+      k1_notify_user: {
+        Args: {
+          p_body: string
+          p_link?: string
+          p_org: string
+          p_ref?: string
+          p_ref_table?: string
+          p_subject: string
+          p_user: string
         }
         Returns: number
       }
@@ -7573,6 +7752,20 @@ export type Database = {
         Returns: undefined
       }
       k1_rsvp_info: { Args: { p_token: string }; Returns: Json }
+      k1_send: {
+        Args: {
+          p_body: string
+          p_kind: string
+          p_name: string
+          p_org: string
+          p_purpose?: string
+          p_ref?: string
+          p_ref_table?: string
+          p_subject: string
+          p_to: string
+        }
+        Returns: boolean
+      }
       k1_set_branding: {
         Args: { p_branding: Json; p_org: string }
         Returns: Json
@@ -7629,6 +7822,14 @@ export type Database = {
         }
       }
       k1_toggle_like: { Args: { p_post: string }; Returns: boolean }
+      k1_user_contact: {
+        Args: { p_user: string }
+        Returns: {
+          email: string
+          full_name: string
+          phone: string
+        }[]
+      }
       k1_verify_document: {
         Args: { p_code: string }
         Returns: {
@@ -7905,6 +8106,10 @@ export type Database = {
       }
       set_family_head: { Args: { p_member: string }; Returns: undefined }
       shok_sees_org: { Args: { p_org: string }; Returns: boolean }
+      shok_send_whatsapp: {
+        Args: { p_phone: string; p_text: string }
+        Returns: boolean
+      }
       shok_user_org: { Args: never; Returns: string }
       submit_letter: { Args: { p_letter_id: string }; Returns: Json }
       suggest_member: {

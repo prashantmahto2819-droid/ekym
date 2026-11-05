@@ -36,19 +36,21 @@ function TeamPage() {
                 ) : null}
                 <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {people.map((p) => (
-                    <div key={p.id} className="surface-card flex items-center gap-4 p-4">
+                    <div key={p.id} className="surface-card flex flex-col items-center gap-3 p-5 text-center">
                       {p.photo_path ? (
-                        <img src={p.photo_path} alt="" className="size-16 rounded-full object-cover" />
+                        <img src={p.photo_path} alt="" className="size-28 rounded-full object-cover ring-4 ring-primary/10" />
                       ) : (
-                        <div className="gradient-teal flex size-16 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-primary-foreground">
+                        <div className="gradient-teal flex size-28 shrink-0 items-center justify-center rounded-full text-3xl font-semibold text-primary-foreground">
                           {p.person_name.slice(0, 1)}
                         </div>
                       )}
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold">{loc(p, "person_name")}</p>
-                        <p className="text-sm text-primary">{loc(p, "designation")}</p>
+                      <div className="min-w-0 w-full">
+                        <p className="font-display text-lg font-semibold leading-tight">{loc(p, "person_name")}</p>
+                        <p className="text-sm font-medium text-primary">{loc(p, "designation")}</p>
                         {p.city ? <p className="text-xs text-muted-foreground">{p.city}</p> : null}
-                        {p.phone ? <p className="text-xs text-muted-foreground">{p.phone}</p> : null}
+                        {(p as { about?: string | null; about_hi?: string | null }).about || (p as { about_hi?: string | null }).about_hi ? <p className="mt-2 line-clamp-4 text-sm text-muted-foreground whitespace-pre-line">{(hi && (p as { about_hi?: string | null }).about_hi) || (p as { about?: string | null }).about}</p> : null}
+                        {p.phone ? <p className="mt-1 text-xs text-muted-foreground">📞 {p.phone}</p> : null}
+                        {(p as { email?: string | null }).email ? <p className="text-xs text-muted-foreground">✉️ {(p as { email?: string | null }).email}</p> : null}
                       </div>
                     </div>
                   ))}

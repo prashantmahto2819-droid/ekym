@@ -5,6 +5,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { CrudPage } from "@/components/admin/CrudPage";
+import { IssueComposer } from "@/components/admin/IssueComposer";
+import type { IssueLike } from "@/components/magazine/MagazineReader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/core/tenant-context";
@@ -97,6 +99,7 @@ type Issue = { id: string; title: string; title_hi: string | null; slug: string;
 
 function MagazineAdmin({ org }: { org: string }) {
   const qc = useQueryClient();
+  const [composing, setComposing] = useState<Issue | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
   async function upload(issue: Issue, kind: "cover" | "pdf" | "pages", files: FileList | null) {
     if (!files?.length) return;
@@ -126,7 +129,8 @@ function MagazineAdmin({ org }: { org: string }) {
     qc.invalidateQueries({ queryKey: ["admin", "pub_issues"] });
   }
   return (
-    <CrudPage table="pub_issues" title="Magazine issues" description="Create an issue, then upload the cover, the PDF and (optionally) page images for the page-flip reader. Members-only issues need login." orderBy="issue_date"
+    <>
+    <CrudPage table="pub_issues" title="Magazine issues" description="अंक बनाएँ → 'पत्रिका बनाएँ' से ब्लॉग/समाचार/उपलब्धियाँ/सूचनाएँ चुनकर, रूप-रंग तय करके वेब-पत्रिका बनाएँ (पाठक प्रिंट/PDF कर सकते हैं)। या तैयार PDF / पृष्ठ-चित्र अपलोड करें।" orderBy="issue_date"
       createdBy
       columns={[{ key: "title", label: "Issue", render: (r) => <span>{r.title}{r.issue_no ? <span className="text-xs text-muted-foreground"> · {r.issue_no}</span> : null}</span> }, { key: "issue_date", label: "Date" }, { key: "status", label: "Status" }, { key: "access", label: "Access" }, { key: "views", label: "Views" }, { key: "files", label: "Files", render: (r: Issue) => <span className="text-xs text-muted-foreground">{r.cover_path ? "cover " : ""}{r.pdf_path ? "pdf " : ""}{r.pages?.length ? `${r.pages.length} pages` : ""}</span> }]}
       fields={[{ key: "title", label: "Title", required: true, full: true }, { key: "title_hi", label: "शीर्षक (हिंदी)", full: true }, { key: "slug", label: "Slug", hint: "auto" }, { key: "issue_no", label: "Issue no. (e.g. Vol 2 · No 3)" }, { key: "issue_date", label: "Date", type: "date", required: true }, { key: "access", label: "Access", type: "select", options: ["public", "members"] }, { key: "status", label: "Status", type: "select", options: ["draft", "published", "archived"] }, { key: "description", label: "Description", type: "textarea", full: true }]}
@@ -138,9 +142,12 @@ function MagazineAdmin({ org }: { org: string }) {
           <label className="cursor-pointer rounded border border-border px-2 py-1">+ Pages<input type="file" accept="image/*" multiple hidden onChange={(e) => upload(r, "pages", e.target.files)} /></label>
           {r.pages?.length ? <Button size="sm" variant="ghost" onClick={() => clearPages(r)}>clear pages</Button> : null}
           {uploading === r.id ? <span>uploading…</span> : null}
+          <Button size="sm" onClick={() => setComposing(r)}>✍️ पत्रिका बनाएँ{Array.isArray((r as { articles?: unknown[] }).articles) && (r as { articles: unknown[] }).articles.length ? ` (${(r as { articles: unknown[] }).articles.length})` : ""}</Button>
           {r.status === "published" ? <a className="underline" href={`/magazine/${r.slug}`} target="_blank" rel="noreferrer">view</a> : null}
         </span>
       )}
     />
+    {composing ? <IssueComposer issue={{ ...(composing as unknown as IssueLike), organization_id: org }} open onClose={() => setComposing(null)} onSaved={() => qc.invalidateQueries({ queryKey: ["admin", "pub_issues"] })} /> : null}
+    </>
   );
 }

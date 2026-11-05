@@ -36,7 +36,8 @@ const ALL_NAV: { to: string; label: string; group: string; platform?: boolean }[
 
   { to: "/admin/news", label: "समाचार · News", group: "3 · प्रकाशन" },
   { to: "/admin/blogs", label: "लेख / ब्लॉग", group: "3 · प्रकाशन" },
-  { to: "/admin/publishing", label: "पत्रिका, टिप्पणियाँ, central feed", group: "3 · प्रकाशन" },
+  { to: "/admin/publishing", label: "पत्रिका (magazine), टिप्पणियाँ", group: "3 · प्रकाशन" },
+  { to: "/admin/achievements", label: "उपलब्धियाँ व विचार", group: "3 · प्रकाशन" },
   { to: "/admin/campaigns", label: "अभियान · Campaigns", group: "3 · प्रकाशन" },
   { to: "/admin/seva", label: "सेवा प्रकल्प", group: "3 · प्रकाशन" },
 

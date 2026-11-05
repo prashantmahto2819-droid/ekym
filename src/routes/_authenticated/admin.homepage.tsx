@@ -25,7 +25,7 @@ function HomepageAdmin() {
           ]} />
       ) : null}
       {tab === "sections" ? (
-        <CrudPage table="homepage_sections" title="Homepage sections" description="Which sections appear on the home page, their titles and order. Section keys: hero, network, activities, festival, seva, today_activities, blood, contributors, blogs, news, videos, reels, campaigns, testimonials, donate, volunteer, contact." orderBy="display_order" ascending defaults={{ active: true }}
+        <CrudPage table="homepage_sections" title="Homepage sections" description="Which sections appear on the home page, their titles and order. Section keys: hero, network, activities, festival, seva, today_activities, blood, contributors, blogs, news, achievements, videos, reels, campaigns, testimonials, donate, volunteer, contact." orderBy="display_order" ascending defaults={{ active: true }}
           columns={[{ key: "section_key", label: "Section key" }, { key: "title", label: "Title" }, { key: "display_order", label: "Order" }, { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") }]}
           fields={[
             { key: "section_key", label: "Section key", required: true, hint: "e.g. hero, news, network" },
