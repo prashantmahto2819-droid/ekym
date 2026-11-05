@@ -3304,6 +3304,7 @@ export type Database = {
           family_name: string
           id: string
           main_whatsapp: string
+          main_whatsapp_ok: boolean | null
           organization_id: string | null
           owner_id: string
           status: string
@@ -3328,6 +3329,7 @@ export type Database = {
           family_name: string
           id?: string
           main_whatsapp: string
+          main_whatsapp_ok?: boolean | null
           organization_id?: string | null
           owner_id?: string
           status?: string
@@ -3352,6 +3354,7 @@ export type Database = {
           family_name?: string
           id?: string
           main_whatsapp?: string
+          main_whatsapp_ok?: boolean | null
           organization_id?: string | null
           owner_id?: string
           status?: string
@@ -4807,6 +4810,8 @@ export type Database = {
           recipient_name: string
           sent_at: string | null
           status: string
+          via_member_id: string | null
+          via_name: string | null
           village_name: string | null
         }
         Insert: {
@@ -4823,6 +4828,8 @@ export type Database = {
           recipient_name: string
           sent_at?: string | null
           status?: string
+          via_member_id?: string | null
+          via_name?: string | null
           village_name?: string | null
         }
         Update: {
@@ -4839,6 +4846,8 @@ export type Database = {
           recipient_name?: string
           sent_at?: string | null
           status?: string
+          via_member_id?: string | null
+          via_name?: string | null
           village_name?: string | null
         }
         Relationships: [
@@ -4859,6 +4868,13 @@ export type Database = {
           {
             foreignKeyName: "letter_recipients_member_id_fkey"
             columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "letter_recipients_via_member_id_fkey"
+            columns: ["via_member_id"]
             isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["id"]
@@ -5187,6 +5203,7 @@ export type Database = {
           sort_order: number
           updated_at: string
           village_id: string | null
+          whatsapp_ok: boolean | null
         }
         Insert: {
           created_at?: string
@@ -5208,6 +5225,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           village_id?: string | null
+          whatsapp_ok?: boolean | null
         }
         Update: {
           created_at?: string
@@ -5229,6 +5247,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           village_id?: string | null
+          whatsapp_ok?: boolean | null
         }
         Relationships: [
           {
@@ -8444,6 +8463,18 @@ export type Database = {
         Args: { p_choices: string[]; p_poll: string }
         Returns: undefined
       }
+      letter_recipients_review: {
+        Args: { p_letter_id: string }
+        Returns: {
+          error: string
+          father_name: string
+          recipient_id: string
+          recipient_name: string
+          status: string
+          via_name: string
+          village_name: string
+        }[]
+      }
       lineage_roots: {
         Args: never
         Returns: {
@@ -8698,6 +8729,24 @@ export type Database = {
         Returns: undefined
       }
       set_family_head: { Args: { p_member: string }; Returns: undefined }
+      shok_branch_head: { Args: { p_member: string }; Returns: string }
+      shok_deliver_phone: {
+        Args: { p_member: string; p_mode: string }
+        Returns: {
+          phone: string
+          via_member_id: string
+          via_name: string
+        }[]
+      }
+      shok_eldest_son_phone: {
+        Args: { p_depth?: number; p_member: string }
+        Returns: {
+          member_id: string
+          name: string
+          phone: string
+        }[]
+      }
+      shok_reroute_recipient: { Args: { p_recipient: string }; Returns: Json }
       shok_sees_org: { Args: { p_org: string }; Returns: boolean }
       shok_send_whatsapp: {
         Args: { p_phone: string; p_text: string }
@@ -8721,6 +8770,7 @@ export type Database = {
       }
       trash_family: { Args: { p_id: string }; Returns: undefined }
       unlink_family: { Args: { p_child: string }; Returns: undefined }
+      unset_family_head: { Args: { p_member: string }; Returns: undefined }
       update_origin_village: {
         Args: { p_id: string; p_name: string; p_region: string }
         Returns: undefined

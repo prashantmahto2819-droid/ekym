@@ -57,7 +57,7 @@ function ShokSend() {
   const [allowRepeat, setAllowRepeat] = useState(false);
   const [sure, setSure] = useState(false);
   const [progress, setProgress] = useState<{ pct: number; text: string } | null>(null);
-  const [result, setResult] = useState<{ status: string; n: number; skipped: number } | null>(null);
+  const [result, setResult] = useState<{ status: string; n: number; skipped: number; via: { recipient_name: string; via_name: string }[] } | null>(null);
 
   const templates = useQuery({
     queryKey: ["shok_templates", tenant.organization_id],
@@ -169,7 +169,10 @@ function ShokSend() {
       const res = await rpc<{ status: string; n: number }>("submit_letter", { p_letter_id: letterId });
       // admin's own letter is queued at once: ask the server queue to start now instead of waiting for the next minute
       if (res.status === "queued") supabase.functions.invoke("send-letters", { body: { action: "kick", letter_id: letterId } }).catch(() => undefined);
-      setResult({ status: res.status, n: res.n, skipped });
+      // cards that go to another number (no WhatsApp on the person's own): eldest son / branch head / family main
+      const review = (await rpc<{ recipient_name: string; via_name: string | null }[]>("letter_recipients_review", { p_letter_id: letterId }).catch(() => [])) ?? [];
+      const via = review.filter((r): r is { recipient_name: string; via_name: string } => !!r.via_name);
+      setResult({ status: res.status, n: res.n, skipped, via });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setProgress(null); }
   }
 
@@ -184,6 +187,7 @@ function ShokSend() {
       <div className="space-y-3 rounded-lg border border-border bg-background p-6 text-sm">
         <h1 className="font-display text-xl font-semibold">{result.status === "pending_approval" ? (L ? "मंज़ूरी के लिए जमा हो गया" : "Submitted for approval") : (L ? "भेजना शुरू हो गया" : "Sending started")}</h1>
         <p className="text-muted-foreground">{result.n} {L ? "लोगों के नाम से शोकपत्र बना।" : "personalised letters created."} {result.skipped ? (L ? `${result.skipped} को यही पत्र पहले भेजा जा चुका था, इसलिए छोड़ा गया।` : `${result.skipped} skipped (already received this letter).`) : ""} {result.status === "pending_approval" ? (L ? "एडमिन की मंज़ूरी के बाद भेजना सर्वर पर अपने आप शुरू होगा।" : "After admin approval, sending starts automatically on the server.") : (L ? "सर्वर हर मिनट कतार से संदेश भेजता है; स्थिति सूची में दिखेगी।" : "The server sends from the queue every minute; see the list for status.")}</p>
+        {result.via.length ? <p className="text-sm text-muted-foreground">{L ? `${result.via.length} पत्र दूसरे नंबर पर जाएँगे (अपने नंबर पर WhatsApp नहीं): ` : `${result.via.length} letters go to another number (no WhatsApp on their own): `}{result.via.slice(0, 30).map((r) => `${r.recipient_name} → ${r.via_name}`).join("; ")}{result.via.length > 30 ? ` … +${result.via.length - 30}` : ""}</p> : null}
         <Button asChild><Link to="/admin/shok">{L ? "शोक संदेश सूची" : "Back to list"}</Link></Button>
       </div>
     );

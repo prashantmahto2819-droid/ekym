@@ -109,9 +109,18 @@ function FamilyPage() {
     const deceased = confirm(L ? "क्या वे दिवंगत (स्व.) हैं? OK = हाँ" : "Deceased (late)? OK = yes");
     await run(L ? "ऊपर की पीढ़ी जुड़ गई।" : "Ancestor added", () => rpc("add_parent_above", { p_member: p.id, p_name: name.trim() || "नाम याद नहीं", p_deceased: deceased, p_unknown: !name.trim(), p_relation: ANCESTOR_RELATION }));
   }
+  // several heads per family (one per branch after a partition); each head is the contact for his own branch
   async function makeHead(p: Person) {
-    if (!confirm(L ? `"${p.name}" को परिवार का मुखिया बनाएँ?` : `Make "${p.name}" the family head?`)) return;
-    await run(L ? "मुखिया बदल गया।" : "Head changed", () => rpc("set_family_head", { p_member: p.id }));
+    const others = people.filter((m) => m.is_head && m.id !== p.id).map((m) => m.name);
+    const q = others.length
+      ? (L ? `"${p.name}" अपनी शाखा के मुखिया बनेंगे (${others.join(", ")} भी मुखिया रहेंगे)। ठीक?` : `"${p.name}" becomes head of his branch (${others.join(", ")} stay heads too). OK?`)
+      : (L ? `"${p.name}" को परिवार का मुखिया बनाएँ?` : `Make "${p.name}" the family head?`);
+    if (!confirm(q)) return;
+    await run(L ? "मुखिया बन गए।" : "Head set", () => rpc("set_family_head", { p_member: p.id }));
+  }
+  async function unmakeHead(p: Person) {
+    if (!confirm(L ? `"${p.name}" अब मुखिया नहीं रहेंगे; इनकी शाखा का पत्र ऊपर के मुखिया को जाएगा। ठीक?` : `"${p.name}" will no longer be a head; his branch's letters go to the head above. OK?`)) return;
+    await run(L ? "मुखिया का चिह्न हट गया।" : "Head flag removed", () => rpc("unset_family_head", { p_member: p.id }));
   }
   async function remove(p: Person) {
     const ids = descendantsOf(people, p.id); const extra = ids.length - 1;
@@ -188,7 +197,7 @@ function FamilyPage() {
           <p className="text-xs uppercase tracking-wide text-muted-foreground"><Link to="/admin/families" className="hover:underline">{L ? "वंश वृक्ष" : "Family trees"}</Link> · {f.villages?.name ?? "—"}</p>
           <h1 className="font-display text-2xl font-semibold">{f.family_name} <Badge variant={f.status === "approved" ? "default" : f.status === "rejected" ? "destructive" : "secondary"} className="ml-2 align-middle">{f.status}</Badge></h1>
           <p className="text-sm text-muted-foreground">
-            {head ? `${L ? "मुखिया" : "Head"}: ${head.name}` : (L ? "मुखिया दर्ज नहीं" : "No head")}{f.main_whatsapp && !hideContacts ? ` · ${f.main_whatsapp}` : ""} · {stats.total} {L ? "सदस्य" : "members"} ({stats.living} {L ? "जीवित" : "living"}, {stats.deceased} {L ? "दिवंगत" : "late"}) · {stats.gens} {L ? "पीढ़ियाँ" : "generations"}
+            {head ? `${L ? "मुखिया" : "Head"}: ${people.filter((p) => p.is_head).map((p) => p.name).join(", ")}` : (L ? "मुखिया दर्ज नहीं" : "No head")}{f.main_whatsapp && !hideContacts ? ` · ${f.main_whatsapp}` : ""} · {stats.total} {L ? "सदस्य" : "members"} ({stats.living} {L ? "जीवित" : "living"}, {stats.deceased} {L ? "दिवंगत" : "late"}) · {stats.gens} {L ? "पीढ़ियाँ" : "generations"}
           </p>
           {f.status === "rejected" && f.admin_note ? <p className="mt-1 rounded bg-red-50 px-2 py-1 text-xs text-red-900">{L ? "एडमिन का संदेश: " : "Admin note: "}{f.admin_note}</p> : null}
           {f.status === "pending" && !isAdmin ? <p className="mt-1 text-xs text-amber-800">{L ? "एडमिन की मंज़ूरी का इंतज़ार; तब तक बदलाव नहीं।" : "Waiting for admin approval; no edits until then."}</p> : null}
@@ -222,6 +231,7 @@ function FamilyPage() {
           {!selSide && !selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => addAncestor(selCur)} disabled={busy}>⬆ {L ? "पूर्वज जोड़ें" : "Add ancestor"}</Button> : null}
           <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: null, edit: selCur as Member, kind: "son", asHead: false })}>{L ? "बदलें" : "Edit"}</Button>
           {!selSide && !selCur.is_head && !selCur.is_deceased && !selCur.name_unknown ? <Button size="sm" variant="outline" onClick={() => makeHead(selCur)} disabled={busy}>{L ? "मुखिया बनाएँ" : "Make head"}</Button> : null}
+          {selCur.is_head && people.filter((m) => m.is_head).length > 1 ? <Button size="sm" variant="outline" onClick={() => unmakeHead(selCur)} disabled={busy}>{L ? "मुखिया हटाएँ" : "Unset head"}</Button> : null}
           {selSibs.length > 1 ? <><Button size="sm" variant="ghost" disabled={busy || selIdx <= 0} onClick={() => reorder(selCur, -1)} title={L ? "क्रम ऊपर (बड़ा)" : "older"}>◀</Button><span>{selIdx + 1}/{selSibs.length}</span><Button size="sm" variant="ghost" disabled={busy || selIdx >= selSibs.length - 1} onClick={() => reorder(selCur, 1)} title={L ? "क्रम नीचे (छोटा)" : "younger"}>▶</Button></> : null}
           {isAdmin && !selCur.is_head && !selSide ? <Button size="sm" variant="ghost" onClick={() => move(selCur)} disabled={busy}>{L ? "ले जाएँ" : "Move"}</Button> : null}
           <Button size="sm" variant="ghost" className="text-destructive" onClick={() => remove(selCur)} disabled={busy}>{L ? "हटाएँ" : "Remove"}</Button>

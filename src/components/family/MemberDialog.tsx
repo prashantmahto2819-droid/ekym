@@ -38,6 +38,7 @@ export function MemberDialog(p: MemberDialogProps) {
   const [relation, setRelation] = useState(RELATIONS[1]!);
   const [phone, setPhone] = useState("");
   const [phone2, setPhone2] = useState("");
+  const [noWa, setNoWa] = useState(false); // "इस नंबर पर WhatsApp नहीं चलता" → letters go to eldest son / branch head in his name
   const [photo, setPhoto] = useState<File | null>(null);
   const [native, setNative] = useState("");
   const [village, setVillage] = useState("");
@@ -55,6 +56,7 @@ export function MemberDialog(p: MemberDialogProps) {
     setRelation(e?.relation ?? (isHead ? RELATIONS[0]! : RELATIONS[1]!));
     setPhone(p.hideContacts ? "" : (e?.phone ?? "").replace(/^91/, ""));
     setPhone2(p.hideContacts ? "" : (e?.phone2 ?? "").replace(/^91/, ""));
+    setNoWa((e as { whatsapp_ok?: boolean | null } | null)?.whatsapp_ok === false);
     setPhoto(null);
     setNative(e?.native_place ?? p.addUnder?.native_place ?? "");
     setVillage(vName(e?.village_id) || vName((p.addUnder as { village_id?: string | null } | null)?.village_id) || p.familyVillage || "");
@@ -77,6 +79,9 @@ export function MemberDialog(p: MemberDialogProps) {
       };
       const keepPhone = p.hideContacts && p.edit && !ph && !deceased;
       if (!keepPhone) row["phone"] = ph ? normPhone(ph) : null;
+      // hand-marked "no WhatsApp" stays; a changed number starts unknown again (the gateway re-checks on first send)
+      const prevOk = (p.edit as { whatsapp_ok?: boolean | null } | null)?.whatsapp_ok ?? null;
+      row["whatsapp_ok"] = noWa ? false : (p.edit && (keepPhone || row["phone"] === p.edit.phone) ? prevOk : null);
       const ph2 = deceased ? "" : phone2.trim();
       if (ph2 && !validPhone(ph2)) { toast.error(L ? "दूसरा मोबाइल नंबर सही नहीं है।" : "Second mobile number is invalid."); setBusy(false); return; }
       if (!(p.hideContacts && p.edit && !ph2)) row["phone2"] = ph2 ? normPhone(ph2) : null;
@@ -131,6 +136,7 @@ export function MemberDialog(p: MemberDialogProps) {
           ) : null}
           <L1 label={L ? "फोटो (ज़रूरी नहीं)" : "Photo (optional)"}><div className="flex items-center gap-2">{photo ? <img src={URL.createObjectURL(photo)} alt="" className="size-10 rounded-full object-cover" /> : p.edit?.photo_path ? <img src={publicUrl("family-photos", p.edit.photo_path)} alt="" className="size-10 rounded-full object-cover" /> : null}<input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></div></L1>
           {!deceased ? <L1 label={L ? "दूसरा WhatsApp नंबर (ज़रूरी नहीं)" : "Second WhatsApp number (optional)"}><Input inputMode="numeric" maxLength={12} value={phone2} onChange={(e) => setPhone2(e.target.value)} /></L1> : null}
+          {!deceased ? <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={noWa} onChange={(e) => setNoWa(e.target.checked)} className="mt-1" /><span>{L ? "इस नंबर पर WhatsApp नहीं चलता (शोकपत्र इनके नाम से बड़े पुत्र / शाखा के मुखिया के WhatsApp पर जाएगा)" : "No WhatsApp on this number (letters go in his name to the eldest son / branch head)"}</span></label> : null}
           {!deceased ? <L1 label={L ? "मोबाइल नंबर (ज़रूरी नहीं)" : "Mobile (optional)"} hint={p.hideContacts && p.edit ? (L ? "नंबर आपके लिए छिपा है; खाली छोड़ेंगे तो वही रहेगा" : "hidden for you; leave empty to keep") : undefined}><Input inputMode="numeric" maxLength={12} value={phone} onChange={(e) => setPhone(e.target.value)} /></L1> : null}
           <L1 label={L ? "मूल ग्राम" : "Native village (origin)"} hint={L ? "सूची से चुनिए; न हो तो लिख दीजिए (एडमिन जोड़ देगा)" : "pick from the list or type (admin will add it)"}>
             <Input list="k1-origins" value={native} onChange={(e) => setNative(e.target.value)} />
