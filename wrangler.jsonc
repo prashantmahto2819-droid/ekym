@@ -9,6 +9,7 @@
     "SUPABASE_URL": "https://udxdxkyfrqlgdwwqaucu.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_KzSzDcvJpg5HBQp5-ka6mQ_bKzJ3T8N",
     "PUBLIC_SITE_URL": "https://kalchuri.org",
-    "PUBLIC_BASE_DOMAIN": "kalchuri.org"
+    "PUBLIC_BASE_DOMAIN": "kalchuri.org",
+    "DEFAULT_ORG_SLUG": "kalchuri-one"
   }
 }

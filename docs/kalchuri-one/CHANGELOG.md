@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-05 — Go-live
+- Cloudflare Worker `kalchuri-one` deploy चालू (GitHub Actions); domains `kalchuri.org`, `www.kalchuri.org`, route `*.kalchuri.org/*`; पुराना git-connected Worker `kalchuri` हटाया।
+- Migration `core_05_kalchuri_one_root`: umbrella संगठन `kalchuri-samaj` → **`kalchuri-one` "Kalchuri One / कलचुरी वन"** (kalchuri.org इसी पर; `DEFAULT_ORG_SLUG=kalchuri-one`), EKYM उसका child `ekym.kalchuri.org`; settings/home sections/slides EKYM से copy (पहली slide Kalchuri One wording); `core.org_domains` में तीनों hostnames verified; `k1_is_member(org)` अब sub-organization की सदस्यता को umbrella के लिए भी मानता है (EKYM सदस्य kalchuri.org के Kalchuri One feed में पोस्ट कर सकते हैं)।
+- Auth page: मोबाइल नंबर + WhatsApp OTP sign-in (शोकपत्र वाला ही खाता/hook)।
+
 ## 2026-11-04 — Phase 14 (Kalchuri One polish)
 - `perf_02_rls_initplan`: public/core/storage की सभी RLS policies में `auth.uid()` → `(select auth.uid())` (ALTER POLICY से, बिना drop); advisor initplan warnings हटीं।
 - `.github/workflows/storage-backup.yml`: Supabase Storage → Cloudflare R2 weekly rclone sync (secrets देखें)।
