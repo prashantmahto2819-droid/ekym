@@ -25,7 +25,7 @@ export type AdminOption = string | { value: string; label: string };
 export type AdminField = {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "date" | "datetime" | "checkbox" | "url" | "select" | "image" | "markup";
+  type?: "text" | "textarea" | "number" | "date" | "datetime" | "checkbox" | "url" | "select" | "image" | "markup" | "json";
   hint?: string;
   required?: boolean;
   full?: boolean;
@@ -215,6 +215,9 @@ export function CrudPage({
       } else if (f.type === "datetime") {
         const v = form.get(f.key) as string;
         values[f.key] = v ? new Date(v).toISOString() : null;
+      } else if (f.type === "json") {
+        const v = (form.get(f.key) as string) ?? "";
+        try { values[f.key] = v.trim() ? JSON.parse(v) : null; } catch { toast.error(`${f.label}: JSON सही नहीं है`); return; }
       } else {
         values[f.key] = (form.get(f.key) as string) ?? "";
       }
@@ -343,7 +346,9 @@ export function CrudPage({
                   required={f.required}
                   className={f.full ? "sm:col-span-2" : undefined}
                 >
-                  {f.type === "textarea" ? (
+                  {f.type === "json" ? (
+                    <Textarea name={f.key} rows={3} className="font-mono text-xs" defaultValue={value == null ? "" : typeof value === "string" ? value : JSON.stringify(value)} required={f.required} />
+                  ) : f.type === "textarea" ? (
                     <Textarea name={f.key} rows={5} defaultValue={value ?? ""} required={f.required} />
                   ) : f.type === "image" ? (
                     <HiddenImage name={f.key} initial={value ?? ""} />

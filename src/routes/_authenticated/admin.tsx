@@ -38,6 +38,7 @@ const ALL_NAV: { to: string; label: string; group: string; platform?: boolean }[
   { to: "/admin/blogs", label: "लेख / ब्लॉग", group: "3 · प्रकाशन" },
   { to: "/admin/publishing", label: "पत्रिका (magazine), टिप्पणियाँ", group: "3 · प्रकाशन" },
   { to: "/admin/achievements", label: "उपलब्धियाँ व विचार", group: "3 · प्रकाशन" },
+  { to: "/admin/exams", label: "परीक्षा व प्रतियोगिताएँ", group: "5 · समाज सेवाएँ" },
   { to: "/admin/campaigns", label: "अभियान · Campaigns", group: "3 · प्रकाशन" },
   { to: "/admin/seva", label: "सेवा प्रकल्प", group: "3 · प्रकाशन" },
 
@@ -99,7 +100,7 @@ function AdminLayout() {
     );
   }
 
-  const NAV_MOD: Record<string, string> = { "/admin/library": "library", "/admin/blood": "blood", "/admin/interns": "internship", "/admin/programs": "internship", "/admin/donations": "donate", "/admin/payments": "donate", "/admin/shok": "shok", "/admin/families": "shok", "https://shokpatra.kalchuri.org/app.html": "shok", "/admin/volunteers": "volunteer", "/admin/seva": "seva", "/admin/campaigns": "campaigns", "/admin/events": "events", "/admin/community": "community" };
+  const NAV_MOD: Record<string, string> = { "/admin/library": "library", "/admin/blood": "blood", "/admin/interns": "internship", "/admin/programs": "internship", "/admin/donations": "donate", "/admin/payments": "donate", "/admin/shok": "shok", "/admin/families": "shok", "https://shokpatra.kalchuri.org/app.html": "shok", "/admin/volunteers": "volunteer", "/admin/seva": "seva", "/admin/campaigns": "campaigns", "/admin/events": "events", "/admin/community": "community", "/admin/exams": "exam" };
   const NAV = ALL_NAV.filter((n) => (!NAV_MOD[n.to] || moduleOn(tenant.branding, NAV_MOD[n.to]!)) && (!n.platform || isPlatformAdmin || (tenant.child_count ?? 0) > 0));
   const groups = Array.from(new Set(NAV.map((n) => n.group)));
 

@@ -2847,6 +2847,446 @@ export type Database = {
           },
         ]
       }
+      ex_attempts: {
+        Row: {
+          answers: Json
+          auto_submitted: boolean
+          correct_count: number | null
+          deadline_at: string
+          flags: Json
+          id: string
+          max_score: number | null
+          paper: Json
+          practice: boolean
+          registration_id: string
+          review: Json | null
+          score: number | null
+          skipped_count: number | null
+          started_at: string
+          submitted_at: string | null
+          tab_switches: number
+          time_taken_s: number | null
+          wrong_count: number | null
+        }
+        Insert: {
+          answers?: Json
+          auto_submitted?: boolean
+          correct_count?: number | null
+          deadline_at: string
+          flags?: Json
+          id?: string
+          max_score?: number | null
+          paper?: Json
+          practice?: boolean
+          registration_id: string
+          review?: Json | null
+          score?: number | null
+          skipped_count?: number | null
+          started_at?: string
+          submitted_at?: string | null
+          tab_switches?: number
+          time_taken_s?: number | null
+          wrong_count?: number | null
+        }
+        Update: {
+          answers?: Json
+          auto_submitted?: boolean
+          correct_count?: number | null
+          deadline_at?: string
+          flags?: Json
+          id?: string
+          max_score?: number | null
+          paper?: Json
+          practice?: boolean
+          registration_id?: string
+          review?: Json | null
+          score?: number | null
+          skipped_count?: number | null
+          started_at?: string
+          submitted_at?: string | null
+          tab_switches?: number
+          time_taken_s?: number | null
+          wrong_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ex_attempts_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "ex_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ex_categories: {
+        Row: {
+          class_from: number | null
+          class_to: number | null
+          display_order: number
+          exam_id: string
+          id: string
+          name: string
+          name_hi: string | null
+          organization_id: string | null
+          questions_per_paper: number
+        }
+        Insert: {
+          class_from?: number | null
+          class_to?: number | null
+          display_order?: number
+          exam_id: string
+          id?: string
+          name: string
+          name_hi?: string | null
+          organization_id?: string | null
+          questions_per_paper?: number
+        }
+        Update: {
+          class_from?: number | null
+          class_to?: number | null
+          display_order?: number
+          exam_id?: string
+          id?: string
+          name?: string
+          name_hi?: string | null
+          organization_id?: string | null
+          questions_per_paper?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ex_categories_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "ex_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ex_exams: {
+        Row: {
+          cert_merit: boolean
+          cert_participation: boolean
+          cover_image: string | null
+          created_at: string
+          created_by: string | null
+          duration_minutes: number
+          ends_at: string | null
+          id: string
+          kind: string
+          languages: string[]
+          max_tab_switches: number
+          negative_mark: number
+          organization_id: string
+          pass_percent: number
+          reg_closes_at: string | null
+          reg_opens_at: string | null
+          results_at: string | null
+          rules: string | null
+          rules_hi: string | null
+          show_answers_after: boolean
+          shuffle: boolean
+          slug: string
+          starts_at: string | null
+          status: string
+          summary: string | null
+          summary_hi: string | null
+          title: string
+          title_hi: string | null
+          updated_at: string
+          winners: number
+        }
+        Insert: {
+          cert_merit?: boolean
+          cert_participation?: boolean
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          languages?: string[]
+          max_tab_switches?: number
+          negative_mark?: number
+          organization_id: string
+          pass_percent?: number
+          reg_closes_at?: string | null
+          reg_opens_at?: string | null
+          results_at?: string | null
+          rules?: string | null
+          rules_hi?: string | null
+          show_answers_after?: boolean
+          shuffle?: boolean
+          slug: string
+          starts_at?: string | null
+          status?: string
+          summary?: string | null
+          summary_hi?: string | null
+          title: string
+          title_hi?: string | null
+          updated_at?: string
+          winners?: number
+        }
+        Update: {
+          cert_merit?: boolean
+          cert_participation?: boolean
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          languages?: string[]
+          max_tab_switches?: number
+          negative_mark?: number
+          organization_id?: string
+          pass_percent?: number
+          reg_closes_at?: string | null
+          reg_opens_at?: string | null
+          results_at?: string | null
+          rules?: string | null
+          rules_hi?: string | null
+          show_answers_after?: boolean
+          shuffle?: boolean
+          slug?: string
+          starts_at?: string | null
+          status?: string
+          summary?: string | null
+          summary_hi?: string | null
+          title?: string
+          title_hi?: string | null
+          updated_at?: string
+          winners?: number
+        }
+        Relationships: []
+      }
+      ex_paper_questions: {
+        Row: {
+          category_id: string | null
+          exam_id: string
+          marks: number
+          question_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          exam_id: string
+          marks?: number
+          question_id: string
+        }
+        Update: {
+          category_id?: string | null
+          exam_id?: string
+          marks?: number
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ex_paper_questions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ex_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ex_paper_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "ex_exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ex_paper_questions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "ex_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ex_questions: {
+        Row: {
+          class_from: number | null
+          class_to: number | null
+          correct: Json
+          created_at: string
+          created_by: string | null
+          difficulty: string
+          explanation: string | null
+          id: string
+          image: string | null
+          lang: string
+          options: Json
+          organization_id: string
+          qtype: string
+          question: string
+          question_hi: string | null
+          status: string
+          subject: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          class_from?: number | null
+          class_to?: number | null
+          correct?: Json
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          explanation?: string | null
+          id?: string
+          image?: string | null
+          lang?: string
+          options?: Json
+          organization_id: string
+          qtype?: string
+          question: string
+          question_hi?: string | null
+          status?: string
+          subject: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          class_from?: number | null
+          class_to?: number | null
+          correct?: Json
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          explanation?: string | null
+          id?: string
+          image?: string | null
+          lang?: string
+          options?: Json
+          organization_id?: string
+          qtype?: string
+          question?: string
+          question_hi?: string | null
+          status?: string
+          subject?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ex_registrations: {
+        Row: {
+          category_id: string | null
+          cert_issued_at: string | null
+          cert_no: string | null
+          city: string | null
+          class_level: string | null
+          created_at: string
+          date_of_birth: string | null
+          district: string | null
+          exam_id: string
+          gender: string | null
+          id: string
+          is_minor: boolean
+          lang: string
+          max_score: number | null
+          member_org: string | null
+          mobile: string | null
+          note: string | null
+          parent_consent: boolean
+          parent_mobile: string | null
+          parent_name: string | null
+          percent: number | null
+          public_token: string
+          rank: number | null
+          reg_no: string | null
+          result: string | null
+          school: string | null
+          score: number | null
+          status: string
+          student_name: string
+          student_name_hi: string | null
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          cert_issued_at?: string | null
+          cert_no?: string | null
+          city?: string | null
+          class_level?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          district?: string | null
+          exam_id: string
+          gender?: string | null
+          id?: string
+          is_minor?: boolean
+          lang?: string
+          max_score?: number | null
+          member_org?: string | null
+          mobile?: string | null
+          note?: string | null
+          parent_consent?: boolean
+          parent_mobile?: string | null
+          parent_name?: string | null
+          percent?: number | null
+          public_token?: string
+          rank?: number | null
+          reg_no?: string | null
+          result?: string | null
+          school?: string | null
+          score?: number | null
+          status?: string
+          student_name: string
+          student_name_hi?: string | null
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          cert_issued_at?: string | null
+          cert_no?: string | null
+          city?: string | null
+          class_level?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          district?: string | null
+          exam_id?: string
+          gender?: string | null
+          id?: string
+          is_minor?: boolean
+          lang?: string
+          max_score?: number | null
+          member_org?: string | null
+          mobile?: string | null
+          note?: string | null
+          parent_consent?: boolean
+          parent_mobile?: string | null
+          parent_name?: string | null
+          percent?: number | null
+          public_token?: string
+          rank?: number | null
+          reg_no?: string | null
+          result?: string | null
+          school?: string | null
+          score?: number | null
+          status?: string
+          student_name?: string
+          student_name_hi?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ex_registrations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "ex_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ex_registrations_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "ex_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       families: {
         Row: {
           admin_note: string | null
@@ -6603,6 +7043,159 @@ export type Database = {
           village_id: string
           village_name: string
         }[]
+      }
+      ex_can_manage: { Args: { p_org: string }; Returns: boolean }
+      ex_compute_results: { Args: { p_exam: string }; Returns: number }
+      ex_leaderboard: {
+        Args: { p_exam: string }
+        Returns: {
+          category_id: string
+          category_name: string
+          city: string
+          percent: number
+          rank: number
+          result: string
+          school: string
+          student_name: string
+        }[]
+      }
+      ex_list: {
+        Args: { p_org: string }
+        Returns: {
+          cover_image: string
+          duration_minutes: number
+          ends_at: string
+          id: string
+          kind: string
+          org_name: string
+          organization_id: string
+          reg_closes_at: string
+          reg_opens_at: string
+          registrations: number
+          slug: string
+          starts_at: string
+          status: string
+          summary: string
+          summary_hi: string
+          title: string
+          title_hi: string
+        }[]
+      }
+      ex_my_registrations: {
+        Args: never
+        Returns: {
+          attempted: boolean
+          category_name: string
+          cert_no: string
+          duration_minutes: number
+          ends_at: string
+          exam_id: string
+          exam_slug: string
+          exam_status: string
+          exam_title: string
+          exam_title_hi: string
+          id: string
+          max_score: number
+          percent: number
+          public_token: string
+          rank: number
+          reg_no: string
+          result: string
+          score: number
+          starts_at: string
+          status: string
+          student_name: string
+        }[]
+      }
+      ex_paper_fill: {
+        Args: {
+          p_category: string
+          p_class_from?: number
+          p_class_to?: number
+          p_difficulty?: string
+          p_exam: string
+          p_lang?: string
+          p_limit?: number
+          p_marks?: number
+          p_subject?: string
+        }
+        Returns: number
+      }
+      ex_questions_import: {
+        Args: { p_org: string; p_rows: Json }
+        Returns: number
+      }
+      ex_register: {
+        Args: {
+          p_category: string
+          p_city: string
+          p_class: string
+          p_consent: boolean
+          p_district: string
+          p_dob: string
+          p_exam: string
+          p_gender: string
+          p_lang: string
+          p_mobile: string
+          p_org: string
+          p_parent_mobile: string
+          p_parent_name: string
+          p_school: string
+          p_student: string
+          p_student_hi: string
+        }
+        Returns: {
+          category_id: string | null
+          cert_issued_at: string | null
+          cert_no: string | null
+          city: string | null
+          class_level: string | null
+          created_at: string
+          date_of_birth: string | null
+          district: string | null
+          exam_id: string
+          gender: string | null
+          id: string
+          is_minor: boolean
+          lang: string
+          max_score: number | null
+          member_org: string | null
+          mobile: string | null
+          note: string | null
+          parent_consent: boolean
+          parent_mobile: string | null
+          parent_name: string | null
+          percent: number | null
+          public_token: string
+          rank: number | null
+          reg_no: string | null
+          result: string | null
+          school: string | null
+          score: number | null
+          status: string
+          student_name: string
+          student_name_hi: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ex_registrations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      ex_result_public: { Args: { p_token: string }; Returns: Json }
+      ex_save: {
+        Args: { p_answers: Json; p_attempt: string; p_tab_switches?: number }
+        Returns: undefined
+      }
+      ex_start: {
+        Args: { p_practice?: boolean; p_registration: string }
+        Returns: Json
+      }
+      ex_submit: {
+        Args: { p_answers?: Json; p_attempt: string; p_auto?: boolean }
+        Returns: Json
       }
       family_is_below: {
         Args: { p_root: string; p_target: string }

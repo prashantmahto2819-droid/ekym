@@ -30,6 +30,7 @@ const primaryNav: { key: TKey; to: string }[] = [
 const moreNav: { key: TKey; to: string }[] = [
   { key: "team", to: "/team" },
   { key: "achievements", to: "/achievements" },
+  { key: "exams", to: "/exams" },
   { key: "seva", to: "/seva" },
   { key: "campaigns", to: "/campaigns" },
   { key: "blood", to: "/blood" },

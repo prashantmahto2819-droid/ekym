@@ -33,6 +33,7 @@ const getInvolved: { key: TKey; to: string }[] = [
   { key: "events", to: "/events" },
   { key: "team", to: "/team" },
   { key: "internship", to: "/internship" },
+  { key: "exams", to: "/exams" },
   { key: "donate", to: "/donate" },
   { key: "contact", to: "/contact" },
 ];

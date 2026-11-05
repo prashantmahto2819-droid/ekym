@@ -17,6 +17,7 @@ export const MODULE_KEYS = [
   ["gallery", "Gallery, videos, reels"],
   ["bhojan", "Bhojan seva (home section)"],
   ["shok", "Shokpatra seva / family tree (shokpatra.kalchuri.org)"],
+  ["exam", "Exams & competitions / परीक्षा"],
 ] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number][0];
 
@@ -28,5 +29,5 @@ export function moduleOn(branding: unknown, key: string): boolean {
 export const NAV_MODULE: Record<string, ModuleKey> = {
   library: "library", blood: "blood", internship: "internship", volunteer: "volunteer", seva: "seva", campaigns: "campaigns",
   donate: "donate", events: "events", community: "community", directory: "directory", jobs: "directory", scholarships: "directory", help: "directory",
-  matrimony: "matrimony", polls: "polls", shok: "shok", magazine: "magazine", gallery: "gallery", videos: "gallery", reels: "gallery", bhojan: "bhojan",
+  matrimony: "matrimony", polls: "polls", shok: "shok", magazine: "magazine", gallery: "gallery", videos: "gallery", reels: "gallery", bhojan: "bhojan", exams: "exam",
 };
