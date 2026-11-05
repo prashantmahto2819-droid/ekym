@@ -5,7 +5,8 @@
 2. **WhatsApp** से तब जाती है जब संस्था का अपना WhatsApp channel (Vivid Relay / Meta Cloud) हो; नहीं तो मंच का channel (owner का gateway)।
 3. Admin को जाने वाली सूचनाएँ **in-app** (🔔 घंटी + डैशबोर्ड) भी होती हैं।
 4. संस्था के admin को, जब तक अपना SMTP/WhatsApp न जोड़ें, **हर सोमवार 09:00 IST** याद दिलाया जाता है (`k1_channel_reminders`), और भूमिका मिलते ही पहली याद उसी संदेश में।
-5. Channel चुनाव: `k1_pick_channel(org, kind)` = संस्था का अपना active channel → मंच (root org) का channel → कुछ नहीं (संदेश नहीं जाता, कोई error नहीं)।
+5. WhatsApp के लिए कोई channel न हो (संस्था का भी नहीं, मंच का भी नहीं) तो संदेश **सीधे owner के gateway** (shokpatra की app_settings वाला Vivid Relay) से जाता है — यानी सदस्य को "हमारे WhatsApp" से सूचना हमेशा मिलती है।
+6. Channel चुनाव: `k1_pick_channel(org, kind)` = संस्था का अपना active channel → मंच (root org) का channel → कुछ नहीं (संदेश नहीं जाता, कोई error नहीं)।
 
 Engine: `comms_messages` कतार (हर मिनट `comms-worker`, SMTP = nodemailer, WhatsApp = Vivid Relay/Meta)। सारे संदेश Admin → Messaging → delivery log में दिखते हैं।
 
@@ -23,6 +24,9 @@ Engine: `comms_messages` कतार (हर मिनट `comms-worker`, SMTP 
 | 10 | वैवाहिक — किसी ने रुचि दिखाई | प्रोफ़ाइल का मालिक | — | ✅ | ✅ | `trg_matrimony_interest_notify` |
 | 11 | वैवाहिक — रुचि स्वीकार | रुचि दिखाने वाला | — | ✅ | ✅ | `trg_matrimony_interest_notify` |
 | 12 | समुदाय: like / टिप्पणी / जवाब / @mention / moderation | सदस्य | ✅ (feed की 🔔) | — | — | `cm_notifications` |
+| 2a | shokpatra खाता मंज़ूर / अस्वीकार | वह व्यक्ति | — | ✅ (ईमेल हो तो) | ✅ owner का WhatsApp | `trg_profile_decided_notify` |
+| 5a | नई ज़िम्मेदारी / काम (gov_tasks assign) | जिसे सौंपा | — | ✅ | ✅ | `trg_task_assigned_notify` |
+| 6a | Admin digest — आज का सार (सदस्यता/शोक संदेश/संपर्क/काम/moderation/संगठन pending) | हर संस्था के admins + platform admins | ✅ | ✅ | ✅ | cron `k1-admin-digest` **08:30 व 18:30 IST**, सिर्फ़ तब जब कुछ बाकी हो |
 | 13 | नया user (shokpatra विवरण पूरा) | admin_notify_phone | — | — | ✅ | shokpatra `notify_details_done` |
 | 14 | shokpatra digest (pending परिवार, सुझाव, links) | admin_notify_phone + village admins | — | — | ✅ दिन में 2 बार (09:30, 18:30 IST) | `send_admin_digest` |
 | 15 | WhatsApp OTP (लॉगिन) | user | — | — | ✅ | edge `whatsapp-otp-hook` |

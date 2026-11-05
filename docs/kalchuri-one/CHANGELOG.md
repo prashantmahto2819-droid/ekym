@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-11-05 — Phase 27 (सदस्य को हमारे WhatsApp से: खाता मंज़ूर, ज़िम्मेदारी; admin digest सुबह-शाम)
+- Migration `comms_03_member_whatsapp_digest`: `shok_send_whatsapp(phone, text)` (owner का gateway, किसी भी नंबर पर); `k1_send` में WhatsApp का अंतिम fallback यही; shokpatra खाता मंज़ूर/अस्वीकार → व्यक्ति को (`trg_profile_decided_notify`); सदस्यता-sync में दोहरा संदेश नहीं (`k1.sync` guard); काम/ज़िम्मेदारी सौंपने पर assignee को (`trg_task_assigned_notify`); `k1_admin_digest()` cron `k1-admin-digest` 03:00/13:00 UTC = **08:30/18:30 IST** (सिर्फ़ जब कुछ pending हो)।
+
 ## 2026-11-05 — Phase 26 (सूचनाओं का एक पैटर्न: ईमेल हमेशा + WhatsApp + in-app)
 - निर्णय (owner): हर सूचना ईमेल से (संस्था का SMTP, वरना मंच का SMTP उसकी ओर से), WhatsApp संस्था/मंच के channel से, admin वाली in-app भी; संस्था के admin को अपना SMTP/WhatsApp जोड़ने की याद भूमिका मिलते ही और फिर हर सोमवार।
 - Migration `comms_02_notification_pattern`: `k1_pick_channel` अब अपना → मंच (root) का channel; `k1_has_own_channel`; `k1_send(org, kind, to, …)` (contact normalise, signature); `k1_user_contact`; `k1_notify_user` (ईमेल + WhatsApp); `k1_admin_notify` अब हर प्राप्तकर्ता को ईमेल भी; triggers: सदस्यता निर्णय → आवेदक, भूमिका → व्यक्ति (+ setup याद), संगठन स्वीकृत → उसके admins, शोक संदेश pending → family admins / निर्णय → बनाने वाला, वैवाहिक रुचि/स्वीकृति; cron `k1-channel-reminders` (सोम 03:30 UTC)।
