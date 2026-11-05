@@ -1,8 +1,10 @@
-// शोक संदेश wizard: details → recipients → review & send. Uses shokpatra's letters/letter_recipients tables and
-// its server-side sender (pg_cron → send-letters); images come from the design engine (template kind shok_patra).
+// शोक संदेश wizard: details → (name area on photo) → recipients → review & send. Uses shokpatra's letters/
+// letter_recipients tables and its server-side sender (pg_cron → send-letters). The letter image comes either from a
+// Design Studio template (kind shok_patra) or — like the shokpatra app — from the user's own शोकपत्र photo, where the
+// name/father/village are written into a drag-selected "name box" (same name_box format as shokpatra).
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { DesignCanvas } from "@/components/studio/DesignCanvas";
@@ -19,6 +21,7 @@ import { useFamilyCtx } from "@/family/hooks";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { organizationQuery } from "@/lib/queries";
+import { canvasToBlob, DEFAULT_BOX_TEMPLATE, loadImage, renderLetter, type NameBox } from "@/lib/shok-letter";
 
 export const Route = createFileRoute("/_authenticated/admin/shok/send")({ component: ShokSend });
 
@@ -42,7 +45,12 @@ function ShokSend() {
   const ctx = useFamilyCtx();
   const { data: org } = useSuspenseQuery(organizationQuery());
   const [step, setStep] = useState(1);
-  const [f, setF] = useState({ deceased: "", death: "", ceremony: "", venue: "", family: "", message: DEFAULT_MESSAGE, mode: "family_main" as "family_main" | "each_member", templateId: "" });
+  const [f, setF] = useState({ deceased: "", death: "", ceremony: "", venue: "", family: "", message: DEFAULT_MESSAGE, mode: "family_main" as "family_main" | "each_member", templateId: "", source: "photo" as "design" | "photo" | "none" });
+  // own photo (shokpatra style)
+  const [photo, setPhoto] = useState<{ file: File; img: HTMLImageElement; url: string } | null>(null);
+  const [box, setBox] = useState<NameBox | null>(null);
+  const [boxTpl, setBoxTpl] = useState(DEFAULT_BOX_TEMPLATE);
+  const [cover, setCover] = useState(true);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [groupBy, setGroupBy] = useState<"village" | "region" | "family" | "lineage">("village");
   const [q, setQ] = useState("");
@@ -68,7 +76,24 @@ function ShokSend() {
   const coveredSet = covered.data ?? new Set<string>();
   useEffect(() => { if (!f.templateId && templates.data?.length) setF((x) => ({ ...x, templateId: templates.data![0]!.id })); }, [templates.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const template = templates.data?.find((t) => t.id === f.templateId) ?? null;
+  const template = f.source === "design" ? (templates.data?.find((t) => t.id === f.templateId) ?? null) : null;
+  const usePhoto = f.source === "photo" && !!photo;
+  const hasImage = !!template || usePhoto;
+  async function pickPhoto(fl: File | undefined) {
+    if (!fl) return;
+    if (fl.size > 8 * 1024 * 1024) { toast.error(L ? "फोटो 8 MB से छोटी होनी चाहिए।" : "Photo must be under 8 MB."); return; }
+    try {
+      if (photo) URL.revokeObjectURL(photo.url);
+      const url = URL.createObjectURL(fl);
+      const img = await loadImage(url);
+      setPhoto({ file: fl, img, url }); setBox(null); setF((x) => ({ ...x, source: "photo" }));
+      toast.success(L ? "फोटो जुड़ गई। अब नाम की जगह चुनिए।" : "Photo added. Now mark the name area.");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  }
+  async function photoJpeg(vars: { name: string; father: string | null; village: string | null }, width = 1600): Promise<Blob> {
+    const c = await renderLetter(photo!.img, box, boxTpl, vars, cover, undefined, width);
+    return canvasToBlob(c, "image/jpeg", 0.9);
+  }
   const shokData = (rec: { name: string; father: string | null; village: string | null }): MergeData => ({
     ...orgMergeData(tenant, org),
     shok: { deceased: f.deceased, death_date: f.death, ceremony_date: f.ceremony, venue: f.venue, family: f.family },
@@ -110,13 +135,13 @@ function ShokSend() {
     const uid = user.id;
     setProgress({ pct: 1, text: L ? "पत्र सहेजा जा रहा है…" : "Saving letter…" });
     try {
-      const fields = { created_by: uid, organization_id: tenant.organization_id, deceased_name: f.deceased, death_date: f.death || null, ceremony_date: f.ceremony || null, venue: f.venue || null, message_text: resolveMessage(), message_template: f.message, send_mode: f.mode, name_box: template ? { designId: template.id, engine: "kalchuri-one" } : null };
+      const fields = { created_by: uid, organization_id: tenant.organization_id, deceased_name: f.deceased, death_date: f.death || null, ceremony_date: f.ceremony || null, venue: f.venue || null, message_text: resolveMessage(), message_template: f.message, send_mode: f.mode, name_box: template ? { designId: template.id, engine: "kalchuri-one" } : usePhoto && box ? { ...box, template: boxTpl, cover, font: "Mukta", ink: "#111" } : null };
       const { data: ins, error } = await supabase.from("letters").insert(fields as never).select("id").single();
       if (error) throw error;
       const letterId = (ins as { id: string }).id;
-      if (template) {
+      if (hasImage) {
         setProgress({ pct: 3, text: L ? "आधार चित्र…" : "Base image…" });
-        const base = await renderJpeg(shokData({ name: "", father: null, village: null }));
+        const base = template ? await renderJpeg(shokData({ name: "", father: null, village: null })) : await renderLetter(photo!.img, null, boxTpl, { name: "" }, false, undefined, 1600).then((c) => canvasToBlob(c, "image/jpeg", 0.9));
         const path = `${uid}/${letterId}/base.jpg`;
         const { error: e1 } = await supabase.storage.from("letters").upload(path, base, { contentType: "image/jpeg", upsert: true }); if (e1) throw e1;
         await supabase.from("letters").update({ base_image_path: path } as never).eq("id", letterId);
@@ -125,12 +150,13 @@ function ShokSend() {
       const recips = await rpc<{ recipient_id: string; member_id: string; recipient_name: string; father_name: string | null; village_name: string | null }[]>("create_letter_recipients", { p_letter_id: letterId, p_member_ids: [...picked], p_allow_repeat: allowRepeat });
       const skipped = picked.size - (recips?.length ?? 0);
       if (!recips?.length) throw new Error(L ? "चुने हुए सभी लोगों को यही पत्र पहले भेजा जा चुका है।" : "Everyone selected already received this letter.");
-      if (template) {
+      if (hasImage) {
         let done = 0; const queue = [...recips];
         const worker = async () => {
           while (queue.length) {
             const r = queue.shift()!;
-            const blob = await renderJpeg(shokData({ name: r.recipient_name, father: r.father_name, village: r.village_name }));
+            const vars = { name: r.recipient_name, father: r.father_name, village: r.village_name };
+            const blob = template ? await renderJpeg(shokData(vars)) : await photoJpeg(vars);
             const path = `${uid}/${letterId}/${r.recipient_id}.jpg`;
             const { error: e2 } = await supabase.storage.from("letters").upload(path, blob, { contentType: "image/jpeg", upsert: true }); if (e2) throw e2;
             await supabase.from("letter_recipients").update({ image_path: path } as never).eq("id", r.recipient_id);
@@ -141,11 +167,14 @@ function ShokSend() {
       }
       setProgress({ pct: 97, text: L ? "जमा हो रहा है…" : "Submitting…" });
       const res = await rpc<{ status: string; n: number }>("submit_letter", { p_letter_id: letterId });
+      // admin's own letter is queued at once: ask the server queue to start now instead of waiting for the next minute
+      if (res.status === "queued") supabase.functions.invoke("send-letters", { body: { action: "kick", letter_id: letterId } }).catch(() => undefined);
       setResult({ status: res.status, n: res.n, skipped });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setProgress(null); }
   }
 
-  const steps = L ? ["पत्र की जानकारी", "किन्हें भेजना है", "जाँचकर भेजें"] : ["Letter details", "Recipients", "Review & send"];
+  const steps = L ? ["पत्र की जानकारी", "फोटो में नाम की जगह", "किन्हें भेजना है", "जाँचकर भेजें"] : ["Letter details", "Name area on photo", "Recipients", "Review & send"];
+  const afterDetails = () => { if (!f.deceased.trim()) { toast.error(L ? "दिवंगत का नाम लिखिए।" : "Enter the deceased name."); return; } if (f.source === "photo" && !photo) { toast.error(L ? "पहले शोकपत्र की फोटो चुनिए (या दूसरा विकल्प चुनिए)।" : "Choose the letter photo first."); return; } setStep(f.source === "photo" ? 2 : 3); };
   const chosen = (dir.data ?? []).filter((m) => picked.has(m.member_id));
   const famCover = useMemo(() => { const m = new Map<string, { name: string; n: number; all: number }>(); (dir.data ?? []).forEach((x) => { const e = m.get(x.family_id) ?? m.set(x.family_id, { name: x.family_name, n: 0, all: 0 }).get(x.family_id)!; e.all++; if (picked.has(x.member_id)) e.n++; }); return [...m.values()].filter((e) => e.n); }, [dir.data, picked]);
 
@@ -164,7 +193,7 @@ function ShokSend() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-display text-2xl font-semibold">{L ? "शोक संदेश भेजें" : "Send shok sandesh"}</h1>
-        <div className="flex gap-1 text-xs">{steps.map((s, i) => <span key={s} className={`rounded-full px-3 py-1 ${step === i + 1 ? "bg-primary text-primary-foreground" : step > i + 1 ? "bg-secondary" : "bg-secondary/50 text-muted-foreground"}`}>{i + 1}. {s}</span>)}</div>
+        <div className="flex flex-wrap gap-1 text-xs">{steps.map((s, i) => (i === 1 && f.source !== "photo") ? null : <span key={s} className={`rounded-full px-3 py-1 ${step === i + 1 ? "bg-primary text-primary-foreground" : step > i + 1 ? "bg-secondary" : "bg-secondary/50 text-muted-foreground"}`}>{s}</span>)}</div>
       </div>
 
       {step === 1 ? (
@@ -177,11 +206,24 @@ function ShokSend() {
             </div>
             <Lbl label={L ? "स्थान" : "Venue"}><Input value={f.venue} onChange={(e) => setF({ ...f, venue: e.target.value })} /></Lbl>
             <Lbl label={L ? "शोकाकुल परिवार (चित्र में)" : "Bereaved family (shown on the letter)"}><Input value={f.family} onChange={(e) => setF({ ...f, family: e.target.value })} placeholder="कश्यप परिवार, कुसमुण्डा" /></Lbl>
-            <Lbl label={L ? "शोकपत्र का डिज़ाइन" : "Letter design"} hint={L ? "Design Studio में 'शोकपत्र' starter से बनाएँ" : "create from the 'Condolence letter' starter in Design Studio"}>
-              <select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f.templateId} onChange={(e) => setF({ ...f, templateId: e.target.value })}>
-                <option value="">{L ? "— सिर्फ़ संदेश (बिना चित्र) —" : "— text only (no image) —"}</option>
-                {(templates.data ?? []).map((t) => <option key={t.id} value={t.id}>{L && t.name_hi ? t.name_hi : t.name}</option>)}
-              </select>
+            <Lbl label={L ? "शोकपत्र (चित्र) कैसे जाएगा" : "Letter image"}>
+              <div className="space-y-2 rounded-md border border-border p-3">
+                <label className="flex items-start gap-2"><input type="radio" checked={f.source === "photo"} onChange={() => setF({ ...f, source: "photo" })} /> <span><b>{L ? "अपनी शोकपत्र की फोटो लगाएँ" : "Attach my own letter photo"}</b> <span className="text-muted-foreground">— {L ? "छपे हुए शोकपत्र की JPG/PNG; अगले कदम में नाम की जगह चुनेंगे, हर व्यक्ति का नाम उसमें लिखा जाएगा" : "JPG/PNG of the printed letter; mark the name area next, each person's name is written there"}</span></span></label>
+                {f.source === "photo" ? (
+                  <div className="ml-6 flex flex-wrap items-center gap-2">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="text-xs" onChange={(e) => pickPhoto(e.target.files?.[0])} />
+                    {photo ? <span className="text-xs text-muted-foreground">✓ {photo.file.name} ({photo.img.naturalWidth}×{photo.img.naturalHeight})</span> : null}
+                  </div>
+                ) : null}
+                <label className="flex items-start gap-2"><input type="radio" checked={f.source === "design"} onChange={() => setF({ ...f, source: "design" })} /> <span><b>{L ? "Design Studio का डिज़ाइन" : "Design Studio template"}</b> <span className="text-muted-foreground">— {L ? "'शोकपत्र' starter से बना डिज़ाइन" : "made from the 'Condolence letter' starter"}</span></span></label>
+                {f.source === "design" ? (
+                  <select className="ml-6 h-9 w-[calc(100%-1.5rem)] rounded-md border border-input bg-background px-2" value={f.templateId} onChange={(e) => setF({ ...f, templateId: e.target.value })}>
+                    {!(templates.data ?? []).length ? <option value="">{L ? "— कोई डिज़ाइन नहीं; Design Studio में बनाएँ —" : "— no design yet; create one in Design Studio —"}</option> : null}
+                    {(templates.data ?? []).map((t) => <option key={t.id} value={t.id}>{L && t.name_hi ? t.name_hi : t.name}</option>)}
+                  </select>
+                ) : null}
+                <label className="flex items-start gap-2"><input type="radio" checked={f.source === "none"} onChange={() => setF({ ...f, source: "none" })} /> <span><b>{L ? "सिर्फ़ संदेश (बिना चित्र)" : "Text only (no image)"}</b></span></label>
+              </div>
             </Lbl>
             <Lbl label={L ? "साथ में जाने वाला संदेश" : "WhatsApp message"} hint={L ? "{नाम} {पिता} {गाँव} हर व्यक्ति के हिसाब से बदलते हैं; [ ] का हिस्सा खाली होने पर हटता है" : "{नाम} {पिता} {गाँव} are replaced per person; [ ] segments drop when empty"}><Textarea rows={8} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} /></Lbl>
             <Lbl label={L ? "किस नंबर पर" : "Send to"}>
@@ -190,16 +232,24 @@ function ShokSend() {
                 <label className="flex items-start gap-2"><input type="radio" checked={f.mode === "each_member"} onChange={() => setF({ ...f, mode: "each_member" })} /> <span><b>{L ? "हर सदस्य के अपने नंबर पर" : "Each member's own number"}</b> <span className="text-muted-foreground">— {L ? "जिनका नंबर दर्ज है" : "only those with a number"}</span></span></label>
               </div>
             </Lbl>
-            <div className="flex justify-between"><Button asChild variant="ghost"><Link to="/admin/shok">{L ? "रद्द" : "Cancel"}</Link></Button><Button onClick={() => { if (!f.deceased.trim()) { toast.error(L ? "दिवंगत का नाम लिखिए।" : "Enter the deceased name."); return; } setStep(2); }}>{L ? "आगे" : "Next"}</Button></div>
+            <div className="flex justify-between"><Button asChild variant="ghost"><Link to="/admin/shok">{L ? "रद्द" : "Cancel"}</Link></Button><Button onClick={afterDetails}>{L ? "आगे" : "Next"}</Button></div>
           </div>
           <div className="space-y-2">
-            {template ? <div className="overflow-auto rounded-lg bg-secondary/50 p-2"><DesignCanvas doc={template.design} page={0} width={360} data={previewData} renderScale={1.5} /></div> : <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{L ? "कोई चित्र नहीं जाएगा; सिर्फ़ संदेश।" : "No image; text only."}</p>}
-            <p className="text-xs text-muted-foreground">{L ? "पूर्वावलोकन (नमूना नाम के साथ)। हर व्यक्ति का चित्र उसके नाम से बनेगा।" : "Preview with a sample name. Each person gets their own image."}</p>
+            {template ? <div className="overflow-auto rounded-lg bg-secondary/50 p-2"><DesignCanvas doc={template.design} page={0} width={360} data={previewData} renderScale={1.5} /></div>
+              : usePhoto ? <img src={photo!.url} alt="" className="w-full rounded-lg border border-border" />
+                : <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">{f.source === "photo" ? (L ? "ऊपर शोकपत्र की फोटो चुनिए।" : "Choose the letter photo above.") : (L ? "कोई चित्र नहीं जाएगा; सिर्फ़ संदेश।" : "No image; text only.")}</p>}
+            <p className="text-xs text-muted-foreground">{usePhoto ? (L ? "अगले कदम में फोटो पर नाम की जगह चुनेंगे।" : "Next: mark the name area on the photo.") : (L ? "पूर्वावलोकन (नमूना नाम के साथ)। हर व्यक्ति का चित्र उसके नाम से बनेगा।" : "Preview with a sample name. Each person gets their own image.")}</p>
           </div>
         </div>
       ) : null}
 
-      {step === 2 ? (
+      {step === 2 && usePhoto ? (
+        <NameArea L={L} img={photo!.img} box={box} setBox={setBox} tpl={boxTpl} setTpl={setBoxTpl} cover={cover} setCover={setCover}
+          onBack={() => setStep(1)} onNext={() => { if (!box) { toast.error(L ? "पहले फोटो पर नाम की जगह चुनिए।" : "Mark the name area first."); return; } setStep(3); }}
+          onTextOnly={() => { setF({ ...f, source: "none" }); setStep(3); }} />
+      ) : null}
+
+      {step === 3 ? (
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 text-sm">
             {(["village", "region", "family", "lineage"] as const).map((k) => <Button key={k} size="sm" variant={groupBy === k ? "default" : "outline"} onClick={() => setGroupBy(k)}>{{ village: L ? "गाँव-वार" : "By village", region: L ? "क्षेत्र-वार (मूल ग्राम)" : "By origin region", family: L ? "परिवार-वार" : "By family", lineage: L ? "वंश-वार" : "By lineage" }[k]}</Button>)}
@@ -226,14 +276,15 @@ function ShokSend() {
             ); })}
             {dir.isSuccess && !groups.length ? <p className="text-muted-foreground">{L ? "कोई सदस्य नहीं मिला।" : "No members found."}</p> : null}
           </div>
-          <div className="flex justify-between"><Button variant="ghost" onClick={() => setStep(1)}>{L ? "पीछे" : "Back"}</Button><Button onClick={() => { if (!picked.size) { toast.error(L ? "कम से कम एक व्यक्ति चुनिए।" : "Select at least one person."); return; } setStep(3); }}>{L ? "आगे" : "Next"}</Button></div>
+          <div className="flex justify-between"><Button variant="ghost" onClick={() => setStep(usePhoto ? 2 : 1)}>{L ? "पीछे" : "Back"}</Button><Button onClick={() => { if (!picked.size) { toast.error(L ? "कम से कम एक व्यक्ति चुनिए।" : "Select at least one person."); return; } setStep(4); }}>{L ? "आगे" : "Next"}</Button></div>
         </div>
       ) : null}
 
-      {step === 3 ? (
+      {step === 4 ? (
         <div className="space-y-3 rounded-lg border border-border bg-background p-4 text-sm">
           <h2 className="font-display text-lg font-semibold">{f.deceased} · {chosen.length} {L ? "लोग" : "people"}</h2>
-          <p className="text-muted-foreground">{L ? "दशगात्र" : "Ceremony"}: {dmy(f.ceremony) || "—"} · {L ? "स्थान" : "Venue"}: {f.venue || "—"} · {f.mode === "family_main" ? (L ? "परिवार के मुख्य नंबर पर" : "family main number") : (L ? "हर सदस्य के नंबर पर" : "each member's number")} · {template ? (L ? "चित्र: " : "Image: ") + template.name : (L ? "सिर्फ़ संदेश" : "text only")}</p>
+          <p className="text-muted-foreground">{L ? "दशगात्र" : "Ceremony"}: {dmy(f.ceremony) || "—"} · {L ? "स्थान" : "Venue"}: {f.venue || "—"} · {f.mode === "family_main" ? (L ? "परिवार के मुख्य नंबर पर" : "family main number") : (L ? "हर सदस्य के नंबर पर" : "each member's number")} · {template ? (L ? "चित्र: " : "Image: ") + template.name : usePhoto ? (L ? "चित्र: अपनी फोटो" : "Image: own photo") : (L ? "सिर्फ़ संदेश" : "text only")}</p>
+          {usePhoto ? <SamplePreview img={photo!.img} box={box} tpl={boxTpl} cover={cover} first={chosen[0] ?? null} /> : null}
           <details><summary className="cursor-pointer">{L ? "संदेश का नमूना" : "Message sample"}</summary><pre className="mt-2 whitespace-pre-wrap rounded bg-secondary/50 p-3 text-xs">{resolveMessage()}</pre></details>
           <div>
             <p className="font-medium">{L ? "परिवार-वार गिनती" : "Families covered"}</p>
@@ -241,11 +292,49 @@ function ShokSend() {
           </div>
           <label className="flex items-start gap-2"><Checkbox checked={sure} onCheckedChange={(v) => setSure(v === true)} /> <span>{L ? "मैंने नाम, तारीख़ और चुने हुए लोग क्रॉस-चेक कर लिए हैं।" : "I have cross-checked the names, dates and the selected people."}</span></label>
           {progress ? <div><div className="h-2 w-full overflow-hidden rounded bg-secondary"><div className="h-2 bg-primary transition-all" style={{ width: `${progress.pct}%` }} /></div><p className="mt-1 text-xs text-muted-foreground">{progress.text}</p></div> : null}
-          <div className="flex justify-between"><Button variant="ghost" onClick={() => setStep(2)} disabled={!!progress}>{L ? "पीछे" : "Back"}</Button><Button onClick={doSend} disabled={!sure || !!progress}>{ctx.data?.shok_admin ? `${chosen.length} ${L ? "शोकपत्र भेजें" : "letters — send"}` : (L ? "मंज़ूरी के लिए जमा करें" : "Submit for approval")}</Button></div>
+          <div className="flex justify-between"><Button variant="ghost" onClick={() => setStep(3)} disabled={!!progress}>{L ? "पीछे" : "Back"}</Button><Button onClick={doSend} disabled={!sure || !!progress}>{ctx.data?.shok_admin ? `${chosen.length} ${L ? "शोकपत्र भेजें" : "letters — send"}` : (L ? "मंज़ूरी के लिए जमा करें" : "Submit for approval")}</Button></div>
         </div>
       ) : null}
     </div>
   );
+}
+
+const SAMPLE = { name: "रामलाल कश्यप", father: "सुखलाल कश्यप", village: "कुसमुण्डा" };
+
+/** Step 2: drag on the photo to mark where the "श्रीमान/श्रीमती ......" line is; live sample rendering. */
+function NameArea({ L, img, box, setBox, tpl, setTpl, cover, setCover, onBack, onNext, onTextOnly }: { L: boolean; img: HTMLImageElement; box: NameBox | null; setBox: (b: NameBox | null) => void; tpl: string; setTpl: (s: string) => void; cover: boolean; setCover: (b: boolean) => void; onBack: () => void; onNext: () => void; onTextOnly: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const [drag, setDrag] = useState<NameBox | null>(null);
+  useEffect(() => { const t = setTimeout(() => { if (canvasRef.current) void renderLetter(img, box, tpl, SAMPLE, cover, canvasRef.current, 1400); }, 60); return () => clearTimeout(t); }, [img, box, tpl, cover]);
+  const pos = (e: React.PointerEvent) => { const r = canvasRef.current!.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }; };
+  const shown = drag ?? box;
+  return (
+    <div className="space-y-3 rounded-lg border border-border bg-background p-4 text-sm">
+      <h2 className="font-display text-lg font-semibold">{L ? "फोटो में नाम कहाँ लिखना है" : "Where to write the name"}</h2>
+      <p className="text-muted-foreground">{L ? "फोटो पर माउस या उँगली से खींचकर वह जगह चुनिए जहाँ \"श्रीमान/श्रीमती......\" की बिंदियाँ हैं। नमूना नाम से दिखेगा कि हर व्यक्ति का पत्र कैसा बनेगा।" : "Drag on the photo over the dotted \"Shri/Shrimati ......\" line. A sample name shows how each person's letter will look."}</p>
+      <div className="relative mx-auto max-w-3xl touch-none select-none"
+        onPointerDown={(e) => { start.current = pos(e); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); }}
+        onPointerMove={(e) => { if (!start.current) return; const p = pos(e); const s = start.current; setDrag({ x: Math.min(s.x, p.x), y: Math.min(s.y, p.y), w: Math.abs(p.x - s.x), h: Math.abs(p.y - s.y) }); }}
+        onPointerUp={() => { if (!start.current) return; start.current = null; const b = drag; setDrag(null); setBox(b && b.w >= 0.02 && b.h >= 0.004 ? b : null); }}>
+        <canvas ref={canvasRef} className="block w-full cursor-crosshair rounded-md border border-border" />
+        {shown ? <div className="pointer-events-none absolute border-2 border-dashed border-primary bg-primary/10" style={{ left: `${shown.x * 100}%`, top: `${shown.y * 100}%`, width: `${shown.w * 100}%`, height: `${shown.h * 100}%` }} /> : null}
+      </div>
+      <Lbl label={L ? "उस जगह क्या लिखा जाए" : "What to write there"} hint={L ? "{नाम} {पिता} {गाँव} में से जो चाहें; [ ] वाला हिस्सा खाली नाम पर हट जाता है" : "{नाम} {पिता} {गाँव}; [ ] segments drop when empty"}><Input value={tpl} onChange={(e) => setTpl(e.target.value)} /></Lbl>
+      <label className="flex items-center gap-2"><Checkbox checked={cover} onCheckedChange={(v) => setCover(v === true)} /> {L ? "पुरानी बिंदियों को फोटो के रंग से ढँकें" : "Cover the printed dotted line with the paper colour"}</label>
+      <div className="flex flex-wrap justify-between gap-2">
+        <Button variant="ghost" onClick={onBack}>{L ? "पीछे" : "Back"}</Button>
+        <div className="flex gap-2"><Button variant="outline" onClick={onTextOnly}>{L ? "फोटो के बिना, सिर्फ़ संदेश" : "Text only, no photo"}</Button><Button onClick={onNext}>{L ? "आगे" : "Next"}</Button></div>
+      </div>
+    </div>
+  );
+}
+
+/** Review step: how the first selected person's letter will look. */
+function SamplePreview({ img, box, tpl, cover, first }: { img: HTMLImageElement; box: NameBox | null; tpl: string; cover: boolean; first: Dir | null }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => { if (ref.current) void renderLetter(img, box, tpl, first ? { name: first.member_name, father: first.father_name, village: first.village_name } : SAMPLE, cover, ref.current, 900); }, [img, box, tpl, cover, first]);
+  return <canvas ref={ref} className="max-w-sm rounded-md border border-border" />;
 }
 
 function Lbl({ label, hint, children }: { label: string; hint?: string | undefined; children: React.ReactNode }) {

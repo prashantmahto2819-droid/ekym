@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — Phase 19 (Kalchuri One का शोक संदेश module: अपनी शोकपत्र फोटो)
+- समस्या (owner): Admin → शोक संदेश भेजें में शोकपत्र attach करने का विकल्प नहीं था — सिर्फ़ Design Studio template या text-only।
+- `src/lib/shok-letter.ts`: shokpatra के `js/letterImage.js` का TS port (`fillTemplate`, `renderLetter`, box = fractions; `name_box` format shokpatra जैसा ही `{x,y,w,h,template,cover,font,ink}`)।
+- `admin.shok.send.tsx` अब 4 कदम: पत्र की जानकारी (चित्र का स्रोत: **अपनी शोकपत्र फोटो** (default) / Design Studio डिज़ाइन / सिर्फ़ संदेश) → फोटो पर नाम की जगह (drag, template, "बिंदियाँ ढँकें", live नमूना) → किन्हें भेजना है → जाँचकर भेजें (पहले चुने व्यक्ति का नमूना चित्र)। हर व्यक्ति की JPEG `letters/<uid>/<letter>/<recipient>.jpg`, base `base.jpg`; admin का पत्र queued होते ही `send-letters` को `kick` (तुरंत शुरू, वरना ≤1 मिनट)।
+- जाँच: letters insert में `organization_id` (gateway चुनने के लिए), `create_letter_recipients` → `submit_letter` (admin = queued, बाकी = pending_approval) → server queue; सूची पेज पर retry पहले से था।
+
 ## 2026-11-05 — Phase 18 (शोकपत्र = shokpatra.kalchuri.org, multi-org shok, menus/policies)
 - निर्णय (owner): Kalchuri One का अपना family/shok UI नहीं — **शोकपत्र ऐप ही** `shokpatra.kalchuri.org` पर; हर संस्था उसे अपने data-scope में उपयोग करे; अपना WhatsApp API हो तो वही, नहीं तो owner का (app_settings)।
 - shokpatra repo: OG/canonical URLs नया domain, footer में Kalchuri One; `send-letters` v6: letter की organization का default active Vivid Relay channel (`comms_channels` + `k1_comms_channel_runtime`), fallback app_settings।
