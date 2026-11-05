@@ -14,6 +14,9 @@ import { useLang } from "@/core/i18n";
 import { siteName } from "@/core/seo";
 import { useTenant } from "@/core/tenant-context";
 import { submitMembership, type MembershipInput } from "@/lib/forms.functions";
+import { fileToDataUrl } from "@/lib/images";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/join")({
   validateSearch: (s: Record<string, unknown>): { interest?: string } => (typeof s["interest"] === "string" ? { interest: s["interest"] as string } : {}),
@@ -41,6 +44,8 @@ function JoinPage() {
   const { interest } = Route.useSearch();
   const form = useForm<MembershipInput>({ defaultValues: { category: "general", volunteer: { interested: interest === "volunteer" } } });
   const volunteerOn = form.watch("volunteer.interested");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const targets = useQuery({ queryKey: ["contact_targets", tenant.organization_id], queryFn: async () => { const { data } = await supabase.rpc("k1_contact_targets", { p_org: tenant.organization_id } as never); return (data ?? []) as unknown as { id: string; name: string; name_hi: string | null }[]; } });
   const inTree = form.watch("in_family_tree");
   const { register, handleSubmit, formState: { errors, isSubmitting } } = form;
 
@@ -50,8 +55,10 @@ function JoinPage() {
       setFormError(hi ? "कृपया घोषणा स्वीकार करें" : "Please accept the declaration");
       return;
     }
+    if (!photo) { setFormError(hi ? "कृपया अपनी फोटो लगाएँ" : "Please add your photo"); return; }
     try {
-      await submitMembership({ data: { ...values, consent: true, comms_consent: commsConsent } });
+      const photo_data = await fileToDataUrl(photo, 600);
+      await submitMembership({ data: { ...values, photo_data, consent: true, comms_consent: commsConsent } });
       setDone(true);
       toast.success(hi ? "आवेदन भेज दिया गया" : "Application submitted");
     } catch (e) {
@@ -79,6 +86,14 @@ function JoinPage() {
             />
           ) : (
             <form onSubmit={onSubmit} className="surface-card grid gap-4 p-6 sm:grid-cols-2">
+              {targets.data && targets.data.length > 1 ? (
+                <Field label={hi ? "किस संगठन की सदस्यता" : "Membership of which organization"} required className="sm:col-span-2">
+                  <select className={selectClass} {...register("organization_id")}>{targets.data.map((o) => <option key={o.id} value={o.id}>{hi && o.name_hi ? o.name_hi : o.name}</option>)}</select>
+                </Field>
+              ) : null}
+              <Field label={hi ? "आपकी फोटो" : "Your photo"} required className="sm:col-span-2">
+                <div className="flex items-center gap-3">{photo ? <img src={URL.createObjectURL(photo)} alt="" className="size-16 rounded-full object-cover" /> : <span className="grid size-16 place-items-center rounded-full bg-secondary text-xs text-muted-foreground">{hi ? "फोटो" : "photo"}</span>}<input type="file" accept="image/*" capture="user" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></div>
+              </Field>
               <Field label={hi ? "पूरा नाम (English)" : "Full name (English)"} required error={errors.full_name?.message}>
                 <Input {...register("full_name", { required: "Required" })} />
               </Field>

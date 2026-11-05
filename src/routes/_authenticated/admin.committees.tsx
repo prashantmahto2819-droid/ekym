@@ -81,7 +81,7 @@ function CommitteesPage() {
               { key: "phone", label: "Phone" },
               { key: "email", label: "Email" },
               { key: "city", label: "City" },
-              { key: "photo_path", label: "Photo URL", type: "url" },
+              { key: "photo_path", label: "Photo URL", type: "image" },
               { key: "membership_id", label: "Linked member", fk: { table: "org_memberships", label: "full_name" } },
               { key: "show_public", label: "Show on public Team page", type: "checkbox" },
               { key: "show_phone_public", label: "Show phone publicly", type: "checkbox" },

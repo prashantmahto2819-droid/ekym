@@ -6,6 +6,8 @@ import { toast } from "sonner";
 
 import { BLOCK_LABELS, Blocks, newBlock, type Block, type BlockType } from "@/components/site/Blocks";
 import { Badge } from "@/components/ui/badge";
+import { ImageField } from "@/components/admin/ImageField";
+import { MarkupEditor } from "@/components/admin/MarkupEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -97,7 +99,7 @@ function PageBuilder() {
           <Lbl label={L ? "समय पर प्रकाशित (वैकल्पिक)" : "Publish at (optional)"}><Input type="datetime-local" value={page.publish_at ? page.publish_at.slice(0, 16) : ""} onChange={(e) => patch({ publish_at: e.target.value ? new Date(e.target.value).toISOString() : null })} /></Lbl>
           <Lbl label="SEO title"><Input value={page.seo?.title ?? ""} onChange={(e) => patch({ seo: { ...page.seo, title: e.target.value } })} /></Lbl>
           <Lbl label="SEO description"><Input value={page.seo?.description ?? ""} onChange={(e) => patch({ seo: { ...page.seo, description: e.target.value } })} /></Lbl>
-          <Lbl label="Share image URL"><Input value={page.seo?.image ?? ""} onChange={(e) => patch({ seo: { ...page.seo, image: e.target.value } })} /></Lbl>
+          <ImageField label="Share image" value={page.seo?.image ?? ""} onChange={(v) => patch({ seo: { ...page.seo, image: v } })} />
           <label className="flex items-center gap-2"><input type="checkbox" checked={page.is_home} onChange={(e) => patch({ is_home: e.target.checked })} /> {L ? "होम पेज की जगह दिखाएँ" : "Use as the home page"}</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={page.show_in_menu} onChange={(e) => patch({ show_in_menu: e.target.checked })} /> {L ? "मेनू में दिखाएँ" : "Show in the menu"}</label>
           <Lbl label={L ? "मेनू क्रम" : "Menu order"}><Input type="number" value={page.menu_order} onChange={(e) => patch({ menu_order: Number(e.target.value) })} /></Lbl>
@@ -158,6 +160,12 @@ function F({ b, set, disabled, k, label, area, type }: Ctx & { k: string; label:
 function Sel({ b, set, disabled, k, label, opts }: Ctx & { k: string; label: string; opts: (string | number)[] }) {
   return <Lbl label={label}><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={String((b as unknown as Rec)[k] ?? "")} onChange={(e) => set(k, typeof opts[0] === "number" ? Number(e.target.value) : e.target.value)} disabled={disabled}>{opts.map((o) => <option key={o} value={o}>{o}</option>)}</select></Lbl>;
 }
+function Img({ b, set, disabled, k, label }: Ctx & { k: string; label: string }) {
+  return <ImageField label={label} value={String((b as unknown as Rec)[k] ?? "")} onChange={(v) => set(k, v)} disabled={disabled} />;
+}
+function Txt({ b, set, disabled, k, label }: Ctx & { k: string; label: string }) {
+  return <Lbl label={label}><MarkupEditor value={String((b as unknown as Rec)[k] ?? "")} onChange={(v) => set(k, v)} disabled={disabled} /></Lbl>;
+}
 function Chk({ b, set, disabled, k, label }: Ctx & { k: string; label: string }) {
   return <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!(b as unknown as Rec)[k]} onChange={(e) => set(k, e.target.checked)} disabled={disabled} /> {label}</label>;
 }
@@ -169,7 +177,7 @@ function ListEditor({ b, set, disabled, k, fields }: Ctx & { k: string; fields: 
     <div className="space-y-2">
       {items.map((it, i) => (
         <div key={i} className="rounded border border-border p-2">
-          <div className="grid grid-cols-2 gap-1">{fields.map((f) => <Input key={f.key} placeholder={f.label} value={it[f.key] ?? ""} onChange={(e) => upd(i, f.key, e.target.value)} disabled={disabled} />)}</div>
+          <div className="grid grid-cols-2 gap-1">{fields.map((f) => f.key === "src" || f.key === "image" ? <div key={f.key} className="col-span-2"><ImageField label={f.label} value={it[f.key] ?? ""} onChange={(v) => upd(i, f.key, v)} disabled={disabled} /></div> : <Input key={f.key} placeholder={f.label} value={it[f.key] ?? ""} onChange={(e) => upd(i, f.key, e.target.value)} disabled={disabled} />)}</div>
           <div className="mt-1 flex gap-1"><Button size="sm" variant="ghost" disabled={disabled || i === 0} onClick={() => { const a = [...items]; [a[i - 1], a[i]] = [a[i]!, a[i - 1]!]; set(k, a); }}>▲</Button><Button size="sm" variant="ghost" disabled={disabled || i === items.length - 1} onClick={() => { const a = [...items]; [a[i + 1], a[i]] = [a[i]!, a[i + 1]!]; set(k, a); }}>▼</Button><Button size="sm" variant="ghost" disabled={disabled} onClick={() => set(k, items.filter((_, j) => j !== i))}>×</Button></div>
         </div>
       ))}
@@ -182,9 +190,9 @@ function BlockForm({ b, onChange, disabled }: { b: Block; onChange: (b: Block) =
   const set = (k: string, v: unknown) => onChange({ ...b, [k]: v } as Block);
   const c: Ctx = { b, set, disabled };
   switch (b.type) {
-    case "hero": return <div className="space-y-2"><F {...c} k="title" label="Title" /><F {...c} k="title_hi" label="शीर्षक (हिंदी)" /><F {...c} k="subtitle" label="Subtitle" /><F {...c} k="subtitle_hi" label="उपशीर्षक (हिंदी)" /><F {...c} k="image" label="Background image URL" /><F {...c} k="cta_label" label="Button label" /><F {...c} k="cta_to" label="Button link (e.g. /join)" /><Sel {...c} k="align" label="Align" opts={["center", "left"]} /><Chk {...c} k="dark" label="Dark background" /></div>;
-    case "text": return <div className="space-y-2"><F {...c} k="heading" label="Heading" /><F {...c} k="heading_hi" label="शीर्षक (हिंदी)" /><F {...c} k="body" label="Text (blank line = new paragraph, **bold**)" area /><F {...c} k="body_hi" label="पाठ (हिंदी)" area /><Sel {...c} k="width" label="Width" opts={["narrow", "wide"]} /></div>;
-    case "image": return <div className="space-y-2"><F {...c} k="src" label="Image URL" /><F {...c} k="caption" label="Caption" /><Chk {...c} k="full" label="Full width" /></div>;
+    case "hero": return <div className="space-y-2"><F {...c} k="title" label="Title" /><F {...c} k="title_hi" label="शीर्षक (हिंदी)" /><F {...c} k="subtitle" label="Subtitle" /><F {...c} k="subtitle_hi" label="उपशीर्षक (हिंदी)" /><Img {...c} k="image" label="Background image" /><F {...c} k="cta_label" label="Button label" /><F {...c} k="cta_to" label="Button link (e.g. /join)" /><Sel {...c} k="align" label="Align" opts={["center", "left"]} /><Chk {...c} k="dark" label="Dark background" /></div>;
+    case "text": return <div className="space-y-2"><F {...c} k="heading" label="Heading" /><F {...c} k="heading_hi" label="शीर्षक (हिंदी)" /><Txt {...c} k="body" label="Text (English)" /><Txt {...c} k="body_hi" label="पाठ (हिंदी)" /><Sel {...c} k="width" label="Width" opts={["narrow", "wide"]} /></div>;
+    case "image": return <div className="space-y-2"><Img {...c} k="src" label="Image" /><F {...c} k="caption" label="Caption" /><Chk {...c} k="full" label="Full width" /></div>;
     case "gallery": return <div className="space-y-2"><Sel {...c} k="cols" label="Columns" opts={[2, 3, 4]} /><ListEditor {...c} k="images" fields={[{ key: "src", label: "Image URL" }, { key: "caption", label: "Caption" }]} /></div>;
     case "cards": return <div className="space-y-2"><F {...c} k="heading" label="Heading" /><F {...c} k="heading_hi" label="शीर्षक (हिंदी)" /><Sel {...c} k="cols" label="Columns" opts={[2, 3, 4]} /><ListEditor {...c} k="items" fields={[{ key: "title", label: "Title" }, { key: "title_hi", label: "शीर्षक" }, { key: "text", label: "Text" }, { key: "text_hi", label: "पाठ" }, { key: "image", label: "Image URL" }, { key: "to", label: "Link" }]} /></div>;
     case "cta": return <div className="space-y-2"><F {...c} k="text" label="Text" /><F {...c} k="text_hi" label="पाठ (हिंदी)" /><F {...c} k="label" label="Button label" /><F {...c} k="label_hi" label="बटन (हिंदी)" /><F {...c} k="to" label="Link" /><Sel {...c} k="style" label="Style" opts={["primary", "accent"]} /></div>;

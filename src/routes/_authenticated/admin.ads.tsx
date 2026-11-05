@@ -49,7 +49,7 @@ function Campaigns({ org, canEdit }: { org: string; canEdit: boolean }) {
       fields={[
         { key: "title", label: "Campaign name", required: true, full: true },
         { key: "sponsor_name", label: "Sponsor", required: true }, { key: "sponsor_phone", label: "Sponsor phone" }, { key: "sponsor_email", label: "Sponsor email" },
-        { key: "creative_image", label: "Banner image URL (e.g. 970×250 or 300×250)", type: "url", full: true },
+        { key: "creative_image", label: "Banner image URL (e.g. 970×250 or 300×250)", type: "image", full: true },
         { key: "creative_text", label: "Text ad (English)", full: true }, { key: "creative_text_hi", label: "विज्ञापन पाठ (हिंदी)", full: true },
         { key: "link_url", label: "Click-through link", type: "url", full: true },
         { key: "starts_on", label: "Starts", type: "date", required: true }, { key: "ends_on", label: "Ends", type: "date" },

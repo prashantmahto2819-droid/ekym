@@ -33,7 +33,7 @@ function EventsList() {
         { key: "venue", label: "Venue (English)" },
         { key: "venue_hi", label: "स्थान (हिंदी)" },
         { key: "map_url", label: "Map link", type: "url", full: true },
-        { key: "cover_image", label: "Cover image URL", type: "url", full: true },
+        { key: "cover_image", label: "Cover image URL", type: "image", full: true },
         { key: "description", label: "Description (English)", type: "textarea", full: true },
         { key: "description_hi", label: "विवरण (हिंदी)", type: "textarea", full: true },
         { key: "organizer", label: "Organizer / committee" },

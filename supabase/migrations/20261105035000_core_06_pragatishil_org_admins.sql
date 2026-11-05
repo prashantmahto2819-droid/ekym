@@ -1,0 +1,3 @@
+-- Kalchuri One · the existing family-tree (shokpatra) data belongs to प्रगतिशील जायसवाल कन्नौजिया कलार समाज (child of Kalchuri One);
+-- family admins (Anay etc.) move there (their social-region scope stays via shokpatra admin_regions);
+-- Pushpendra & Pukhraj become platform admins for testing. Applied as core_06_pragatishil_org_admins (see migration history).

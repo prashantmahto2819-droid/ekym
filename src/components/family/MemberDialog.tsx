@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ensureVillage, phoneCheck, RELATIONS, rpc, validPhone, type Origin, type Village } from "@/family/api";
+import { publicUrl, uploadPhoto } from "@/lib/images";
 import type { Person } from "@/family/layout";
 import { supabase } from "@/integrations/supabase/client";
 import { normPhone } from "@/lib/comms";
@@ -36,6 +37,8 @@ export function MemberDialog(p: MemberDialogProps) {
   const [deceased, setDeceased] = useState(false);
   const [relation, setRelation] = useState(RELATIONS[1]!);
   const [phone, setPhone] = useState("");
+  const [phone2, setPhone2] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
   const [native, setNative] = useState("");
   const [village, setVillage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -51,6 +54,8 @@ export function MemberDialog(p: MemberDialogProps) {
     setDeceased(!!e?.is_deceased);
     setRelation(e?.relation ?? (isHead ? RELATIONS[0]! : RELATIONS[1]!));
     setPhone(p.hideContacts ? "" : (e?.phone ?? "").replace(/^91/, ""));
+    setPhone2(p.hideContacts ? "" : (e?.phone2 ?? "").replace(/^91/, ""));
+    setPhoto(null);
     setNative(e?.native_place ?? p.addUnder?.native_place ?? "");
     setVillage(vName(e?.village_id) || vName((p.addUnder as { village_id?: string | null } | null)?.village_id) || p.familyVillage || "");
   }, [p.open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -72,6 +77,10 @@ export function MemberDialog(p: MemberDialogProps) {
       };
       const keepPhone = p.hideContacts && p.edit && !ph && !deceased;
       if (!keepPhone) row["phone"] = ph ? normPhone(ph) : null;
+      const ph2 = deceased ? "" : phone2.trim();
+      if (ph2 && !validPhone(ph2)) { toast.error(L ? "दूसरा मोबाइल नंबर सही नहीं है।" : "Second mobile number is invalid."); setBusy(false); return; }
+      if (!(p.hideContacts && p.edit && !ph2)) row["phone2"] = ph2 ? normPhone(ph2) : null;
+      if (photo) row["photo_path"] = await uploadPhoto("family-photos", `${p.familyId}/${p.edit?.id ?? crypto.randomUUID()}.jpg`, photo, 600);
       if (row["phone"] && (!p.edit || row["phone"] !== p.edit.phone)) {
         const hits = await phoneCheck(ph, p.familyId, p.edit?.id ?? null);
         if (hits.length) {
@@ -120,6 +129,8 @@ export function MemberDialog(p: MemberDialogProps) {
           {kind === "son" ? (
             <L1 label={L ? "रिश्ता" : "Relation"}><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={relation} onChange={(e) => setRelation(e.target.value)}>{RELATIONS.map((r) => <option key={r} value={r}>{r}</option>)}</select></L1>
           ) : null}
+          <L1 label={L ? "फोटो (ज़रूरी नहीं)" : "Photo (optional)"}><div className="flex items-center gap-2">{photo ? <img src={URL.createObjectURL(photo)} alt="" className="size-10 rounded-full object-cover" /> : p.edit?.photo_path ? <img src={publicUrl("family-photos", p.edit.photo_path)} alt="" className="size-10 rounded-full object-cover" /> : null}<input type="file" accept="image/*" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></div></L1>
+          {!deceased ? <L1 label={L ? "दूसरा WhatsApp नंबर (ज़रूरी नहीं)" : "Second WhatsApp number (optional)"}><Input inputMode="numeric" maxLength={12} value={phone2} onChange={(e) => setPhone2(e.target.value)} /></L1> : null}
           {!deceased ? <L1 label={L ? "मोबाइल नंबर (ज़रूरी नहीं)" : "Mobile (optional)"} hint={p.hideContacts && p.edit ? (L ? "नंबर आपके लिए छिपा है; खाली छोड़ेंगे तो वही रहेगा" : "hidden for you; leave empty to keep") : undefined}><Input inputMode="numeric" maxLength={12} value={phone} onChange={(e) => setPhone(e.target.value)} /></L1> : null}
           <L1 label={L ? "मूल ग्राम" : "Native village (origin)"} hint={L ? "सूची से चुनिए; न हो तो लिख दीजिए (एडमिन जोड़ देगा)" : "pick from the list or type (admin will add it)"}>
             <Input list="k1-origins" value={native} onChange={(e) => setNative(e.target.value)} />

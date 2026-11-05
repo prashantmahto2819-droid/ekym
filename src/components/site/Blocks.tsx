@@ -49,21 +49,33 @@ export function newBlock(type: BlockType): Block {
   }
 }
 
-/** Minimal safe text formatting: paragraphs, **bold**, line breaks, bare URLs stay text. */
+/** Safe lightweight markup → React (no HTML): paragraphs, ## / ### headings, **bold**, *italic*, - / 1. lists,
+ *  > quotes, [text](url) links, ![caption](url) images. Bare URLs stay text. */
+function Inline({ t }: { t: string }) {
+  const parts = t.split(/(\*\*[^*]+\*\*|\*[^*\n]+\*|\[[^\]]+\]\((?:https?:\/\/|\/)[^)\s]+\))/g);
+  return <>{parts.map((seg, k) => {
+    if (seg.startsWith("**") && seg.endsWith("**")) return <strong key={k}>{seg.slice(2, -2)}</strong>;
+    if (seg.startsWith("*") && seg.endsWith("*") && seg.length > 2) return <em key={k}>{seg.slice(1, -1)}</em>;
+    const m = seg.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    if (m) return m[2]!.startsWith("/") ? <a key={k} href={m[2]} className="underline">{m[1]}</a> : <a key={k} href={m[2]} target="_blank" rel="noreferrer" className="underline">{m[1]}</a>;
+    return <span key={k}>{seg}</span>;
+  })}</>;
+}
 export function RichText({ text, className = "" }: { text: string; className?: string }) {
-  const paras = (text ?? "").split(/\n{2,}/);
+  const blocks = (text ?? "").replace(/\r/g, "").split(/\n{2,}/);
   return (
     <div className={`prose-content ${className}`}>
-      {paras.map((p, i) => (
-        <p key={i}>
-          {p.split("\n").map((line, j, arr) => (
-            <span key={j}>
-              {line.split(/(\*\*[^*]+\*\*)/g).map((seg, k) => seg.startsWith("**") && seg.endsWith("**") ? <strong key={k}>{seg.slice(2, -2)}</strong> : <span key={k}>{seg}</span>)}
-              {j < arr.length - 1 ? <br /> : null}
-            </span>
-          ))}
-        </p>
-      ))}
+      {blocks.map((blk, i) => {
+        const lines = blk.split("\n");
+        const img = blk.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+        if (img) return <figure key={i} className="my-4"><img src={img[2]} alt={img[1]} className="w-full rounded-lg" loading="lazy" />{img[1] ? <figcaption className="mt-1 text-center text-xs text-muted-foreground">{img[1]}</figcaption> : null}</figure>;
+        if (/^###\s/.test(blk)) return <h3 key={i} className="mt-6 font-display text-lg font-semibold"><Inline t={blk.replace(/^###\s/, "")} /></h3>;
+        if (/^##\s/.test(blk)) return <h2 key={i} className="mt-8 font-display text-xl font-semibold"><Inline t={blk.replace(/^##\s/, "")} /></h2>;
+        if (lines.every((l) => /^\s*-\s/.test(l))) return <ul key={i} className="my-3 list-disc space-y-1 pl-6">{lines.map((l, j) => <li key={j}><Inline t={l.replace(/^\s*-\s/, "")} /></li>)}</ul>;
+        if (lines.every((l) => /^\s*\d+[.)]\s/.test(l))) return <ol key={i} className="my-3 list-decimal space-y-1 pl-6">{lines.map((l, j) => <li key={j}><Inline t={l.replace(/^\s*\d+[.)]\s/, "")} /></li>)}</ol>;
+        if (lines.every((l) => /^>\s?/.test(l))) return <blockquote key={i} className="my-4 border-l-4 border-primary/40 pl-4 italic text-muted-foreground">{lines.map((l, j) => <span key={j}><Inline t={l.replace(/^>\s?/, "")} />{j < lines.length - 1 ? <br /> : null}</span>)}</blockquote>;
+        return <p key={i}>{lines.map((line, j) => <span key={j}><Inline t={line} />{j < lines.length - 1 ? <br /> : null}</span>)}</p>;
+      })}
     </div>
   );
 }

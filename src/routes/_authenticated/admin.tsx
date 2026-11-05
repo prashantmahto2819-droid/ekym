@@ -34,7 +34,7 @@ const ALL_NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/shok", label: "Shok sandesh (condolence)", group: "Family & shok" },
   { to: "/admin/pages", label: "Pages (builder)", group: "Website" },
   { to: "/admin/website", label: "Theme, menus & domains", group: "Website" },
-  { to: "/admin/homepage", label: "Homepage sections", group: "Content" },
+  { to: "/admin/homepage", label: "Home page (slides, sections)", group: "Content" },
   { to: "/admin/seva", label: "Seva projects", group: "Content" },
   { to: "/admin/blogs", label: "Blogs", group: "Content" },
   { to: "/admin/news", label: "News", group: "Content" },

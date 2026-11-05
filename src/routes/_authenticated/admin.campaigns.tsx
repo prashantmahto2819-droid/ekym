@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/admin/campaigns")({
           options: ["published", "draft", "review", "archived"],
         },
         { key: "description", label: "Description", type: "textarea", full: true },
-        { key: "cover_image", label: "Cover image URL", type: "url", full: true },
+        { key: "cover_image", label: "Cover image URL", type: "image", full: true },
         { key: "target_amount", label: "Target amount", type: "number" },
         { key: "raised_amount", label: "Raised amount", type: "number" },
         { key: "start_date", label: "Start date", type: "date" },

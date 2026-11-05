@@ -1,4 +1,5 @@
 // Interactive family chart: SVG, pan/zoom, click to select, highlight the selected person's line.
+import { publicUrl } from "@/lib/images";
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type WheelEvent as RWheelEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,8 @@ export function familyPalette(ids: string[]): Record<string, string> {
   [...new Set(ids)].forEach((id, i) => { out[id] = PALETTE[i % PALETTE.length]!; });
   return out;
 }
+
+const photoUrl = (p: string) => publicUrl("family-photos", p);
 
 export function FamilyChart({ people, selectedId, onSelect, familyColors, height = 560, toolbar, lang = "en" }: FamilyChartProps) {
   const layout = useMemo(() => layoutFamily(people), [people]);
@@ -66,14 +69,31 @@ export function FamilyChart({ people, selectedId, onSelect, familyColors, height
       return { k, x: mx - (mx - v.x) * (k / v.k), y: my - (my - v.y) * (k / v.k) };
     });
   }
-  function onDown(e: RPointerEvent<HTMLDivElement>) { movedRef.current = false; setDrag({ sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y }); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); }
+  // touch: one finger pans, two fingers pinch-zoom
+  const ptrs = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ d: number; k: number; cx: number; cy: number } | null>(null);
+  function onDown(e: RPointerEvent<HTMLDivElement>) {
+    ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    if (ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()]; const rect = wrapRef.current!.getBoundingClientRect();
+      pinch.current = { d: Math.hypot(a!.x - b!.x, a!.y - b!.y), k: view.k, cx: (a!.x + b!.x) / 2 - rect.left, cy: (a!.y + b!.y) / 2 - rect.top }; setDrag(null); movedRef.current = true; return;
+    }
+    movedRef.current = false; setDrag({ sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y });
+  }
   function onMove(e: RPointerEvent<HTMLDivElement>) {
+    if (ptrs.current.has(e.pointerId)) ptrs.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch.current && ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()]; const d = Math.hypot(a!.x - b!.x, a!.y - b!.y); const pz = pinch.current;
+      setView((v) => { const k = Math.max(0.15, Math.min(3, pz.k * (d / pz.d))); return { k, x: pz.cx - (pz.cx - v.x) * (k / v.k), y: pz.cy - (pz.cy - v.y) * (k / v.k) }; });
+      return;
+    }
     if (!drag) return;
     const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
     if (Math.abs(dx) + Math.abs(dy) > 3) movedRef.current = true;
     setView((v) => ({ ...v, x: drag.ox + dx, y: drag.oy + dy }));
   }
-  function onUp() { setDrag(null); }
+  function onUp(e: RPointerEvent<HTMLDivElement>) { ptrs.current.delete(e.pointerId); if (ptrs.current.size < 2) pinch.current = null; setDrag(null); }
 
   const zoom = (f: number) => setView((v) => { const k = Math.max(0.15, Math.min(3, v.k * f)); return { k, x: wrapW / 2 - (wrapW / 2 - v.x) * (k / v.k), y: height / 2 - (height / 2 - v.y) * (k / v.k) }; });
   const L = lang === "hi";
@@ -105,11 +125,12 @@ export function FamilyChart({ people, selectedId, onSelect, familyColors, height
                 onClick={(e) => { e.stopPropagation(); if (!movedRef.current) onSelect?.(sel ? null : p); }}>
                 <rect width={BOX_W} height={BOX_H} rx={10} fill={sel ? "#fff7e6" : "#ffffff"} stroke={sel ? "#b8924a" : "#d8dde6"} strokeWidth={sel ? 2.5 : 1.2} />
                 <rect width={5} height={BOX_H} rx={2} fill={color} />
-                <text x={14} y={24} fontFamily="'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif" fontSize={15} fontWeight={700} fill={p.name_unknown ? "#7b8494" : "#14213d"} fontStyle={p.name_unknown ? "italic" : "normal"}>
-                  {clip((p.is_deceased ? "स्व. " : "") + p.name, 18)}
+                {p.photo_path ? <><clipPath id={`ph-${p.id}`}><circle cx={30} cy={BOX_H / 2} r={20} /></clipPath><image href={photoUrl(p.photo_path)} x={10} y={BOX_H / 2 - 20} width={40} height={40} preserveAspectRatio="xMidYMid slice" clipPath={`url(#ph-${p.id})`} /><circle cx={30} cy={BOX_H / 2} r={20} fill="none" stroke={color} strokeWidth={1.5} /></> : null}
+                <text x={p.photo_path ? 56 : 14} y={24} fontFamily="'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif" fontSize={15} fontWeight={700} fill={p.name_unknown ? "#7b8494" : "#14213d"} fontStyle={p.name_unknown ? "italic" : "normal"}>
+                  {clip((p.is_deceased ? "स्व. " : "") + p.name, p.photo_path ? 13 : 18)}
                 </text>
-                <text x={14} y={42} fontFamily="Mukta, sans-serif" fontSize={11} fill="#5a6475">{clip(sub, 26)}</text>
-                <g transform={`translate(14,${BOX_H - 14})`}>
+                <text x={p.photo_path ? 56 : 14} y={42} fontFamily="Mukta, sans-serif" fontSize={11} fill="#5a6475">{clip(sub, p.photo_path ? 18 : 26)}</text>
+                <g transform={`translate(${p.photo_path ? 56 : 14},${BOX_H - 14})`}>
                   {[p.is_head ? (L ? "मुखिया" : "head") : null, kindLabel, p.is_deceased ? (L ? "दिवंगत" : "late") : null, p.family_name && familyColors ? p.family_name : null].filter(Boolean).map((t, i, arr) => {
                     const offset = arr.slice(0, i).reduce((s, x) => s + String(x).length * 6.2 + 14, 0);
                     return (

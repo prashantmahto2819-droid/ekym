@@ -292,6 +292,8 @@ const membershipSchema = z.object({
   family_head_name: optional,
   in_family_tree: z.boolean().optional(),
   volunteer: z.object({ interested: z.boolean().optional(), areas: z.array(z.string()).optional(), availability: z.string().optional(), skills: z.string().optional() }).optional(),
+  organization_id: optional,
+  photo_data: z.string().max(1_500_000, "Photo too large").optional(),
   consent: z.literal(true, { errorMap: () => ({ message: "Please accept the declaration" }) }),
   comms_consent: z.boolean().optional(),
 });
@@ -300,11 +302,26 @@ export type MembershipInput = z.input<typeof membershipSchema>;
 export const submitMembership = createServerFn({ method: "POST" })
   .inputValidator((d: MembershipInput) => parse(membershipSchema, d))
   .handler(async ({ data }) => {
-    const org = await tenantId();
-    const { comms_consent, ...rest } = data;
+    const me = await tenantId();
+    const { comms_consent, organization_id, photo_data, ...rest } = data;
+    // the applicant may pick a member organization of this platform (umbrella site)
+    let org = me;
+    if (organization_id && organization_id !== me) {
+      const { data: ok } = await sb().rpc("k1_contact_targets", { p_org: me } as never);
+      if ((ok as { id: string }[] | null)?.some((o) => o.id === organization_id)) org = organization_id;
+    }
+    // photo: uploaded with the service role into the private documents bucket (members/<org>/<random>.jpg)
+    let photo_path: string | null = null;
+    if (photo_data?.startsWith("data:image/")) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const bytes = Uint8Array.from(atob(photo_data.split(",")[1] ?? ""), (c) => c.charCodeAt(0));
+      photo_path = `members/${org}/${crypto.randomUUID()}.jpg`;
+      const { error: upErr } = await supabaseAdmin.storage.from("documents").upload(photo_path, bytes, { contentType: "image/jpeg" });
+      if (upErr) photo_path = null;
+    }
     const { error } = await sb()
       .from("org_memberships")
-      .insert({ ...clean(rest), organization_id: org, status: "applied" } as any);
+      .insert({ ...clean(rest), ...(photo_path ? { photo_path } : {}), organization_id: org, status: "applied" } as any);
     if (error) {
       if (error.message.toLowerCase().includes("duplicate")) {
         throw new Error("An application or membership with this mobile number already exists.");

@@ -1080,10 +1080,13 @@ export type Database = {
           height_cm: number | null
           id: string
           income_range: string | null
+          interests: string | null
           native_place: string | null
           organization_id: string
           photo_path: string | null
+          photos: string[]
           profession: string | null
+          special_note: string | null
           state: string | null
           status: string
           updated_at: string
@@ -1109,10 +1112,13 @@ export type Database = {
           height_cm?: number | null
           id?: string
           income_range?: string | null
+          interests?: string | null
           native_place?: string | null
           organization_id: string
           photo_path?: string | null
+          photos?: string[]
           profession?: string | null
+          special_note?: string | null
           state?: string | null
           status?: string
           updated_at?: string
@@ -1138,10 +1144,13 @@ export type Database = {
           height_cm?: number | null
           id?: string
           income_range?: string | null
+          interests?: string | null
           native_place?: string | null
           organization_id?: string
           photo_path?: string | null
+          photos?: string[]
           profession?: string | null
+          special_note?: string | null
           state?: string | null
           status?: string
           updated_at?: string
@@ -4496,6 +4505,7 @@ export type Database = {
           origin_village_id: string | null
           parent_id: string | null
           phone: string | null
+          phone2: string | null
           relation: string | null
           status: string
           suggested_by: string
@@ -4514,6 +4524,7 @@ export type Database = {
           origin_village_id?: string | null
           parent_id?: string | null
           phone?: string | null
+          phone2?: string | null
           relation?: string | null
           status?: string
           suggested_by?: string
@@ -4532,6 +4543,7 @@ export type Database = {
           origin_village_id?: string | null
           parent_id?: string | null
           phone?: string | null
+          phone2?: string | null
           relation?: string | null
           status?: string
           suggested_by?: string
@@ -4583,6 +4595,8 @@ export type Database = {
           parent_id: string | null
           phone: string | null
           phone_dup_ok: boolean
+          phone2: string | null
+          photo_path: string | null
           relation: string | null
           sort_order: number
           updated_at: string
@@ -4602,6 +4616,8 @@ export type Database = {
           parent_id?: string | null
           phone?: string | null
           phone_dup_ok?: boolean
+          phone2?: string | null
+          photo_path?: string | null
           relation?: string | null
           sort_order?: number
           updated_at?: string
@@ -4621,6 +4637,8 @@ export type Database = {
           parent_id?: string | null
           phone?: string | null
           phone_dup_ok?: boolean
+          phone2?: string | null
+          photo_path?: string | null
           relation?: string | null
           sort_order?: number
           updated_at?: string
@@ -7013,6 +7031,7 @@ export type Database = {
         }[]
       }
       k1_health: { Args: never; Returns: Json }
+      k1_in_family: { Args: { p_family: string }; Returns: boolean }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
@@ -7075,10 +7094,13 @@ export type Database = {
           height_cm: number
           id: string
           income_range: string
+          interests: string
           my_interest: string
           native_place: string
           photo_path: string
+          photos: string[]
           profession: string
+          special_note: string
           their_interest: string
           verified: boolean
         }[]
@@ -7109,6 +7131,11 @@ export type Database = {
         Args: { p_id: string; p_verified: boolean }
         Returns: undefined
       }
+      k1_member_update_contact: {
+        Args: { p_member: string; p_phone2?: string; p_photo?: string }
+        Returns: undefined
+      }
+      k1_my_family: { Args: never; Returns: Json }
       k1_my_orgs: {
         Args: never
         Returns: {

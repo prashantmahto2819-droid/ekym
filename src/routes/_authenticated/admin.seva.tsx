@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/admin/seva")({
         { key: "icon", label: "Icon key", hint: "e.g. blood, food, books" },
         { key: "short_description", label: "Short description", type: "textarea", full: true },
         { key: "description", label: "Full description", type: "textarea", full: true },
-        { key: "featured_image", label: "Featured image URL", type: "url", full: true },
+        { key: "featured_image", label: "Featured image URL", type: "image", full: true },
         { key: "coordinator", label: "Coordinator" },
         { key: "phone", label: "Phone" },
         { key: "location", label: "Location" },

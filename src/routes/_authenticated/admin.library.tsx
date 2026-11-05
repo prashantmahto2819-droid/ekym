@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/admin/library")({
         { key: "available_quantity", label: "Available copies", type: "number" },
         { key: "shelf", label: "Shelf" },
         { key: "location", label: "Location" },
-        { key: "cover_image", label: "Cover image URL", type: "url", full: true },
+        { key: "cover_image", label: "Cover image URL", type: "image", full: true },
         {
           key: "status",
           label: "Status",

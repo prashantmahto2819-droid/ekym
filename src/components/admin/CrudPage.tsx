@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageField } from "@/components/admin/ImageField";
+import { MarkupEditor } from "@/components/admin/MarkupEditor";
 import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,7 +25,7 @@ export type AdminOption = string | { value: string; label: string };
 export type AdminField = {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "date" | "datetime" | "checkbox" | "url" | "select";
+  type?: "text" | "textarea" | "number" | "date" | "datetime" | "checkbox" | "url" | "select" | "image" | "markup";
   hint?: string;
   required?: boolean;
   full?: boolean;
@@ -340,6 +342,10 @@ export function CrudPage({
                 >
                   {f.type === "textarea" ? (
                     <Textarea name={f.key} rows={5} defaultValue={value ?? ""} required={f.required} />
+                  ) : f.type === "image" ? (
+                    <HiddenImage name={f.key} initial={value ?? ""} />
+                  ) : f.type === "markup" ? (
+                    <HiddenMarkup name={f.key} initial={value ?? ""} />
                   ) : f.type === "select" || f.fk ? (
                     <select
                       name={f.key}
@@ -381,4 +387,14 @@ export function CrudPage({
       </Dialog>
     </div>
   );
+}
+
+/** Uncontrolled wrappers so the upload / editor fields still submit through the plain <form>. */
+function HiddenImage({ name, initial }: { name: string; initial: string }) {
+  const [v, setV] = useState(initial);
+  return <><input type="hidden" name={name} value={v} /><ImageField label="" value={v} onChange={setV} folder={name} /></>;
+}
+function HiddenMarkup({ name, initial }: { name: string; initial: string }) {
+  const [v, setV] = useState(initial);
+  return <><input type="hidden" name={name} value={v} /><MarkupEditor value={v} onChange={setV} rows={12} /></>;
 }

@@ -217,6 +217,8 @@ function FamilyPage() {
           {!selSide ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "son", asHead: false })}>+ {L ? "पुत्र" : "Son"}</Button> : null}
           {!selSide ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "daughter", asHead: false })}>+ {L ? "पुत्री" : "Daughter"}</Button> : null}
           {!selSide && !hasSpouse ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "spouse", asHead: false })}>+ {L ? "पत्नी" : "Wife"}</Button> : null}
+          {!selSide && selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: people.find((x) => x.id === selCur.parent_id) ?? null, edit: null, kind: "son", asHead: false })}>+ {L ? "भाई" : "Brother"}</Button> : null}
+          {!selSide && selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: people.find((x) => x.id === selCur.parent_id) ?? null, edit: null, kind: "daughter", asHead: false })}>+ {L ? "बहन" : "Sister"}</Button> : null}
           {!selSide && !selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => addAncestor(selCur)} disabled={busy}>⬆ {L ? "पूर्वज जोड़ें" : "Add ancestor"}</Button> : null}
           <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: null, edit: selCur as Member, kind: "son", asHead: false })}>{L ? "बदलें" : "Edit"}</Button>
           {!selSide && !selCur.is_head && !selCur.is_deceased && !selCur.name_unknown ? <Button size="sm" variant="outline" onClick={() => makeHead(selCur)} disabled={busy}>{L ? "मुखिया बनाएँ" : "Make head"}</Button> : null}

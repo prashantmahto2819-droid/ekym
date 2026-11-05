@@ -14,12 +14,13 @@ import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { signedUrls, uploadPhoto } from "@/lib/images";
 import { normPhone } from "@/lib/comms";
 
 export const Route = createFileRoute("/_authenticated/matrimony")({ head: () => ({ meta: [{ title: "Matrimony" }, { name: "robots", content: "noindex" }] }), component: MatrimonyPage });
 
 type Mine = { id: string; display_name: string; gender: string; birth_year: number; created_for: string; status: string; verified_at: string | null; city: string | null };
-type Card = { id: string; display_name: string; gender: string; age: number; height_cm: number | null; education: string | null; profession: string | null; income_range: string | null; city: string | null; district: string | null; gotra: string | null; native_place: string | null; about: string | null; expectations: string | null; photo_path: string | null; created_for: string; verified: boolean; my_interest: string | null; their_interest: string | null };
+type Card = { id: string; display_name: string; gender: string; age: number; height_cm: number | null; education: string | null; profession: string | null; income_range: string | null; city: string | null; district: string | null; gotra: string | null; native_place: string | null; about: string | null; expectations: string | null; photo_path: string | null; created_for: string; verified: boolean; my_interest: string | null; their_interest: string | null; photos: string[]; interests: string | null; special_note: string | null };
 type Inbox = { interest_id: string; direction: string; status: string; other_id: string; other_name: string; other_age: number; other_city: string | null; created_at: string };
 const rpc = async <T,>(fn: string, args: Record<string, unknown>): Promise<T> => { const { data, error } = await supabase.rpc(fn as never, args as never); if (error) throw new Error(error.message); return data as T; };
 
@@ -38,7 +39,10 @@ function MatrimonyPage() {
   const inbox = useQuery({ queryKey: ["matri_inbox", org], enabled: member.data === true, queryFn: () => rpc<Inbox[]>("k1_matrimony_inbox", { p_org: org }) });
   const refresh = () => { qc.invalidateQueries({ queryKey: ["matri_browse"] }); qc.invalidateQueries({ queryKey: ["matri_inbox"] }); qc.invalidateQueries({ queryKey: ["matri_mine"] }); };
   const myActive = (mine.data ?? []).find((m) => m.status === "active" && m.verified_at);
-  const photoUrl = (p: string | null) => (p ? supabase.storage.from("matrimony").getPublicUrl(p).data.publicUrl : "");
+  // private bucket → signed URLs for every photo on the visible cards
+  const allPaths = (cards.data ?? []).flatMap((c) => [c.photo_path, ...(c.photos ?? [])]).filter((x): x is string => !!x);
+  const urls = useQuery({ queryKey: ["matri_urls", allPaths.join("|")], enabled: allPaths.length > 0, staleTime: 50 * 60_000, queryFn: () => signedUrls("matrimony", allPaths) });
+  const photoUrl = (p: string | null) => (p ? urls.data?.[p] ?? "" : "");
 
   async function interest(to: string) {
     if (!myActive) { toast.error(L ? "पहले अपना प्रोफ़ाइल बनाएँ और सत्यापित कराएँ।" : "Create and verify your own profile first."); return; }
@@ -60,12 +64,14 @@ function MatrimonyPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {(cards.data ?? []).map((c) => (
               <article key={c.id} className="surface-card p-4 text-sm">
-                {c.photo_path ? <img src={photoUrl(c.photo_path)} alt="" className="mb-3 aspect-square w-full rounded-md object-cover" /> : null}
+                <Gallery paths={[c.photo_path, ...(c.photos ?? [])].filter((x): x is string => !!x)} url={photoUrl} />
                 <h3 className="font-display text-lg font-semibold">{c.display_name} <span className="text-sm font-normal text-muted-foreground">· {c.age} {L ? "वर्ष" : "yrs"}</span></h3>
                 <p className="text-muted-foreground">{[c.education, c.profession, c.income_range].filter(Boolean).join(" · ")}</p>
                 <p className="text-muted-foreground">{[c.city, c.district].filter(Boolean).join(", ")}{c.gotra ? ` · ${L ? "गोत्र" : "gotra"}: ${c.gotra}` : ""}{c.native_place ? ` · ${L ? "मूल" : "native"}: ${c.native_place}` : ""}{c.height_cm ? ` · ${c.height_cm} cm` : ""}</p>
                 {c.about ? <p className="mt-2">{c.about}</p> : null}
+                {c.interests ? <p className="mt-1 text-xs text-muted-foreground">{L ? "रुचियाँ" : "Interests"}: {c.interests}</p> : null}
                 {c.expectations ? <p className="mt-1 text-xs text-muted-foreground">{L ? "अपेक्षाएँ" : "Looking for"}: {c.expectations}</p> : null}
+                {c.special_note ? <p className="mt-1 rounded bg-secondary/60 px-2 py-1 text-xs">{L ? "विशेष" : "Note"}: {c.special_note}</p> : null}
                 <div className="mt-3 flex flex-wrap gap-2">
                   {c.my_interest === "accepted" || c.their_interest === "accepted" ? <Button size="sm" onClick={() => showContact(c.id)}>{L ? "संपर्क देखें" : "View contact"}</Button>
                     : c.my_interest ? <Badge variant="secondary">{L ? "रुचि भेजी" : "Interest sent"} · {c.my_interest}</Badge>
@@ -99,6 +105,7 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
   const [f, setF] = useState<Record<string, string>>({ created_for: "self", gender: "male" });
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
   const set = (k: string, v: string) => setF((x) => ({ ...x, [k]: v }));
   async function save() {
     if (!consent) { toast.error(L ? "सहमति ज़रूरी है" : "Consent is required"); return; }
@@ -106,8 +113,13 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
     setBusy(true);
     try {
       const uid = (await supabase.auth.getUser()).data.user!.id;
-      const { error } = await supabase.from("cm_matrimony_profiles").insert({ organization_id: org, user_id: uid, created_for: f["created_for"], display_name: f["display_name"].trim(), gender: f["gender"], birth_year: by, height_cm: f["height_cm"] ? Number(f["height_cm"]) : null, education: f["education"] || null, profession: f["profession"] || null, income_range: f["income_range"] || null, city: f["city"] || null, district: f["district"] || null, gotra: f["gotra"] || null, native_place: f["native_place"] || null, about: f["about"] || null, expectations: f["expectations"] || null, contact_phone: normPhone(f["contact_phone"]) } as never);
+      const { data: ins, error } = await supabase.from("cm_matrimony_profiles").insert({ organization_id: org, user_id: uid, created_for: f["created_for"], display_name: f["display_name"].trim(), gender: f["gender"], birth_year: by, height_cm: f["height_cm"] ? Number(f["height_cm"]) : null, education: f["education"] || null, profession: f["profession"] || null, income_range: f["income_range"] || null, city: f["city"] || null, district: f["district"] || null, gotra: f["gotra"] || null, native_place: f["native_place"] || null, about: f["about"] || null, expectations: f["expectations"] || null, interests: f["interests"] || null, special_note: f["special_note"] || null, contact_phone: normPhone(f["contact_phone"]) } as never).select("id").single();
       if (error) throw error;
+      if (files.length) {
+        const pid = (ins as { id: string }).id; const paths: string[] = [];
+        for (let i = 0; i < Math.min(files.length, 6); i++) paths.push(await uploadPhoto("matrimony", `${org}/${pid}/${i + 1}.jpg`, files[i]!, 1000));
+        const { error: e2 } = await supabase.from("cm_matrimony_profiles").update({ photo_path: paths[0], photos: paths } as never).eq("id", pid); if (e2) throw e2;
+      }
       toast.success(L ? "प्रोफ़ाइल बना — एडमिन सत्यापन के बाद दिखेगा" : "Profile created — visible after admin verification"); setOpen(false); onChange();
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
@@ -127,11 +139,27 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
           {In("gotra", L ? "गोत्र" : "Gotra")}{In("native_place", L ? "मूल ग्राम" : "Native place")}
           <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "परिचय" : "About"}</span><Textarea rows={3} value={f["about"] ?? ""} onChange={(e) => set("about", e.target.value)} /></label>
           <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपेक्षाएँ" : "Expectations"}</span><Textarea rows={2} value={f["expectations"] ?? ""} onChange={(e) => set("expectations", e.target.value)} /></label>
+          <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "रुचियाँ / शौक" : "Interests / hobbies"}</span><Input value={f["interests"] ?? ""} onChange={(e) => set("interests", e.target.value)} placeholder={L ? "जैसे: संगीत, यात्रा, पढ़ना" : "e.g. music, travel, reading"} /></label>
+          <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "विशेष टिप्पणी (मांगलिक, पुनर्विवाह, विशेष अपेक्षा आदि)" : "Special note (manglik, remarriage, specific requirement …)"}</span><Textarea rows={2} value={f["special_note"] ?? ""} onChange={(e) => set("special_note", e.target.value)} /></label>
+          <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "फोटो (6 तक; पहली फोटो मुख्य)" : "Photos (up to 6; first is the main one)"}</span><input type="file" accept="image/*" multiple onChange={(e) => setFiles([...(e.target.files ?? [])].slice(0, 6))} />{files.length ? <div className="mt-2 flex flex-wrap gap-2">{files.map((fl, i) => <img key={i} src={URL.createObjectURL(fl)} alt="" className="h-16 w-16 rounded object-cover" />)}</div> : null}</label>
           {In("contact_phone", L ? "संपर्क मोबाइल (सिर्फ़ स्वीकृति के बाद दिखेगा)" : "Contact mobile (shared only after mutual acceptance)")}
           <label className="flex items-start gap-2 sm:col-span-2 text-xs"><Checkbox checked={consent} onCheckedChange={(v) => setConsent(v === true)} /> <span>{L ? "मैं पुष्टि करता/करती हूँ कि यह व्यक्ति वयस्क है, जानकारी सही है, और इसे संगठन के सदस्यों को दिखाने की सहमति है। एडमिन सत्यापन के बाद ही दिखेगा।" : "I confirm the person is an adult, the details are true, and consent to showing this profile to members. Visible only after admin verification."}</span></label>
           <div className="sm:col-span-2 flex gap-2"><Button onClick={save} disabled={busy}>{L ? "सहेजें" : "Save"}</Button><Button variant="ghost" onClick={() => setOpen(false)}>{L ? "रद्द" : "Cancel"}</Button></div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Photo strip with a main image and thumbnails (tap to switch). */
+function Gallery({ paths, url }: { paths: string[]; url: (p: string | null) => string }) {
+  const [i, setI] = useState(0);
+  if (!paths.length) return null;
+  const main = url(paths[Math.min(i, paths.length - 1)] ?? null);
+  return (
+    <div className="mb-3">
+      {main ? <img src={main} alt="" className="aspect-square w-full rounded-md object-cover" /> : <div className="aspect-square w-full animate-pulse rounded-md bg-secondary" />}
+      {paths.length > 1 ? <div className="mt-1 flex gap-1 overflow-x-auto">{paths.map((p, k) => <button key={p} type="button" onClick={() => setI(k)} className={`h-12 w-12 shrink-0 overflow-hidden rounded border ${k === i ? "border-primary" : "border-border"}`}>{url(p) ? <img src={url(p)} alt="" className="h-full w-full object-cover" /> : null}</button>)}</div> : null}
     </div>
   );
 }

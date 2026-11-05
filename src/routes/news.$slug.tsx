@@ -5,6 +5,7 @@ import { siteName } from "@/core/seo";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { AdSlot } from "@/components/site/Ads";
+import { RichText } from "@/components/site/Blocks";
 import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { Button } from "@/components/ui/button";
@@ -56,9 +57,7 @@ function NewsDetail() {
           {item.thumbnail ? (
             <img src={item.thumbnail} alt="" className="mt-6 w-full rounded-xl object-cover" />
           ) : null}
-          <div className="prose-content mt-6 whitespace-pre-line">
-            {item.content || item.description}
-          </div>
+          <RichText className="mt-6" text={item.content || item.description || ""} />
           {item.external_url ? (
             <Button asChild variant="outline" className="mt-6">
               <a href={item.external_url} target="_blank" rel="noreferrer noopener">

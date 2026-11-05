@@ -16,6 +16,8 @@ export type Person = {
   family_id?: string | null;
   family_name?: string | null;
   phone?: string | null;
+  phone2?: string | null;
+  photo_path?: string | null;
   created_at?: string;
 };
 

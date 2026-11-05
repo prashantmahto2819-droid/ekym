@@ -7,6 +7,7 @@ import { BlogCard } from "@/components/home/sections";
 import { PageHeader } from "@/components/site/PageHeader";
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { AdSlot } from "@/components/site/Ads";
+import { RichText } from "@/components/site/Blocks";
 import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
 import { blogQuery } from "@/lib/queries";
@@ -67,7 +68,7 @@ function BlogDetail() {
           {blog.featured_image ? (
             <img src={blog.featured_image} alt="" className="mt-6 w-full rounded-xl object-cover" />
           ) : null}
-          <div className="prose-content mt-6 whitespace-pre-line">{blog.content}</div>
+          <RichText className="mt-6" text={blog.content ?? ""} />
           <div className="mt-8">
             <ShareButtons path={`/blogs/${blog.slug}`} title={blog.title} />
           </div>
