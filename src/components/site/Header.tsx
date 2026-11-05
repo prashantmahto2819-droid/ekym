@@ -20,35 +20,34 @@ import { menusQuery, organizationQuery } from "@/lib/queries";
 import type { MenuItem } from "@/lib/public.functions";
 
 const primaryNav: { key: TKey; to: string }[] = [
-  { key: "community", to: "/community" },
   { key: "about", to: "/about" },
-  { key: "seva", to: "/seva" },
-  { key: "blood", to: "/blood" },
-  { key: "library", to: "/library" },
-  { key: "volunteer", to: "/join" },
+  { key: "community", to: "/community" },
+  { key: "shok", to: "https://shokpatra.kalchuri.org/app.html" },
+  { key: "events", to: "/events" },
+  { key: "join", to: "/join" },
+  { key: "news", to: "/news" },
 ];
-
 const moreNav: { key: TKey; to: string }[] = [
   { key: "team", to: "/team" },
-  { key: "join", to: "/join" },
-  { key: "shok", to: "https://shokpatra.kalchuri.org/app.html" },
+  { key: "seva", to: "/seva" },
+  { key: "campaigns", to: "/campaigns" },
+  { key: "blood", to: "/blood" },
   { key: "blogs", to: "/blogs" },
-  { key: "news", to: "/news" },
   { key: "magazine", to: "/magazine" },
-  { key: "events", to: "/events" },
   { key: "directory", to: "/directory" },
   { key: "jobs", to: "/jobs" },
   { key: "scholarships", to: "/scholarships" },
   { key: "help", to: "/help" },
   { key: "matrimony", to: "/matrimony" },
   { key: "polls", to: "/polls" },
-  { key: "campaigns", to: "/campaigns" },
+  { key: "internship", to: "/internship" },
   { key: "gallery", to: "/gallery" },
   { key: "videos", to: "/videos" },
   { key: "reels", to: "/reels" },
-  { key: "internship", to: "/internship" },
+  { key: "library", to: "/library" },
   { key: "contact", to: "/contact" },
 ];
+
 
 export function Header() {
   const { data: org } = useSuspenseQuery(organizationQuery());
@@ -67,8 +66,9 @@ export function Header() {
   const umbrella = (tenant.child_count ?? 0) > 0;
   const isSub = !!tenant.parent_id;
   const defPrimary = [...(umbrella ? [{ key: "organizations" as TKey, to: "/organizations" }] : []), ...primaryNav].filter((i) => on(i.key));
+  const extraMore: NavItem[] = umbrella ? [{ label: lang === "hi" ? "अपना संगठन जोड़ें" : "Register your organization", to: "/register-organization" }] : [];
   const primary: NavItem[] = custom ? custom.filter((x) => !x.children).slice(0, 6) : defPrimary.slice(0, 6).map((i) => ({ label: t(i.key), to: i.to }));
-  const more: NavItem[] = [...(custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...defPrimary.slice(6).map((i) => ({ label: t(i.key), to: i.to })), ...moreNav.filter((i) => on(i.key)).map((i) => ({ label: t(i.key), to: i.to })), ...extraPages]), ...(isSub ? [{ label: lang === "hi" ? "🏠 Kalchuri One (मुख्य मंच)" : "🏠 Kalchuri One (main platform)", to: "https://kalchuri.org" }] : [])];
+  const more: NavItem[] = [...(custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...defPrimary.slice(6).map((i) => ({ label: t(i.key), to: i.to })), ...moreNav.filter((i) => on(i.key)).map((i) => ({ label: t(i.key), to: i.to })), ...extraMore, ...extraPages]), ...(isSub ? [{ label: lang === "hi" ? "🏠 Kalchuri One (मुख्य मंच)" : "🏠 Kalchuri One (main platform)", to: "https://kalchuri.org" }] : [])];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
@@ -92,7 +92,9 @@ export function Header() {
         </Link>
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
-          {primary.map((item) => (
+          {primary.map((item) => item.to.startsWith("http") ? (
+            <a key={item.to} href={item.to} className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-secondary hover:text-foreground">{item.label}</a>
+          ) : (
             <Link
               key={item.to}
               to={item.to as "/"}

@@ -28,16 +28,19 @@ const sevaLinks: { key: TKey; to: string }[] = [
 
 const getInvolved: { key: TKey; to: string }[] = [
   { key: "join", to: "/join" },
+  { key: "community", to: "/community" },
+  { key: "shok", to: "https://shokpatra.kalchuri.org/app.html" },
+  { key: "events", to: "/events" },
   { key: "team", to: "/team" },
-  { key: "volunteer", to: "/join" },
   { key: "internship", to: "/internship" },
   { key: "donate", to: "/donate" },
   { key: "contact", to: "/contact" },
 ];
 
 const readLinks: { key: TKey; to: string }[] = [
-  { key: "blogs", to: "/blogs" },
   { key: "news", to: "/news" },
+  { key: "blogs", to: "/blogs" },
+  { key: "magazine", to: "/magazine" },
   { key: "gallery", to: "/gallery" },
   { key: "videos", to: "/videos" },
   { key: "reels", to: "/reels" },
@@ -96,8 +99,8 @@ export function Footer() {
             ) : null}
             <li className="flex gap-2">
               <Mail className="mt-0.5 size-4 shrink-0" />
-              <a href={`mailto:${org?.email || "info@ekym.org"}`} className="hover:underline">
-                {org?.email || "info@ekym.org"}
+              <a href={`mailto:${org?.email || "info@kalchuri.org"}`} className="hover:underline">
+                {org?.email || "info@kalchuri.org"}
               </a>
             </li>
           </ul>
@@ -143,6 +146,7 @@ export function Footer() {
       {/* Platform credit: fixed for every organisation's site, not editable from org settings. */}
       <div className="border-t border-sidebar-border">
         <p className="container-page py-3 text-center text-xs opacity-70">
+          {tenant.parent_id ? <><a href="https://kalchuri.org" className="font-semibold underline-offset-2 hover:underline">Kalchuri One</a>{lang === "hi" ? " — कलचुरी समाज का साझा मंच · " : " — the Kalchuri community platform · "}</> : null}
           {t("designed_by")}{" "}
           <a
             href="https://vividbrandify.com"
@@ -166,9 +170,9 @@ function FooterColumn({ title, links }: { title: string; links: { key: TKey; to:
       <ul className="mt-3 space-y-2 text-sm">
         {links.map((l) => (
           <li key={l.to}>
-            <Link to={l.to} className="opacity-90 hover:opacity-100 hover:underline">
+            {l.to.startsWith("http") ? <a href={l.to} className="opacity-90 hover:opacity-100 hover:underline">{t(l.key)}</a> : <Link to={l.to as "/"} className="opacity-90 hover:opacity-100 hover:underline">
               {t(l.key)}
-            </Link>
+            </Link>}
           </li>
         ))}
       </ul>

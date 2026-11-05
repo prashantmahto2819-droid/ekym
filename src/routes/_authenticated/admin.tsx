@@ -17,53 +17,61 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const ALL_NAV: { to: string; label: string; group: string }[] = [
-  { to: "/admin", label: "Dashboard", group: "Overview" },
-  { to: "/admin/members", label: "Members", group: "Organization" },
-  { to: "/admin/committees", label: "Committees & office bearers", group: "Organization" },
-  { to: "/admin/meetings", label: "Meetings & resolutions", group: "Organization" },
-  { to: "/admin/tasks", label: "Tasks", group: "Organization" },
-  { to: "/admin/announcements", label: "Announcements", group: "Organization" },
-  { to: "/admin/events", label: "Events & invitations", group: "Organization" },
-  { to: "/admin/documents", label: "Documents & history", group: "Organization" },
-  { to: "/admin/studio", label: "Design Studio", group: "Letters & documents" },
-  { to: "/admin/letters", label: "Letters & certificates", group: "Letters & documents" },
-  { to: "/admin/register", label: "Inward / outward register", group: "Letters & documents" },
-  { to: "/admin/messaging", label: "Messaging (WhatsApp & email)", group: "Letters & documents" },
-  { to: "https://shokpatra.kalchuri.org/app.html", label: "शोकपत्र ऐप ↗ (families, shok sandesh)", group: "Family & shok" },
-  { to: "/admin/families", label: "Family trees (view)", group: "Family & shok" },
-  { to: "/admin/shok", label: "Shok sandesh (view)", group: "Family & shok" },
-  { to: "/admin/pages", label: "Pages (builder)", group: "Website" },
-  { to: "/admin/website", label: "Theme, menus & domains", group: "Website" },
-  { to: "/admin/homepage", label: "Home page (slides, sections)", group: "Content" },
-  { to: "/admin/seva", label: "Seva projects", group: "Content" },
-  { to: "/admin/blogs", label: "Blogs", group: "Content" },
-  { to: "/admin/news", label: "News", group: "Content" },
-  { to: "/admin/publishing", label: "Publishing (comments, feed, magazine)", group: "Content" },
-  { to: "/admin/campaigns", label: "Campaigns", group: "Content" },
-  { to: "/admin/media", label: "Videos, reels & gallery", group: "Content" },
-  { to: "/admin/community", label: "Community (directory, matrimony, polls)", group: "Operations" },
-  { to: "/admin/vouchers", label: "Vouchers & receipts", group: "Accounts" },
-  { to: "/admin/reports", label: "Books & reports", group: "Accounts" },
-  { to: "/admin/accounts", label: "Chart of accounts & years", group: "Accounts" },
-  { to: "/admin/donations", label: "Donations", group: "Operations" },
-  { to: "/admin/blood", label: "Blood seva", group: "Operations" },
-  { to: "/admin/library", label: "Library", group: "Operations" },
-  { to: "/admin/volunteers", label: "Volunteer applications", group: "Operations" },
-  { to: "/admin/programs", label: "Research & internship programmes", group: "Operations" },
-  { to: "/admin/interns", label: "Research & internship applications", group: "Operations" },
-  { to: "/admin/messages", label: "Contact inbox", group: "Operations" },
-  { to: "/admin/ads", label: "Ads & revenue", group: "Administration" },
-  { to: "/admin/payments", label: "Payment settings", group: "Administration" },
-  { to: "/admin/settings", label: "Organization settings", group: "Administration" },
-  { to: "/admin/organizations", label: "Organizations (platform)", group: "Administration" },
-  { to: "/admin/users", label: "Users & roles", group: "Administration" },
-  { to: "/admin/health", label: "System health & backups", group: "Administration" },
-  { to: "/admin/guide", label: "उपयोग गाइड (Hindi guide)", group: "Administration" },
+const ALL_NAV: { to: string; label: string; group: string; platform?: boolean }[] = [
+  { to: "/admin", label: "डैशबोर्ड · Dashboard", group: "1 · संगठन" },
+  { to: "/admin/settings", label: "संगठन की जानकारी, logo, modules", group: "1 · संगठन" },
+  { to: "/admin/members", label: "सदस्य · Members & applications", group: "1 · संगठन" },
+  { to: "/admin/committees", label: "पदाधिकारी व समितियाँ", group: "1 · संगठन" },
+  { to: "/admin/users", label: "एडमिन व भूमिकाएँ · Users & roles", group: "1 · संगठन" },
+  { to: "/admin/meetings", label: "बैठकें व प्रस्ताव", group: "1 · संगठन" },
+  { to: "/admin/tasks", label: "कार्य · Tasks", group: "1 · संगठन" },
+  { to: "/admin/announcements", label: "सूचनाएँ · Announcements", group: "1 · संगठन" },
+  { to: "/admin/organizations", label: "मंच की संस्थाएँ · Organizations", group: "1 · संगठन", platform: true },
+
+  { to: "/admin/homepage", label: "होम पेज (slides, sections)", group: "2 · वेबसाइट" },
+  { to: "/admin/pages", label: "पेज बनाएँ · Pages (builder)", group: "2 · वेबसाइट" },
+  { to: "/admin/website", label: "रंग-रूप, menu, domain", group: "2 · वेबसाइट" },
+  { to: "/admin/media", label: "फोटो, वीडियो, reels, gallery", group: "2 · वेबसाइट" },
+
+  { to: "/admin/news", label: "समाचार · News", group: "3 · प्रकाशन" },
+  { to: "/admin/blogs", label: "लेख / ब्लॉग", group: "3 · प्रकाशन" },
+  { to: "/admin/publishing", label: "पत्रिका, टिप्पणियाँ, central feed", group: "3 · प्रकाशन" },
+  { to: "/admin/campaigns", label: "अभियान · Campaigns", group: "3 · प्रकाशन" },
+  { to: "/admin/seva", label: "सेवा प्रकल्प", group: "3 · प्रकाशन" },
+
+  { to: "https://shokpatra.kalchuri.org/app.html", label: "शोकपत्र सेवा / वंश वृक्ष ↗", group: "4 · वंश वृक्ष व शोक" },
+  { to: "/admin/families", label: "परिवार (देखें)", group: "4 · वंश वृक्ष व शोक" },
+  { to: "/admin/shok", label: "शोक संदेश (देखें)", group: "4 · वंश वृक्ष व शोक" },
+
+  { to: "/admin/events", label: "आयोजन व निमंत्रण · Events", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/community", label: "Kalchuri One feed, directory, वैवाहिक, polls", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/programs", label: "शोध एवं इंटर्नशिप कार्यक्रम", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/interns", label: "शोध / इंटर्नशिप आवेदन", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/blood", label: "रक्त सेवा", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/library", label: "पुस्तकालय", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/volunteers", label: "स्वयंसेवक आवेदन (पुराने)", group: "5 · समाज सेवाएँ" },
+  { to: "/admin/messages", label: "संपर्क संदेश · Contact inbox", group: "5 · समाज सेवाएँ" },
+
+  { to: "/admin/studio", label: "डिज़ाइन स्टूडियो", group: "6 · पत्राचार व संदेश" },
+  { to: "/admin/letters", label: "पत्र, प्रमाणपत्र · Documents", group: "6 · पत्राचार व संदेश" },
+  { to: "/admin/register", label: "आवक / जावक रजिस्टर", group: "6 · पत्राचार व संदेश" },
+  { to: "/admin/documents", label: "दस्तावेज़ व इतिहास", group: "6 · पत्राचार व संदेश" },
+  { to: "/admin/messaging", label: "WhatsApp / ईमेल (channels, campaigns)", group: "6 · पत्राचार व संदेश" },
+
+  { to: "/admin/vouchers", label: "रसीद / भुगतान वाउचर", group: "7 · लेखा" },
+  { to: "/admin/reports", label: "बही-खाते व रिपोर्ट", group: "7 · लेखा" },
+  { to: "/admin/accounts", label: "खाता सूची व वित्त वर्ष", group: "7 · लेखा" },
+  { to: "/admin/donations", label: "दान · Donations", group: "7 · लेखा" },
+  { to: "/admin/payments", label: "भुगतान सेटिंग (Razorpay)", group: "7 · लेखा" },
+
+  { to: "/admin/ads", label: "विज्ञापन व आय", group: "8 · व्यवस्था" },
+  { to: "/admin/health", label: "System health & backups", group: "8 · व्यवस्था", platform: true },
+  { to: "/admin/guide", label: "उपयोग गाइड", group: "8 · व्यवस्था" },
 ];
 
+
 function AdminLayout() {
-  const { isStaff, loading, user, signOut } = useAuth();
+  const { isStaff, loading, user, signOut, isPlatformAdmin } = useAuth();
   const tenant = useTenant();
 
   if (loading) {
@@ -89,8 +97,8 @@ function AdminLayout() {
     );
   }
 
-  const NAV_MOD: Record<string, string> = { "/admin/library": "library", "/admin/blood": "blood", "/admin/interns": "internship", "/admin/programs": "internship", "/admin/volunteers": "volunteer", "/admin/seva": "seva", "/admin/campaigns": "campaigns", "/admin/events": "events", "/admin/community": "community" };
-  const NAV = ALL_NAV.filter((n) => !NAV_MOD[n.to] || moduleOn(tenant.branding, NAV_MOD[n.to]!));
+  const NAV_MOD: Record<string, string> = { "/admin/library": "library", "/admin/blood": "blood", "/admin/interns": "internship", "/admin/programs": "internship", "/admin/donations": "donate", "/admin/payments": "donate", "/admin/shok": "shok", "/admin/families": "shok", "https://shokpatra.kalchuri.org/app.html": "shok", "/admin/volunteers": "volunteer", "/admin/seva": "seva", "/admin/campaigns": "campaigns", "/admin/events": "events", "/admin/community": "community" };
+  const NAV = ALL_NAV.filter((n) => (!NAV_MOD[n.to] || moduleOn(tenant.branding, NAV_MOD[n.to]!)) && (!n.platform || isPlatformAdmin || (tenant.child_count ?? 0) > 0));
   const groups = Array.from(new Set(NAV.map((n) => n.group)));
 
   return (
@@ -103,7 +111,7 @@ function AdminLayout() {
           {groups.map((g) => (
             <div key={g}>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {g}
+                {g.replace(/^\d+ · /, "")}
               </p>
               <ul className="space-y-1">
                 {NAV.filter((n) => n.group === g).map((n) => (
@@ -115,7 +123,7 @@ function AdminLayout() {
                       className="block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary"
                     >
                       {n.label}
-                    </Link>
+                    </Link>}
                   </li>
                 ))}
               </ul>
@@ -139,7 +147,9 @@ function AdminLayout() {
           </div>
         </header>
         <div className="flex gap-2 overflow-x-auto border-b border-border bg-background px-4 py-2 lg:hidden">
-          {NAV.map((n) => (
+          {NAV.map((n) => n.to.startsWith("http") ? (
+            <a key={n.to} href={n.to} target="_blank" rel="noreferrer" className="whitespace-nowrap rounded-md px-3 py-1.5 text-xs">{n.label}</a>
+          ) : (
             <Link
               key={n.to}
               to={n.to}
