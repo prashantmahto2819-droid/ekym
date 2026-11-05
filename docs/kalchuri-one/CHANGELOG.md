@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-05 — Phase 23 (प्रगतिशील समाज की सामग्री kalarsamaj.org से + नया स्लाइडर)
+- प्रगतिशील जायसवाल (कन्नौजिया) कलार समाज: पुरानी साइट kalarsamaj.org से दृष्टि/लक्ष्य/मूल्य/उद्देश्य → organization settings (`about_long_hi`, tagline, about_short, state, footer); संविधान की 5 अनुसूचियाँ अलग पेज (`/p/samvidhan`, `sadasyata-niyam`, `kshetra-vibhajan`, `karyakarini-niyamavali`, `vivad-nirakaran`, `samajik-sanskar`) + `lekha-pardarshita` (पुरानी साइट के PDF लिंक); footer menu। 20 सामाजिक क्षेत्र पहले से DB में वही हैं। पुरानी साइट पर पदाधिकारियों के नाम नहीं थे — Admin → Committees से भरें। Data file `supabase/migrations/20261105110000_data_pragatishil_kalarsamaj_content.sql` (execute_sql से लागू)।
+- Hero slider नया: `scripts/gen-hero-slides.py` से बने 5 artwork (`public/slides/network|tree|diya|card|regions.jpg`, 1920×1080, बिना text), `HeroSlider` में autoplay 6.5 s, dots, हिंदी/English fields, बायीं ओर gradient (artwork दिखता है), Donate बटन सिर्फ़ module चालू होने पर, बाहरी लिंक (shokpatra) समर्थित। Kalchuri One: एक मंच / वंश वृक्ष / शोकपत्र / सदस्यता; प्रगतिशील: समाज परिचय (क्षेत्र) / वंश वृक्ष / शोकपत्र / सदस्यता-संविधान। पुरानी slides निष्क्रिय (EKYM की वैसी ही)।
+
 ## 2026-11-05 — Phase 22 (टीम व भूमिकाएँ: नाम/मोबाइल से खोज)
 - Admin → टीम व भूमिकाएँ अब हिंदी में; भूमिका देने के लिए व्यक्ति को नाम / मोबाइल / ईमेल से खोजें (RPC `k1_find_users`: auth.users + site_profiles + shokpatra profiles + memberships; स्रोत बताता है सदस्य/शोकपत्र/खाता, और इस org में पहले से मिली भूमिकाएँ), चुनकर `k1_assign_role_user`। Migration `core_08_find_users_assign_by_id`.
 

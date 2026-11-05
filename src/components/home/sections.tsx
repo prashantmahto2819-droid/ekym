@@ -12,7 +12,12 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 
+import { useEffect, useState } from "react";
+
 import { SectionHeading } from "@/components/site/SectionHeading";
+import { useLang } from "@/core/i18n";
+import { moduleOn } from "@/core/modules";
+import { useTenant } from "@/core/tenant-context";
 import { SevaIcon } from "@/components/site/SevaIcon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,52 +27,53 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { embedUrl, formatCurrency, formatDate, telHref, whatsappHref } from "@/lib/format";
 
 /* ------------------------------ HERO ------------------------------ */
 
 export function HeroSlider({ slides }: { slides: any[] }) {
+  const { lang } = useLang();
+  const tenant = useTenant();
+  const [api, setApi] = useState<CarouselApi | undefined>(undefined);
+  const [cur, setCur] = useState(0);
+  const hi = lang === "hi";
+  const pick = (s: any, k: string) => (hi && s[`${k}_hi`]) || s[k];
+  useEffect(() => {
+    if (!api) return;
+    const onSel = () => setCur(api.selectedScrollSnap());
+    api.on("select", onSel); onSel();
+    const t = setInterval(() => { if (!document.hidden) api.scrollNext(); }, 6500);
+    return () => { clearInterval(t); api.off("select", onSel); };
+  }, [api]);
   if (!slides.length) return null;
+  const donate = moduleOn(tenant.branding, "donate");
   return (
-    <section aria-label="Highlights">
-      <Carousel opts={{ loop: true }} className="relative">
+    <section aria-label="Highlights" className="relative">
+      <Carousel opts={{ loop: true }} setApi={setApi} className="relative">
         <CarouselContent>
           {slides.map((s, i) => (
             <CarouselItem key={s.id}>
-              <div className="relative min-h-[26rem] w-full overflow-hidden md:min-h-[34rem]">
+              <div className="relative min-h-[26rem] w-full overflow-hidden bg-[#12383a] md:min-h-[34rem]">
                 {s.image ? (
-                  <img
-                    src={s.image}
-                    alt=""
-                    className="absolute inset-0 size-full object-cover"
-                    loading={i === 0 ? undefined : "lazy"}
-                  />
+                  <img src={s.image} alt="" className="absolute inset-0 size-full object-cover object-[70%_center]" loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} />
                 ) : (
                   <div className="gradient-teal absolute inset-0" />
                 )}
-                <div className="gradient-hero absolute inset-0 opacity-90" />
-                <div className="container-page relative flex min-h-[26rem] flex-col justify-center py-14 text-primary-foreground md:min-h-[34rem]">
-                  {s.subtitle ? <p className="eyebrow">{s.subtitle}</p> : null}
-                  <h1 className="mt-2 max-w-2xl text-3xl font-semibold leading-tight md:text-5xl">
-                    {s.title}
-                  </h1>
-                  {s.description ? (
-                    <p className="mt-4 max-w-xl text-base opacity-90 md:text-lg">{s.description}</p>
-                  ) : null}
+                {/* readable headline on the left, artwork stays visible on the right */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0b2a2c]/90 via-[#0b2a2c]/55 to-transparent" />
+                <div className="container-page relative flex min-h-[26rem] flex-col justify-center py-14 text-white md:min-h-[34rem]">
+                  {pick(s, "subtitle") ? <p className="eyebrow text-amber-200">{pick(s, "subtitle")}</p> : null}
+                  <h1 className="mt-2 max-w-2xl font-display text-3xl font-semibold leading-tight drop-shadow md:text-5xl">{pick(s, "title")}</h1>
+                  {pick(s, "description") ? <p className="mt-4 max-w-xl text-base opacity-95 md:text-lg">{pick(s, "description")}</p> : null}
                   <div className="mt-7 flex flex-wrap gap-3">
                     {s.button_text && s.button_url ? (
-                      <Button asChild size="lg" variant="secondary">
-                        <Link to={s.button_url}>{s.button_text}</Link>
+                      <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                        {String(s.button_url).startsWith("http") ? <a href={s.button_url}>{pick(s, "button_text")}</a> : <Link to={s.button_url}>{pick(s, "button_text")}</Link>}
                       </Button>
                     ) : null}
-                    <Button
-                      asChild
-                      size="lg"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    >
-                      <Link to="/donate">Donate now</Link>
-                    </Button>
+                    {donate ? <Button asChild size="lg" variant="secondary"><Link to="/donate">{hi ? "दान करें" : "Donate"}</Link></Button> : null}
                   </div>
                 </div>
               </div>
@@ -81,6 +87,11 @@ export function HeroSlider({ slides }: { slides: any[] }) {
           </>
         ) : null}
       </Carousel>
+      {slides.length > 1 ? (
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+          {slides.map((s, i) => <button key={s.id} type="button" aria-label={`Slide ${i + 1}`} onClick={() => api?.scrollTo(i)} className={`h-2 rounded-full transition-all ${i === cur ? "w-6 bg-amber-300" : "w-2 bg-white/50"}`} />)}
+        </div>
+      ) : null}
     </section>
   );
 }
