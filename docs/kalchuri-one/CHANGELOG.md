@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-05 — Phase 25 (एक्सेस मॉडल: owner ने सातों सिफ़ारिशें मानीं)
+- Bug fix: membership का pending status `applied` है, `pending` नहीं — नया-सदस्य alert और डैशबोर्ड की pending सूची अब सही (पहले कभी नहीं दिखती)।
+- Migration `core_09_access_model` (+09a mention kind, 09b `k1_org_team`): (1) **एक मंज़ूरी** — membership active ⇄ shokpatra profile approved दोनों ओर trigger से (shokpatra में approve → applied membership active, कोई न हो तो प्रगतिशील में active membership बनती है); (2) tiers पहले से (`category`: general/life/patron/executive/honorary); (3क) matrimony profile सिर्फ़ active सदस्य (restrictive policy); (3ख) सिर्फ़ Kalchuri One (umbrella) का सदस्य वंश वृक्ष नहीं बना सकता — पहले किसी समाज में भेजें (`shok_user_org` non-root पसंद, `trg_shok_set_org` रोकता है); (4) `core.role_assignments.regions` — family_admin सामाजिक क्षेत्र-वार (`admin_can_manage_family` मानता है), टीम पेज पर क्षेत्र चुनें; (5) टीम पेज में व्यावहारिक roles पहले (org_admin, secretary, editor, family_admin, treasurer); (6) आवेदक (applied) feed पढ़ सकता है (`k1_is_applicant`, `k1_feed`), पट्टी "मंज़ूरी बाकी"; (7) role का कार्यकाल `valid_to` UI में, सूची में दिखता है।
+- Priority alerts switch: Admin → Settings (platform admin) → `k1_org_priority_alerts`।
+- @mentions: composer में @ टाइप करने पर सदस्य सुझाव (`k1_mention_search`), `cm_posts.mentions`, mention किए गए को सूचना (kind `mention`), post में @नाम highlighted।
+- Admin → Members: परिवार (वंश वृक्ष) picker (`family_id` fk), मुखिया का नाम, मूल ग्राम fields। Matrimony: अपना प्रोफ़ाइल "बदलें" (बदलने पर दोबारा सत्यापन)।
+- Pagination: families, शोक संदेश, letters और हर CrudPage सूची पर "और दिखाएँ" (200/100 के batch)।
+
 ## 2026-11-05 — Phase 24 (metadata / link preview पूरी तरह Kalchuri One के अनुसार)
 - समस्या (owner): लिंक share करने पर पुराने template (Seva Heartbeat: भोजन सेवा, "daily seva" …) का title/description जा रहा था — home और 16 पेजों के `head` में hardcoded text था।
 - `src/core/seo.ts`: `siteDescription()`, `pageMeta(matches, page, desc)` और `homeMeta()` — हर पेज का title "<पेज> — <संस्था>", description संस्था की `about_short`/tagline (हिंदी toggle पर `_hi`) से; home का title "<संस्था> — <tagline>"। About, auth, blood, contact, gallery, internship, library, donate, blogs, campaigns, seva, news, videos, reels, donation-status, team सब इसी पर। बचे हुए "foundation" शब्द हटाए (PDF, receipt, admin)।

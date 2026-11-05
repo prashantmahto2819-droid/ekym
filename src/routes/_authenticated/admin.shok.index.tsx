@@ -22,11 +22,13 @@ function ShokList() {
   const ctx = useFamilyCtx();
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [limit, setLimit] = useState(100);
   const letters = useQuery({
-    queryKey: ["shok_letters"],
+    queryKey: ["shok_letters", limit],
     enabled: ctx.data?.approved === true,
     refetchInterval: 15000,
-    queryFn: async () => { const { data, error } = await supabase.from("letters").select("id,deceased_name,death_date,ceremony_date,venue,status,created_at,created_by,admin_note,last_error,letter_recipients(status)").order("created_at", { ascending: false }).limit(100); if (error) throw error; return (data ?? []) as unknown as Letter[]; },
+    queryFn: async () => { const { data, error } = await supabase.from("letters").select("id,deceased_name,death_date,ceremony_date,venue,status,created_at,created_by,admin_note,last_error,letter_recipients(status)").order("created_at", { ascending: false }).limit(limit); if (error) throw error; return (data ?? []) as unknown as Letter[]; },
+    placeholderData: (prev) => prev,
   });
   const isAdmin = !!ctx.data?.shok_admin;
 
@@ -88,6 +90,7 @@ function ShokList() {
             {letters.isSuccess && !letters.data.length ? <tr><td className="p-3 text-muted-foreground" colSpan={6}>{L ? "अभी कोई शोक संदेश नहीं।" : "No letters yet."}</td></tr> : null}
           </tbody>
         </table>
+        {(letters.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button variant="outline" size="sm" onClick={() => setLimit((n) => n + 100)}>{L ? "और दिखाएँ" : "Show more"}</Button></div> : null}
       </div>
     </div>
   );

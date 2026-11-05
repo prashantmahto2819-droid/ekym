@@ -25,7 +25,11 @@ type TeamRow = {
   role_name: string;
   role_id: string;
   assignment_id: string;
+  regions: string[] | null;
+  valid_to: string | null;
 };
+/** Practical roles for one organization, shown first; the rest follow alphabetically. */
+const MAIN_ROLES = ["org_admin", "secretary", "editor", "family_admin", "treasurer"];
 type Found = { user_id: string; full_name: string | null; email: string | null; mobile: string | null; village: string | null; source: string; roles: string[] | null };
 type RoleRow = { role_id: string; key: string; name: string; name_hi: string | null; permissions: string[]; is_system: boolean };
 
@@ -36,6 +40,9 @@ function UsersPage() {
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<Found | null>(null);
   const [roleId, setRoleId] = useState<string>("");
+  const [regions, setRegions] = useState<string[]>([]);
+  const [validTo, setValidTo] = useState("");
+  const regionList = useQuery({ queryKey: ["k1_social_regions"], staleTime: 600_000, queryFn: async () => { const { data } = await supabase.rpc("k1_social_regions"); return (data ?? []) as { id: string; name: string; sort_order: number }[]; } });
   const canManage = can("org.roles.manage");
 
   const team = useQuery({
@@ -65,12 +72,12 @@ function UsersPage() {
     mutationFn: async () => {
       if (!roleId) throw new Error("पहले भूमिका चुनिए");
       if (!picked) throw new Error("पहले व्यक्ति चुनिए");
-      const { error } = await supabase.rpc("k1_assign_role_user", { p_org: tenant.organization_id, p_user: picked.user_id, p_role_id: roleId } as never);
+      const { error } = await supabase.rpc("k1_assign_role_user", { p_org: tenant.organization_id, p_user: picked.user_id, p_role_id: roleId, p_regions: regions.length ? regions : null, p_valid_to: validTo || null } as never);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("भूमिका दे दी गई");
-      setPicked(null); setQ("");
+      setPicked(null); setQ(""); setRegions([]); setValidTo("");
       qc.invalidateQueries({ queryKey: ["org-team"] });
       qc.invalidateQueries({ queryKey: ["k1_find_users"] });
     },
@@ -140,7 +147,7 @@ function UsersPage() {
               <SelectValue placeholder="भूमिका चुनें" />
             </SelectTrigger>
             <SelectContent>
-              {(roles.data ?? []).map((r) => (
+              {[...(roles.data ?? [])].sort((a, b) => (MAIN_ROLES.indexOf(a.key) === -1 ? 99 : MAIN_ROLES.indexOf(a.key)) - (MAIN_ROLES.indexOf(b.key) === -1 ? 99 : MAIN_ROLES.indexOf(b.key)) || a.name.localeCompare(b.name)).map((r) => (
                 <SelectItem key={r.role_id} value={r.role_id}>
                   {r.name}
                   {r.name_hi ? ` · ${r.name_hi}` : ""}
@@ -148,6 +155,18 @@ function UsersPage() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        {roles.data?.find((r) => r.role_id === roleId)?.key === "family_admin" ? (
+          <div className="w-full sm:w-72">
+            <label className="text-xs font-medium text-muted-foreground">सामाजिक क्षेत्र (खाली = पूरा संगठन)</label>
+            <div className="max-h-28 overflow-auto rounded-md border border-input p-2 text-xs">
+              {(regionList.data ?? []).map((r) => <label key={r.id} className="mr-3 inline-flex items-center gap-1"><input type="checkbox" checked={regions.includes(r.id)} onChange={(e) => setRegions((x) => (e.target.checked ? [...x, r.id] : x.filter((y) => y !== r.id)))} /> {r.name}</label>)}
+            </div>
+          </div>
+        ) : null}
+        <div className="w-full sm:w-40">
+          <label className="text-xs font-medium text-muted-foreground">कार्यकाल समाप्ति (वैकल्पिक)</label>
+          <Input type="date" value={validTo} onChange={(e) => setValidTo(e.target.value)} />
         </div>
         <Button onClick={() => assign.mutate()} disabled={assign.isPending || !picked || !roleId}>
           भूमिका दें
@@ -178,7 +197,7 @@ function UsersPage() {
                   <div className="flex flex-wrap gap-1">
                     {rows.map((r) => (
                       <Badge key={r.assignment_id} variant="secondary" className="gap-1">
-                        {r.role_name}
+                        {r.role_name}{r.regions?.length ? ` · ${r.regions.join(", ")}` : ""}{r.valid_to ? ` · ${r.valid_to.split("-").reverse().join(".")} तक` : ""}
                         <button
                           type="button"
                           aria-label={`Remove ${r.role_name}`}

@@ -25,10 +25,12 @@ function FamiliesPage() {
   const [status, setStatus] = useState<string>("");
   const ctx = useFamilyCtx();
   const [newOpen, setNewOpen] = useState(false);
+  const [limit, setLimit] = useState(200);
   const rows = useQuery({
-    queryKey: ["k1_families", status, q],
+    queryKey: ["k1_families", status, q, limit],
     enabled: ctx.data?.approved === true,
-    queryFn: async () => { const { data, error } = await supabase.rpc("k1_families", { p_status: status || null, p_q: q.trim() || null, p_limit: 300 } as never); if (error) throw error; return (data ?? []) as unknown as Row[]; },
+    placeholderData: (prev) => prev,
+    queryFn: async () => { const { data, error } = await supabase.rpc("k1_families", { p_status: status || null, p_q: q.trim() || null, p_limit: limit } as never); if (error) throw error; return (data ?? []) as unknown as Row[]; },
   });
 
   if (ctx.data && !ctx.data.approved) {
@@ -84,6 +86,7 @@ function FamiliesPage() {
         </section>
       ) : null)}
       {rows.isSuccess && !list.length ? <p className="text-sm text-muted-foreground">{L ? "कोई परिवार नहीं मिला।" : "No families found."}</p> : null}
+      {list.length >= limit ? <div className="text-center"><Button variant="outline" size="sm" onClick={() => setLimit((n) => n + 200)} disabled={rows.isFetching}>{L ? `और परिवार दिखाएँ (${list.length} दिखे)` : `Show more (${list.length} shown)`}</Button></div> : null}
       {rows.error ? <p className="text-sm text-destructive">{(rows.error as Error).message}</p> : null}
       <p className="text-xs text-muted-foreground">{L ? "पुराना शोकपत्र ऐप भी चलता रहेगा; दोनों एक ही डेटा पर काम करते हैं।" : "The shokpatra app keeps working; both use the same data."} <Button asChild size="sm" variant="link"><a href="https://shokpatra.kalchuri.org/app.html" target="_blank" rel="noreferrer">shokpatra ↗</a></Button></p>
       <NewFamilyDialog open={newOpen} onClose={() => setNewOpen(false)} L={L} />

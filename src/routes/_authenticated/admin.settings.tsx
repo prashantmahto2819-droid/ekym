@@ -10,6 +10,7 @@ import { ImageField } from "@/components/admin/ImageField";
 import { MarkupEditor } from "@/components/admin/MarkupEditor";
 import { MODULE_KEYS, moduleOn } from "@/core/modules";
 import { useTenant } from "@/core/tenant-context";
+import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -117,6 +118,7 @@ function SettingsAdmin() {
       </p>
 
       <ModulesCard />
+      <PriorityAlertsCard />
 
       <form onSubmit={onSubmit} className="surface-card mt-6 grid gap-4 p-6 sm:grid-cols-2">
         {TEXT_FIELDS.map((f) => (
@@ -145,6 +147,25 @@ function SettingsAdmin() {
 }
 
 /** Module switches: stored in core.organizations.branding.modules; nav, home sections and admin menu follow them. */
+function PriorityAlertsCard() {
+  const tenant = useTenant();
+  const { isPlatformAdmin } = useAuth();
+  const [on, setOn] = useState(!!(tenant.branding as Record<string, unknown>)?.["priority_alerts"] || ["kalchuri-one", "pragatishil-kalar-samaj"].includes(tenant.slug));
+  if (!isPlatformAdmin) return null;
+  async function save(v: boolean) {
+    setOn(v);
+    const { error } = await supabase.rpc("k1_org_priority_alerts", { p_org: tenant.organization_id, p_on: v } as never);
+    if (error) toast.error(error.message); else toast.success(v ? "प्राथमिकता चालू" : "प्राथमिकता बंद");
+  }
+  return (
+    <div className="surface-card mt-6 p-6">
+      <p className="font-display font-semibold">प्राथमिकता सूचनाएँ (platform admin)</p>
+      <p className="text-xs text-muted-foreground">चालू होने पर इस संस्था के नए सदस्य platform admins की सूची में सबसे ऊपर और WhatsApp पर ⭐ के साथ आते हैं। Kalchuri One और प्रगतिशील समाज हमेशा प्राथमिकता में हैं।</p>
+      <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" checked={on} disabled={["kalchuri-one", "pragatishil-kalar-samaj"].includes(tenant.slug)} onChange={(e) => void save(e.target.checked)} /> इस संस्था के नए सदस्यों को प्राथमिकता</label>
+    </div>
+  );
+}
+
 function ModulesCard() {
   const tenant = useTenant();
   const [mods, setMods] = useState<Record<string, boolean>>(() => Object.fromEntries(MODULE_KEYS.map(([k]) => [k, moduleOn(tenant.branding, k)])));

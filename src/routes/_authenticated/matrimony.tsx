@@ -102,7 +102,16 @@ function MatrimonyPage() {
 
 function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onChange: () => void; L: boolean }) {
   const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [f, setF] = useState<Record<string, string>>({ created_for: "self", gender: "male" });
+  async function startEdit(id: string) {
+    const { data, error } = await supabase.from("cm_matrimony_profiles").select("*").eq("id", id).single();
+    if (error || !data) { toast.error(error?.message ?? "Not found"); return; }
+    const r = data as Record<string, unknown>;
+    const vals: Record<string, string> = {};
+    for (const k of ["created_for", "gender", "display_name", "birth_year", "height_cm", "education", "profession", "income_range", "city", "district", "gotra", "native_place", "about", "expectations", "interests", "special_note", "contact_phone"]) vals[k] = r[k] == null ? "" : String(r[k]);
+    setF(vals); setFiles([]); setConsent(true); setEditId(id); setOpen(true);
+  }
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -113,22 +122,28 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
     setBusy(true);
     try {
       const uid = (await supabase.auth.getUser()).data.user!.id;
-      const { data: ins, error } = await supabase.from("cm_matrimony_profiles").insert({ organization_id: org, user_id: uid, created_for: f["created_for"], display_name: f["display_name"].trim(), gender: f["gender"], birth_year: by, height_cm: f["height_cm"] ? Number(f["height_cm"]) : null, education: f["education"] || null, profession: f["profession"] || null, income_range: f["income_range"] || null, city: f["city"] || null, district: f["district"] || null, gotra: f["gotra"] || null, native_place: f["native_place"] || null, about: f["about"] || null, expectations: f["expectations"] || null, interests: f["interests"] || null, special_note: f["special_note"] || null, contact_phone: normPhone(f["contact_phone"]) } as never).select("id").single();
-      if (error) throw error;
-      if (files.length) {
-        const pid = (ins as { id: string }).id; const paths: string[] = [];
+      const row = { organization_id: org, user_id: uid, created_for: f["created_for"], display_name: f["display_name"].trim(), gender: f["gender"], birth_year: by, height_cm: f["height_cm"] ? Number(f["height_cm"]) : null, education: f["education"] || null, profession: f["profession"] || null, income_range: f["income_range"] || null, city: f["city"] || null, district: f["district"] || null, gotra: f["gotra"] || null, native_place: f["native_place"] || null, about: f["about"] || null, expectations: f["expectations"] || null, interests: f["interests"] || null, special_note: f["special_note"] || null, contact_phone: normPhone(f["contact_phone"]) };
+      let pid = editId;
+      if (editId) {
+        const { error } = await supabase.from("cm_matrimony_profiles").update({ ...row, verified_at: null } as never).eq("id", editId); if (error) throw error;
+      } else {
+        const { data: ins, error } = await supabase.from("cm_matrimony_profiles").insert(row as never).select("id").single();
+        if (error) throw error; pid = (ins as { id: string }).id;
+      }
+      if (files.length && pid) {
+        const paths: string[] = [];
         for (let i = 0; i < Math.min(files.length, 6); i++) paths.push(await uploadPhoto("matrimony", `${org}/${pid}/${i + 1}.jpg`, files[i]!, 1000));
         const { error: e2 } = await supabase.from("cm_matrimony_profiles").update({ photo_path: paths[0], photos: paths } as never).eq("id", pid); if (e2) throw e2;
       }
-      toast.success(L ? "प्रोफ़ाइल बना — एडमिन सत्यापन के बाद दिखेगा" : "Profile created — visible after admin verification"); setOpen(false); onChange();
+      toast.success(editId ? (L ? "प्रोफ़ाइल बदला — एडमिन दोबारा सत्यापित करेगा" : "Profile updated — admin will re-verify") : (L ? "प्रोफ़ाइल बना — एडमिन सत्यापन के बाद दिखेगा" : "Profile created — visible after admin verification")); setOpen(false); setEditId(null); onChange();
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
   async function setStatus(id: string, status: string) { const { error } = await supabase.from("cm_matrimony_profiles").update({ status } as never).eq("id", id); if (error) toast.error(error.message); else onChange(); }
   const In = (k: string, label: string, type = "text") => <label key={k} className="block text-sm"><span className="mb-1 block text-xs text-muted-foreground">{label}</span><Input type={type} value={f[k] ?? ""} onChange={(e) => set(k, e.target.value)} /></label>;
   return (
     <div className="space-y-3 text-sm">
-      <ul className="space-y-2">{mine.map((m) => <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"><span><b>{m.display_name}</b> · {m.gender} · {new Date().getFullYear() - m.birth_year} {L ? "वर्ष" : "yrs"} · {m.created_for} {m.verified_at ? <Badge className="ml-1">{L ? "सत्यापित" : "verified"}</Badge> : <Badge variant="secondary" className="ml-1">{L ? "सत्यापन बाकी" : "pending verification"}</Badge>} <Badge variant="outline" className="ml-1">{m.status}</Badge></span><span className="flex gap-1">{m.status === "active" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "paused")}>{L ? "रोकें" : "Pause"}</Button> : m.status === "paused" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "active")}>{L ? "फिर चालू" : "Resume"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "प्रोफ़ाइल हटाएँ?" : "Remove profile?")) setStatus(m.id, "removed"); }}>{L ? "हटाएँ" : "Remove"}</Button> : null}</span></li>)}</ul>
-      {!open ? <Button onClick={() => setOpen(true)}>+ {L ? "नया प्रोफ़ाइल" : "New profile"}</Button> : (
+      <ul className="space-y-2">{mine.map((m) => <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"><span><b>{m.display_name}</b> · {m.gender} · {new Date().getFullYear() - m.birth_year} {L ? "वर्ष" : "yrs"} · {m.created_for} {m.verified_at ? <Badge className="ml-1">{L ? "सत्यापित" : "verified"}</Badge> : <Badge variant="secondary" className="ml-1">{L ? "सत्यापन बाकी" : "pending verification"}</Badge>} <Badge variant="outline" className="ml-1">{m.status}</Badge></span><span className="flex gap-1">{m.status !== "removed" ? <Button size="sm" variant="outline" onClick={() => void startEdit(m.id)}>{L ? "बदलें" : "Edit"}</Button> : null}{m.status === "active" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "paused")}>{L ? "रोकें" : "Pause"}</Button> : m.status === "paused" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "active")}>{L ? "फिर चालू" : "Resume"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "प्रोफ़ाइल हटाएँ?" : "Remove profile?")) setStatus(m.id, "removed"); }}>{L ? "हटाएँ" : "Remove"}</Button> : null}</span></li>)}</ul>
+      {!open ? <Button onClick={() => { setEditId(null); setF({ created_for: "self", gender: "male" }); setFiles([]); setConsent(false); setOpen(true); }}>+ {L ? "नया प्रोफ़ाइल" : "New profile"}</Button> : (
         <div className="grid gap-3 rounded-lg border border-border bg-background p-4 sm:grid-cols-2">
           <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "किसके लिए" : "Profile for"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["created_for"]} onChange={(e) => set("created_for", e.target.value)}>{["self", "son", "daughter", "brother", "sister", "relative"].map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
           <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "वर / वधू" : "Gender"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["gender"]} onChange={(e) => set("gender", e.target.value)}><option value="male">{L ? "वर (पुरुष)" : "Male"}</option><option value="female">{L ? "वधू (स्त्री)" : "Female"}</option></select></label>
@@ -144,7 +159,7 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
           <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "फोटो (6 तक; पहली फोटो मुख्य)" : "Photos (up to 6; first is the main one)"}</span><input type="file" accept="image/*" multiple onChange={(e) => setFiles([...(e.target.files ?? [])].slice(0, 6))} />{files.length ? <div className="mt-2 flex flex-wrap gap-2">{files.map((fl, i) => <img key={i} src={URL.createObjectURL(fl)} alt="" className="h-16 w-16 rounded object-cover" />)}</div> : null}</label>
           {In("contact_phone", L ? "संपर्क मोबाइल (सिर्फ़ स्वीकृति के बाद दिखेगा)" : "Contact mobile (shared only after mutual acceptance)")}
           <label className="flex items-start gap-2 sm:col-span-2 text-xs"><Checkbox checked={consent} onCheckedChange={(v) => setConsent(v === true)} /> <span>{L ? "मैं पुष्टि करता/करती हूँ कि यह व्यक्ति वयस्क है, जानकारी सही है, और इसे संगठन के सदस्यों को दिखाने की सहमति है। एडमिन सत्यापन के बाद ही दिखेगा।" : "I confirm the person is an adult, the details are true, and consent to showing this profile to members. Visible only after admin verification."}</span></label>
-          <div className="sm:col-span-2 flex gap-2"><Button onClick={save} disabled={busy}>{L ? "सहेजें" : "Save"}</Button><Button variant="ghost" onClick={() => setOpen(false)}>{L ? "रद्द" : "Cancel"}</Button></div>
+          <div className="sm:col-span-2 flex gap-2"><Button onClick={save} disabled={busy}>{L ? "सहेजें" : "Save"}</Button><Button variant="ghost" onClick={() => { setOpen(false); setEditId(null); }}>{L ? "रद्द" : "Cancel"}</Button></div>
         </div>
       )}
     </div>

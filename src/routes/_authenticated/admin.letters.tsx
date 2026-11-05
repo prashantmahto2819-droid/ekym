@@ -22,13 +22,15 @@ function LettersIndex() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [status, setStatus] = useState("all");
+  const [limit, setLimit] = useState(200);
 
   const list = useQuery({
-    queryKey: ["admin", "docs_documents", tenant.organization_id, status],
+    queryKey: ["admin", "docs_documents", tenant.organization_id, status, limit],
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       let q = supabase.from("docs_documents").select("id,kind,title,ref_no,doc_date,status,recipient,created_at").eq("organization_id", tenant.organization_id);
       if (status !== "all") q = q.eq("status", status);
-      const { data, error } = await q.order("created_at", { ascending: false }).limit(300);
+      const { data, error } = await q.order("created_at", { ascending: false }).limit(limit);
       if (error) throw error;
       return (data ?? []) as Row[];
     },
@@ -85,6 +87,7 @@ function LettersIndex() {
             {list.isSuccess && list.data.length === 0 ? <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No documents yet.</td></tr> : null}
           </tbody>
         </table>
+        {(list.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button variant="outline" size="sm" onClick={() => setLimit((n) => n + 200)}>और दिखाएँ · Show more</Button></div> : null}
       </div>
       <p className="text-xs text-muted-foreground">Inward/outward register: <Link to="/admin/register" className="underline">open register</Link></p>
       <Outlet />

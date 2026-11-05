@@ -50,6 +50,7 @@ export function Feed({ postId }: { postId?: string }) {
   const [tag, setTag] = useState<string | null>(null);
   const searching = !postId && (q.trim().length >= 2 || !!tag);
   const member = useQuery({ queryKey: ["is_member", org], enabled: !!user, queryFn: () => rpc<boolean>("k1_is_member", { p_org: org }) });
+  const applicant = useQuery({ queryKey: ["is_applicant", org], enabled: !!user && member.isSuccess && !member.data, queryFn: () => rpc<boolean>("k1_is_applicant", { p_org: org }) });
   const tags = useQuery({ queryKey: ["cm_tags", org], enabled: !postId, staleTime: 120_000, queryFn: () => rpc<{ tag: string; n: number }[]>("k1_cm_tags", { p_org: org, p_limit: 12 }) });
   const feed = useInfiniteQuery({
     queryKey: ["feed", org, postId ?? null, searching ? q.trim() : "", tag],
@@ -71,7 +72,9 @@ export function Feed({ postId }: { postId?: string }) {
         </div>
       ) : null}
       {!postId && !tag && tags.data?.length ? <div className="flex flex-wrap gap-1 text-xs">{tags.data.map((t) => <button key={t.tag} type="button" className="rounded-full border border-border px-2 py-0.5 hover:bg-secondary" onClick={() => setTag(t.tag)}>#{t.tag} <span className="text-muted-foreground">{t.n}</span></button>)}</div> : null}
-      {!postId ? (user ? (member.data ? <Composer org={org} onPosted={refresh} L={L} /> : member.isSuccess ? <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm">{L ? "पोस्ट करने के लिए संगठन का सदस्य बनें: " : "Become a member to post: "}<Link to="/join" className="underline">{L ? "सदस्यता फ़ॉर्म" : "membership form"}</Link></p> : null) : <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm"><Link to="/auth" className="underline">{L ? "लॉगिन करें" : "Sign in"}</Link>{L ? " — फिर पोस्ट, लाइक और टिप्पणी कर सकेंगे।" : " to post, like and comment."}</p>) : null}
+      {!postId ? (user ? (member.data ? <Composer org={org} onPosted={refresh} L={L} /> : member.isSuccess ? (applicant.data
+          ? <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">{L ? "आपकी सदस्यता की मंज़ूरी बाकी है — तब तक आप पढ़ सकते हैं; मंज़ूरी मिलते ही पोस्ट, लाइक और टिप्पणी खुल जाएँगे।" : "Your membership is awaiting approval — you can read meanwhile; posting, likes and comments open once approved."}</p>
+          : <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm">{L ? "पोस्ट करने के लिए संगठन का सदस्य बनें: " : "Become a member to post: "}<Link to="/join" className="underline">{L ? "सदस्यता फ़ॉर्म" : "membership form"}</Link></p>) : null) : <p className="rounded-lg border border-border bg-secondary/40 p-3 text-sm"><Link to="/auth" className="underline">{L ? "लॉगिन करें" : "Sign in"}</Link>{L ? " — फिर पोस्ट, लाइक और टिप्पणी कर सकेंगे।" : " to post, like and comment."}</p>) : null}
       {posts.map((p, i) => <div key={p.id}><PostCard p={p} L={L} signedIn={!!user} onChange={refresh} onTag={setTag} />{i === 2 ? <AdSlot slot="feed" className="mt-4 surface-card p-3" /> : null}</div>)}
       {feed.isSuccess && !posts.length ? <p className="text-center text-sm text-muted-foreground">{searching ? (L ? "कुछ नहीं मिला।" : "Nothing found.") : (L ? "अभी कोई पोस्ट नहीं — पहली पोस्ट आप करें!" : "No posts yet — be the first!")}</p> : null}
       {feed.hasNextPage ? <div className="text-center"><Button variant="outline" onClick={() => feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>{L ? "और देखें" : "Load more"}</Button></div> : null}
@@ -87,6 +90,13 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
   const [asOrg, setAsOrg] = useState<string>("");
   const asOpts = useQuery({ queryKey: ["post_as_options"], queryFn: () => rpc<{ id: string; name: string; name_hi: string | null; logo: string | null }[]>("k1_post_as_options", {}) });
   const [busy, setBusy] = useState(false);
+  const [mentions, setMentions] = useState<{ user_id: string; full_name: string }[]>([]);
+  const mq = /(?:^|\s)@([^\s@]{1,30})$/.exec(body);
+  const sugg = useQuery({ queryKey: ["mention", org, mq?.[1]], enabled: !!mq, queryFn: () => rpc<{ user_id: string; full_name: string; org_name: string }[]>("k1_mention_search", { p_org: org, p_q: mq![1], p_limit: 8 }) });
+  function pickMention(m: { user_id: string; full_name: string }) {
+    setBody((b) => b.replace(/@([^\s@]{1,30})$/, `@${m.full_name} `));
+    setMentions((x) => (x.some((y) => y.user_id === m.user_id) ? x : [...x, m]));
+  }
   async function post() {
     if (!body.trim() && !link.trim() && !files.length) return;
     setBusy(true);
@@ -100,13 +110,16 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
         media.push({ type: "image", path });
       }
       void uid;
-      await rpc("k1_post_create", { p_org: org, p_body: body.trim() || null, p_media: media, p_link: link.trim() || null, p_link_kind: link.trim() ? linkKind(link.trim()) : null, p_visibility: vis, p_as_org: asOrg || null });
-      setBody(""); setLink(""); setFiles([]); onPosted();
+      await rpc("k1_post_create", { p_org: org, p_body: body.trim() || null, p_media: media, p_link: link.trim() || null, p_link_kind: link.trim() ? linkKind(link.trim()) : null, p_visibility: vis, p_as_org: asOrg || null, p_mentions: mentions.filter((m) => body.includes(`@${m.full_name}`)).map((m) => m.user_id) });
+      setBody(""); setLink(""); setFiles([]); setMentions([]); onPosted();
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
   return (
     <div className="surface-card space-y-2 p-4">
-      <Textarea rows={3} placeholder={L ? "क्या साझा करना चाहते हैं?" : "What would you like to share?"} value={body} onChange={(e) => setBody(e.target.value)} />
+      <div className="relative">
+        <Textarea rows={3} placeholder={L ? "क्या साझा करना चाहते हैं? किसी सदस्य को @नाम से जोड़ें" : "What would you like to share? Mention a member with @name"} value={body} onChange={(e) => setBody(e.target.value)} />
+        {mq && sugg.data?.length ? <ul className="absolute left-0 z-20 mt-1 w-72 rounded-md border border-border bg-background text-sm shadow-md">{sugg.data.map((m) => <li key={m.user_id}><button type="button" className="flex w-full flex-col items-start px-3 py-1.5 text-left hover:bg-secondary" onClick={() => pickMention(m)}><span className="font-medium">@{m.full_name}</span><span className="text-xs text-muted-foreground">{m.org_name}</span></button></li>)}</ul> : null}
+      </div>
       <p className="text-xs text-muted-foreground">{L ? "विज्ञापन / व्यापारिक प्रचार / चुनावी प्रचार वाली पोस्ट की पहुँच अपने-आप सीमित हो जाती है। विज्ञापन देना हो तो " : "Advertising, business or political promotion gets limited reach automatically. To advertise, see "}<Link to="/sponsored" className="underline">{L ? "प्रायोजित सेक्शन" : "the Sponsored section"}</Link>.</p>
       <Input placeholder={L ? "YouTube / Instagram / Facebook वीडियो या कोई link (वैकल्पिक)" : "YouTube / Instagram / Facebook video or any link (optional)"} value={link} onChange={(e) => setLink(e.target.value)} />
       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -122,8 +135,8 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
 
 /** Body text with clickable #hashtags. */
 function Body({ text, onTag }: { text: string; onTag?: ((t: string) => void) | undefined }) {
-  const parts = text.split(/(#[^\s#@.,!?()[\]{}"'|<>]{2,40})/g);
-  return <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed">{parts.map((x, i) => x.startsWith("#") && x.length > 1 ? <button key={i} type="button" className="text-primary hover:underline" onClick={() => onTag?.(x.slice(1).toLowerCase())}>{x}</button> : <span key={i}>{x}</span>)}</p>;
+  const parts = text.split(/(#[^\s#@.,!?()[\]{}"'|<>]{2,40}|@[^\s#@.,!?()[\]{}"'|<>]+(?: [^\s#@.,!?()[\]{}"'|<>]+)?)/g);
+  return <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed">{parts.map((x, i) => x.startsWith("#") && x.length > 1 ? <button key={i} type="button" className="text-primary hover:underline" onClick={() => onTag?.(x.slice(1).toLowerCase())}>{x}</button> : x.startsWith("@") ? <span key={i} className="font-semibold text-primary">{x}</span> : <span key={i}>{x}</span>)}</p>;
 }
 
 function PostCard({ p, L, signedIn, onChange, onTag }: { p: Post; L: boolean; signedIn: boolean; onChange: () => void; onTag?: ((t: string) => void) | undefined }) {
@@ -208,7 +221,7 @@ function NotificationsBell({ L }: { L: boolean }) {
   const q = useQuery({ queryKey: ["cm_notifications"], refetchInterval: 60_000, queryFn: () => rpc<Notif[]>("k1_cm_notifications", { p_limit: 30 }) });
   const unread = q.data?.[0]?.unread ?? 0;
   async function markAll() { await rpc("k1_cm_notifications_read", { p_ids: null }); qc.invalidateQueries({ queryKey: ["cm_notifications"] }); }
-  const icon: Record<string, string> = { like: "👍", comment: "💬", reply: "↩️", moderation: "🛡️", appeal: "🙋" };
+  const icon: Record<string, string> = { mention: "@",  like: "👍", comment: "💬", reply: "↩️", moderation: "🛡️", appeal: "🙋" };
   return (
     <div className="relative ml-auto">
       <Button size="sm" variant="outline" onClick={() => { setOpen((v) => !v); if (!open && unread) void markAll(); }}>🔔 {L ? "सूचनाएँ" : "Notifications"}{unread ? <span className="ml-1 rounded-full bg-destructive px-1.5 text-[10px] text-destructive-foreground">{unread}</span> : null}</Button>

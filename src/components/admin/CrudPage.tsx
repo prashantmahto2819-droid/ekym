@@ -135,15 +135,17 @@ export function CrudPage({
   const [open, setOpen] = useState(false);
 
   const fkOptions = useFkOptions(fields, tenant.organization_id);
+  const [limit, setLimit] = useState(200);
   const list = useQuery({
-    queryKey: ["admin", table, tenant.organization_id, filter ?? null],
+    queryKey: ["admin", table, tenant.organization_id, filter ?? null, limit],
+    placeholderData: (prev) => prev,
     queryFn: async () => {
       let q = supabase
         .from(table as any)
         .select("*")
         .eq("organization_id", tenant.organization_id);
       for (const [k, v] of Object.entries(filter ?? {})) q = q.eq(k, v);
-      const { data, error } = await q.order(orderBy, { ascending }).limit(500);
+      const { data, error } = await q.order(orderBy, { ascending }).limit(limit);
       if (error) throw error;
       return data ?? [];
     },
@@ -300,6 +302,7 @@ export function CrudPage({
             )}
           </tbody>
         </table>
+        {(list.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button type="button" variant="outline" size="sm" onClick={() => setLimit((n) => n + 200)} disabled={list.isFetching}>और दिखाएँ · Show more ({list.data?.length})</Button></div> : null}
       </div>
 
       <Dialog

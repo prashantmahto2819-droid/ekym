@@ -1282,6 +1282,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          mentions: string[] | null
           organization_id: string
           parent_id: string | null
           post_id: string
@@ -1292,6 +1293,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          mentions?: string[] | null
           organization_id: string
           parent_id?: string | null
           post_id: string
@@ -1302,6 +1304,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          mentions?: string[] | null
           organization_id?: string
           parent_id?: string | null
           post_id?: string
@@ -1410,6 +1413,7 @@ export type Database = {
           link_kind: string | null
           link_url: string | null
           media: Json
+          mentions: string[] | null
           moderated_at: string | null
           moderation: Json
           moderation_status: string
@@ -1433,6 +1437,7 @@ export type Database = {
           link_kind?: string | null
           link_url?: string | null
           media?: Json
+          mentions?: string[] | null
           moderated_at?: string | null
           moderation?: Json
           moderation_status?: string
@@ -1456,6 +1461,7 @@ export type Database = {
           link_kind?: string | null
           link_url?: string | null
           media?: Json
+          mentions?: string[] | null
           moderated_at?: string | null
           moderation?: Json
           moderation_status?: string
@@ -6683,10 +6689,21 @@ export type Database = {
         Args: { p_email: string; p_org: string; p_role_id: string }
         Returns: string
       }
-      k1_assign_role_user: {
-        Args: { p_org: string; p_role_id: string; p_user: string }
-        Returns: string
-      }
+      k1_assign_role_user:
+        | {
+            Args: { p_org: string; p_role_id: string; p_user: string }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_org: string
+              p_regions?: string[]
+              p_role_id: string
+              p_user: string
+              p_valid_to?: string
+            }
+            Returns: string
+          }
       k1_can: { Args: { p_org: string; p_perm: string }; Returns: boolean }
       k1_cancel_document: {
         Args: { p_id: string; p_reason: string }
@@ -7145,6 +7162,7 @@ export type Database = {
       }
       k1_health: { Args: never; Returns: Json }
       k1_in_family: { Args: { p_family: string }; Returns: boolean }
+      k1_is_applicant: { Args: { p_org: string }; Returns: boolean }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_document: {
@@ -7252,6 +7270,14 @@ export type Database = {
         Args: { p_id: string; p_org: string }
         Returns: undefined
       }
+      k1_mention_search: {
+        Args: { p_limit?: number; p_org: string; p_q: string }
+        Returns: {
+          full_name: string
+          org_name: string
+          user_id: string
+        }[]
+      }
       k1_my_family: { Args: never; Returns: Json }
       k1_my_orgs: {
         Args: never
@@ -7350,6 +7376,10 @@ export type Database = {
           status: string
         }[]
       }
+      k1_org_priority_alerts: {
+        Args: { p_on: boolean; p_org: string }
+        Returns: undefined
+      }
       k1_org_register: {
         Args: {
           p_about: string
@@ -7386,10 +7416,12 @@ export type Database = {
           email: string
           full_name: string
           mobile: string
+          regions: string[]
           role_id: string
           role_key: string
           role_name: string
           user_id: string
+          valid_to: string
         }[]
       }
       k1_page_restore: { Args: { p_revision: string }; Returns: undefined }
@@ -7449,18 +7481,32 @@ export type Database = {
           parent_id: string
         }[]
       }
-      k1_post_create: {
-        Args: {
-          p_as_org?: string
-          p_body: string
-          p_link?: string
-          p_link_kind?: string
-          p_media?: Json
-          p_org: string
-          p_visibility?: string
-        }
-        Returns: string
-      }
+      k1_post_create:
+        | {
+            Args: {
+              p_as_org?: string
+              p_body: string
+              p_link?: string
+              p_link_kind?: string
+              p_media?: Json
+              p_org: string
+              p_visibility?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_as_org?: string
+              p_body: string
+              p_link?: string
+              p_link_kind?: string
+              p_media?: Json
+              p_mentions?: string[]
+              p_org: string
+              p_visibility?: string
+            }
+            Returns: string
+          }
       k1_post_decide: {
         Args: {
           p_decision: string
@@ -7536,6 +7582,14 @@ export type Database = {
         Returns: undefined
       }
       k1_slugify: { Args: { p: string }; Returns: string }
+      k1_social_regions: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          sort_order: number
+        }[]
+      }
       k1_submit_document: {
         Args: { p_id: string }
         Returns: {
