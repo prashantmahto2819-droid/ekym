@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — Phase 26 (सूचनाओं का एक पैटर्न: ईमेल हमेशा + WhatsApp + in-app)
+- निर्णय (owner): हर सूचना ईमेल से (संस्था का SMTP, वरना मंच का SMTP उसकी ओर से), WhatsApp संस्था/मंच के channel से, admin वाली in-app भी; संस्था के admin को अपना SMTP/WhatsApp जोड़ने की याद भूमिका मिलते ही और फिर हर सोमवार।
+- Migration `comms_02_notification_pattern`: `k1_pick_channel` अब अपना → मंच (root) का channel; `k1_has_own_channel`; `k1_send(org, kind, to, …)` (contact normalise, signature); `k1_user_contact`; `k1_notify_user` (ईमेल + WhatsApp); `k1_admin_notify` अब हर प्राप्तकर्ता को ईमेल भी; triggers: सदस्यता निर्णय → आवेदक, भूमिका → व्यक्ति (+ setup याद), संगठन स्वीकृत → उसके admins, शोक संदेश pending → family admins / निर्णय → बनाने वाला, वैवाहिक रुचि/स्वीकृति; cron `k1-channel-reminders` (सोम 03:30 UTC)।
+- Admin → Messaging में पीला banner जब अपना SMTP/WhatsApp नहीं। पूरी तालिका: `docs/kalchuri-one/NOTIFICATIONS_HI.md`।
+- **Owner to-do:** मंच (kalchuri.org) का SMTP channel और WhatsApp channel Admin → Messaging में जोड़ें — तब तक ईमेल कतार में नहीं जाते (channel न होने पर संदेश चुपचाप छूटता है)।
+
 ## 2026-11-05 — Phase 25 (एक्सेस मॉडल: owner ने सातों सिफ़ारिशें मानीं)
 - Bug fix: membership का pending status `applied` है, `pending` नहीं — नया-सदस्य alert और डैशबोर्ड की pending सूची अब सही (पहले कभी नहीं दिखती)।
 - Migration `core_09_access_model` (+09a mention kind, 09b `k1_org_team`): (1) **एक मंज़ूरी** — membership active ⇄ shokpatra profile approved दोनों ओर trigger से (shokpatra में approve → applied membership active, कोई न हो तो प्रगतिशील में active membership बनती है); (2) tiers पहले से (`category`: general/life/patron/executive/honorary); (3क) matrimony profile सिर्फ़ active सदस्य (restrictive policy); (3ख) सिर्फ़ Kalchuri One (umbrella) का सदस्य वंश वृक्ष नहीं बना सकता — पहले किसी समाज में भेजें (`shok_user_org` non-root पसंद, `trg_shok_set_org` रोकता है); (4) `core.role_assignments.regions` — family_admin सामाजिक क्षेत्र-वार (`admin_can_manage_family` मानता है), टीम पेज पर क्षेत्र चुनें; (5) टीम पेज में व्यावहारिक roles पहले (org_admin, secretary, editor, family_admin, treasurer); (6) आवेदक (applied) feed पढ़ सकता है (`k1_is_applicant`, `k1_feed`), पट्टी "मंज़ूरी बाकी"; (7) role का कार्यकाल `valid_to` UI में, सूची में दिखता है।

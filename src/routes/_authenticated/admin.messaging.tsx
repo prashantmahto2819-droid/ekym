@@ -71,6 +71,13 @@ function MessagingPage() {
         <p className="text-sm text-muted-foreground">Channels, templates, broadcasts and the delivery log. Messages are queued on the server and sent automatically every minute with safe gaps between them.</p>
       </header>
 
+      {channels.isSuccess ? (() => { const own = (k: string) => (channels.data ?? []).some((c) => c.kind === k && c.status === "active"); const miss = [!own("email") && "SMTP (ईमेल)", !own("whatsapp") && "WhatsApp"].filter(Boolean); return miss.length ? (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-semibold">अपना {miss.join(" और ")} channel जोड़ें</p>
+          <p className="mt-1">अभी इस संस्था की सूचनाएँ (सदस्यता, भूमिका, शोक संदेश, संपर्क …) Kalchuri One के साझा channel से जा रही हैं। अपना channel जोड़ते ही संदेश आपकी संस्था के ईमेल/नंबर से जाएँगे। नीचे "Add channel" → provider <b>SMTP</b> (host, port, username, password/app password, from email) या <b>Vivid Relay / Meta Cloud</b> (WhatsApp)। जब तक नहीं जोड़ते, हर सोमवार याद दिलाया जाएगा।</p>
+        </div>
+      ) : null; })() : null}
+
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[["queued", "In queue"], ["sent_24h", "Sent (24 h)"], ["failed_7d", "Failed (7 d)"], ["blocked_7d", "Blocked / opted out (7 d)"]].map(([k, l]) => (
           <div key={k} className="rounded-lg border border-border bg-background p-3"><p className="text-xs text-muted-foreground">{l}</p><p className="font-display text-2xl">{stats.data?.[k!] ?? 0}</p></div>
