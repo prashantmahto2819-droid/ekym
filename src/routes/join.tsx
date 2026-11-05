@@ -16,7 +16,7 @@ import { useTenant } from "@/core/tenant-context";
 import { submitMembership, type MembershipInput } from "@/lib/forms.functions";
 
 export const Route = createFileRoute("/join")({
-  validateSearch: (s: Record<string, unknown>) => ({ interest: typeof s["interest"] === "string" ? (s["interest"] as string) : undefined }),
+  validateSearch: (s: Record<string, unknown>): { interest?: string } => (typeof s["interest"] === "string" ? { interest: s["interest"] as string } : {}),
   head: ({ matches }) => ({
     meta: [
       { title: `Become a member — ${siteName(matches)}` },

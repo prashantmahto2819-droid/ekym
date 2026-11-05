@@ -102,10 +102,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: loaderData?.tenant.name ?? "Kalchuri One" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      ...(loaderData?.org?.logo ? [{ property: "og:image", content: loaderData.org.logo }] : []),
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: loaderData?.org?.favicon || loaderData?.org?.logo || "/favicon.ico" },
+      ...(loaderData?.org?.logo ? [{ rel: "apple-touch-icon", href: loaderData.org.logo }] : []),
       { rel: "alternate", type: "application/rss+xml", title: "RSS", href: "/feed.xml" },
       { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
