@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-05 — Phase 30 (शोकपत्र: कई शाखा-मुखिया, WhatsApp न होने पर बड़े पुत्र को पिता के नाम से कार्ड)
+- Migrations `shok_03_branch_heads_whatsapp_fallback` + `shok_03a_deliver_phone2`: एक परिवार में कई मुखिया (बंटवारे के बाद हर शाखा का; `set_family_head` जोड़ता है, `unset_family_head` हटाता है, कम से कम एक रहता है); `members.whatsapp_ok`, `families.main_whatsapp_ok`; `letter_recipients.via_member_id/via_name`.
+- `shok_deliver_phone(member, mode)`: अपना नंबर → दूसरा नंबर (phone2) → सबसे बड़ा जीवित पुत्र (पोते तक) → शाखा का मुखिया → उसका बड़ा पुत्र → परिवार का मुख्य नंबर; `create_letter_recipients` इसी से नंबर लेता है, नाम पिता का ही रहता है।
+- send-letters edge function v7 (shokpatra repo): Vivid Relay का `not_on_whatsapp` मिलते ही `shok_reroute_recipient` — उस नंबर पर whatsapp_ok=false, पत्र अगले नंबर पर (≤3 कोशिश)।
+- UI (दोनों साइट): "मुखिया बनाएँ" कई बार, "मुखिया हटाएँ"; सदस्य फ़ॉर्म में "इस नंबर पर WhatsApp नहीं चलता"; भेजने के बाद "किसके WhatsApp पर" सूची (`letter_recipients_review`); शोकपत्र पत्र-विवरण में नया कॉलम।
+- Bug: वंश वृक्ष में दिवंगत पूर्वज की पत्नी जीवित मुखिया के नीचे दिखती थी (sort में is_head पहले था) — अब पिता के नीचे क्रम: पत्नी → पुत्र (मुखिया पहले) → पुत्री।
+
 ## 2026-11-05 — Phase 29 (परीक्षा व प्रतियोगिता module — Charameti के comp_*/ts_* design से पुनर्रचित)
 - Charameti का exam code GitHub पर नहीं था (Lovable में); उसके DB design (competitions, categories, question bank, paper pool, registrations with parent consent, attempts with tab-switch, results/rank/cert) को Kalchuri One के लिए नए सिरे से बनाया। लिखित/चित्र entries + judges (comp_entries/judges) और AI-generated test series (ts_*) बाद के phase में।
 - Migration `ex_01_exams` (+01a): tables `ex_exams` (platform-wide = Kalchuri One की, या संस्था की), `ex_categories` (कक्षा-समूह, प्रश्न/पेपर), `ex_questions` (बैंक; उम्मीदवार कभी नहीं पढ़ सकते), `ex_paper_questions` (पूल), `ex_registrations` (नाबालिग: अभिभावक नाम/मोबाइल/सहमति अनिवार्य, `is_minor`), `ex_attempts` (paper बिना उत्तर, autosave, tab switches)। RPCs: `ex_register`, `ex_start` (सर्वर पर random पेपर, shuffle, resume), `ex_save`, `ex_submit` (सर्वर पर जाँच, negative marking, review), `ex_compute_results` (रैंक प्रति श्रेणी, merit/pass/fail, cert no, सबको WhatsApp/ईमेल), `ex_result_public` (token से परिणाम/प्रमाण-पत्र/सत्यापन), `ex_leaderboard`, `ex_my_registrations`, `ex_questions_import`, `ex_paper_fill`, `ex_list`। Permission `exam.manage`। Engine का end-to-end test SQL transaction में पास।
