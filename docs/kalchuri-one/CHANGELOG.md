@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-05 — Phase 15 (site = platform concept)
+- निर्णय (owner): library बंद, भोजन सेवा हटी, volunteer फ़ॉर्म सदस्यता में मिला, internship → "शोध एवं इंटर्नशिप (कलचुरी इतिहास)", home पर संस्थाएँ + उनकी गतिविधियाँ; वीडियो upload नहीं।
+- **Modules switch**: `core.organizations.branding.modules` (`src/core/modules.ts`, Admin → Organization settings → "Modules on this site"); Header nav, home sections (`NAV_MODULE`), admin menu इसे मानते हैं। library/bhojan दोनों orgs पर off।
+- Migration `net_01_network_modules` (+`net_02`): `k1_network(p_org)` (child orgs + events/news/campaigns/seva, hostnames सहित), home sections `network` + `activities` (kalchuri-one), `k1_notify_org_admins(org, perm, body)` (generic WhatsApp alert; `k1_cm_notify_moderators` जैसा), `contact_messages.topic` + trigger `trg_contact_alert` (community.messages.manage वालों को WhatsApp), `k1_contact_targets` (उप-संस्थाएँ), `internship_programs.kind/theme/name_hi/description_hi`, `intern_applications.research_topic/proposal/expected_output`, `org_memberships.volunteer jsonb / family_id / native_place / family_head_name / in_family_tree`.
+- UI: `Network.tsx` (OrgCard, NetworkSection, ActivitiesSection), `/organizations`; contact form में विषय + "किस संस्था के लिए"; `/internship` शोध-थीम cards + शोध फ़ील्ड; नया admin `/admin/programs` (CrudPage); `/volunteer` → `/join?interest=volunteer`; join फ़ॉर्म में "वंश वृक्ष" (मूल गाँव, मुखिया का नाम, पहले से दर्ज?) और "स्वयंसेवा में रुचि" (क्षेत्र, समय, कौशल); seva सूची पर umbrella में सभी संस्थाओं की सेवा; Kalchuri One logo (`public/kalchuri-one-icon.png`, settings.logo/favicon, root head favicon/og:image org-wise)।
+- बाकी: Admin → Members में family picker (family_id जोड़ना) — अभी admin families पेज से हाथ से; शोध output → blog category auto-link; organizations पेज पर खोज/फ़िल्टर।
+
 ## 2026-11-05 — Go-live
 - Cloudflare Worker `kalchuri-one` deploy चालू (GitHub Actions); domains `kalchuri.org`, `www.kalchuri.org`, route `*.kalchuri.org/*`; पुराना git-connected Worker `kalchuri` हटाया।
 - Migration `core_05_kalchuri_one_root`: umbrella संगठन `kalchuri-samaj` → **`kalchuri-one` "Kalchuri One / कलचुरी वन"** (kalchuri.org इसी पर; `DEFAULT_ORG_SLUG=kalchuri-one`), EKYM उसका child `ekym.kalchuri.org`; settings/home sections/slides EKYM से copy (पहली slide Kalchuri One wording); `core.org_domains` में तीनों hostnames verified; `k1_is_member(org)` अब sub-organization की सदस्यता को umbrella के लिए भी मानता है (EKYM सदस्य kalchuri.org के Kalchuri One feed में पोस्ट कर सकते हैं)।
