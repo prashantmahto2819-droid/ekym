@@ -69,6 +69,8 @@ function AuthPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="signin">
+              <PhoneOtpForm target={target} />
+              <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" /> or email &amp; password <span className="h-px flex-1 bg-border" /></div>
               <SignInForm target={target} />
             </TabsContent>
             <TabsContent value="signup">
@@ -211,6 +213,43 @@ function SignUpForm({ target }: { target: string }) {
       <Button type="submit" className="w-full" disabled={busy}>
         {busy ? "Creating account…" : "Create account"}
       </Button>
+    </form>
+  );
+}
+
+/** Mobile number → OTP on WhatsApp (Supabase phone auth; the OTP goes through the shared whatsapp-otp-hook). Same account as शोकपत्र. */
+function PhoneOtpForm({ target }: { target: string }) {
+  const navigate = useNavigate();
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const raw = phone.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "");
+    if (raw.length !== 10) { toast.error("10 अंकों का मोबाइल नंबर लिखिए"); return; }
+    const full = "+91" + raw;
+    setBusy(true);
+    try {
+      if (!sent) {
+        const { error } = await supabase.auth.signInWithOtp({ phone: full, options: { shouldCreateUser: true } });
+        if (error) throw error;
+        setSent(true); toast.success("कोड आपके WhatsApp पर भेज दिया गया है");
+      } else {
+        const { error } = await supabase.auth.verifyOtp({ phone: full, token: code.trim(), type: "sms" });
+        if (error) throw error;
+        navigate({ to: target, replace: true });
+      }
+    } catch (err) { toast.error((err as Error).message); } finally { setBusy(false); }
+  }
+  return (
+    <form onSubmit={onSubmit} className="space-y-3">
+      <Field label="मोबाइल नंबर (WhatsApp OTP)" required>
+        <div className="flex items-center gap-2"><span className="text-sm text-muted-foreground">+91</span><Input inputMode="numeric" autoComplete="tel-national" placeholder="98765 43210" value={phone} onChange={(e) => { setPhone(e.target.value); setSent(false); }} required /></div>
+      </Field>
+      {sent ? <Field label="WhatsApp पर आया 6 अंकों का कोड" required><Input inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={code} onChange={(e) => setCode(e.target.value)} required /></Field> : null}
+      <Button type="submit" className="w-full" disabled={busy}>{busy ? "…" : sent ? "लॉगिन करें" : "WhatsApp पर कोड भेजें"}</Button>
+      {sent ? <button type="button" className="w-full text-center text-xs text-muted-foreground underline" onClick={() => setSent(false)}>कोड दोबारा भेजें / नंबर बदलें</button> : null}
     </form>
   );
 }
