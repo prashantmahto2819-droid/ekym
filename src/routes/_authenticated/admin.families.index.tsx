@@ -85,7 +85,7 @@ function FamiliesPage() {
       ) : null)}
       {rows.isSuccess && !list.length ? <p className="text-sm text-muted-foreground">{L ? "कोई परिवार नहीं मिला।" : "No families found."}</p> : null}
       {rows.error ? <p className="text-sm text-destructive">{(rows.error as Error).message}</p> : null}
-      <p className="text-xs text-muted-foreground">{L ? "पुराना शोकपत्र ऐप भी चलता रहेगा; दोनों एक ही डेटा पर काम करते हैं।" : "The shokpatra app keeps working; both use the same data."} <Button asChild size="sm" variant="link"><a href="https://shokpatra.vividbrandify.com/app.html" target="_blank" rel="noreferrer">shokpatra ↗</a></Button></p>
+      <p className="text-xs text-muted-foreground">{L ? "पुराना शोकपत्र ऐप भी चलता रहेगा; दोनों एक ही डेटा पर काम करते हैं।" : "The shokpatra app keeps working; both use the same data."} <Button asChild size="sm" variant="link"><a href="https://shokpatra.kalchuri.org/app.html" target="_blank" rel="noreferrer">shokpatra ↗</a></Button></p>
       <NewFamilyDialog open={newOpen} onClose={() => setNewOpen(false)} L={L} />
     </div>
   );

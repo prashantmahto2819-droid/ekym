@@ -80,7 +80,7 @@ function ShokList() {
                     {isAdmin && l.status === "pending_approval" ? <><Button size="sm" onClick={() => decide(l, true)} disabled={busy === l.id}>{L ? "मंज़ूर" : "Approve"}</Button><Button size="sm" variant="outline" onClick={() => decide(l, false)} disabled={busy === l.id}>{L ? "अस्वीकार" : "Reject"}</Button></> : null}
                     {c.failed > 0 && ["done", "failed", "sending", "queued"].includes(l.status) ? <Button size="sm" variant="outline" onClick={() => retry(l)} disabled={busy === l.id}>{L ? "असफल दोबारा" : "Retry failed"}</Button> : null}
                     {l.status === "draft" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "ड्राफ़्ट हटाएँ?" : "Delete draft?")) act(l.id, L ? "हटाया" : "Deleted", async () => { const { error } = await supabase.from("letters").delete().eq("id", l.id); if (error) throw error; }); }}>{L ? "हटाएँ" : "Delete"}</Button> : null}
-                    <Button asChild size="sm" variant="ghost"><a href="https://shokpatra.vividbrandify.com/app.html#/letters" target="_blank" rel="noreferrer">↗</a></Button>
+                    <Button asChild size="sm" variant="ghost"><a href="https://shokpatra.kalchuri.org/app.html#/letters" target="_blank" rel="noreferrer">↗</a></Button>
                   </div>
                 </td>
               </tr>

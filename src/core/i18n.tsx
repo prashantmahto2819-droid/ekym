@@ -8,7 +8,7 @@ const dict = {
   en: {
     home: "Home", about: "About us", seva: "Seva Prakalp", blogs: "Blogs", news: "News", magazine: "Magazine", events: "Events", community: "Kalchuri One", directory: "Directory", jobs: "Jobs", scholarships: "Scholarships", help: "Emergency help", matrimony: "Matrimony", polls: "Polls", campaigns: "Campaigns",
     gallery: "Gallery", videos: "Videos", reels: "Reels", blood: "Blood donation", library: "Library",
-    volunteer: "Volunteer", internship: "Research & internship", organizations: "Our organizations", donate: "Donate", contact: "Contact",
+    volunteer: "Volunteer", internship: "Research & internship", organizations: "Our organizations", shok: "Shok sandesh & family tree", donate: "Donate", contact: "Contact",
     our_seva: "Our seva", get_involved: "Get involved", read_watch: "Read & watch", policies: "Policies",
     privacy: "Privacy policy", terms: "Terms", refund: "Refund policy",
     admin_panel: "Admin panel", my_account: "My account", staff_sign_in: "Staff sign in",
@@ -18,7 +18,7 @@ const dict = {
   hi: {
     home: "होम", about: "हमारे बारे में", seva: "सेवा प्रकल्प", blogs: "ब्लॉग", news: "समाचार", magazine: "पत्रिका", events: "आयोजन", community: "कलचुरी वन", directory: "निर्देशिका", jobs: "रोज़गार", scholarships: "छात्रवृत्ति", help: "आपात सहायता", matrimony: "वैवाहिक", polls: "मतदान", campaigns: "अभियान",
     gallery: "गैलरी", videos: "वीडियो", reels: "रील्स", blood: "रक्तदान", library: "पुस्तकालय",
-    volunteer: "स्वयंसेवक", internship: "शोध एवं इंटर्नशिप", organizations: "हमारी संस्थाएँ", donate: "दान करें", contact: "संपर्क",
+    volunteer: "स्वयंसेवक", internship: "शोध एवं इंटर्नशिप", organizations: "हमारी संस्थाएँ", shok: "शोकपत्र सेवा / वंश वृक्ष", donate: "दान करें", contact: "संपर्क",
     our_seva: "हमारी सेवा", get_involved: "जुड़ें", read_watch: "पढ़ें और देखें", policies: "नीतियाँ",
     privacy: "गोपनीयता नीति", terms: "नियम", refund: "रिफ़ंड नीति",
     admin_panel: "एडमिन पैनल", my_account: "मेरा खाता", staff_sign_in: "स्टाफ़ लॉगिन",

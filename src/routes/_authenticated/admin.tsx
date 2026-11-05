@@ -30,8 +30,9 @@ const ALL_NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/letters", label: "Letters & certificates", group: "Letters & documents" },
   { to: "/admin/register", label: "Inward / outward register", group: "Letters & documents" },
   { to: "/admin/messaging", label: "Messaging (WhatsApp & email)", group: "Letters & documents" },
-  { to: "/admin/families", label: "Family trees", group: "Family & shok" },
-  { to: "/admin/shok", label: "Shok sandesh (condolence)", group: "Family & shok" },
+  { to: "https://shokpatra.kalchuri.org/app.html", label: "शोकपत्र ऐप ↗ (families, shok sandesh)", group: "Family & shok" },
+  { to: "/admin/families", label: "Family trees (view)", group: "Family & shok" },
+  { to: "/admin/shok", label: "Shok sandesh (view)", group: "Family & shok" },
   { to: "/admin/pages", label: "Pages (builder)", group: "Website" },
   { to: "/admin/website", label: "Theme, menus & domains", group: "Website" },
   { to: "/admin/homepage", label: "Home page (slides, sections)", group: "Content" },
@@ -107,7 +108,7 @@ function AdminLayout() {
               <ul className="space-y-1">
                 {NAV.filter((n) => n.group === g).map((n) => (
                   <li key={n.to}>
-                    <Link
+                    {n.to.startsWith("http") ? <a href={n.to} target="_blank" rel="noreferrer" className="block rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary">{n.label}</a> : <Link
                       to={n.to}
                       activeOptions={{ exact: n.to === "/admin" }}
                       activeProps={{ className: "bg-primary/10 text-primary font-medium" }}

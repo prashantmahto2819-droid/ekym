@@ -207,7 +207,7 @@ function FamilyPage() {
           {isAdmin && managed && f.status === "approved" ? <Button size="sm" variant="ghost" onClick={() => decide("draft")} disabled={busy}>{L ? "ड्राफ़्ट में भेजें" : "Back to draft"}</Button> : null}
           {isAdmin && managed ? <Button size="sm" variant="ghost" onClick={trash} disabled={busy}>{L ? "कचरे में" : "Trash"}</Button> : null}
           {hasLinks ? <Button asChild size="sm" variant="outline"><Link to="/admin/lineage/$id" params={{ id }}>{L ? "पूरा वंश" : "Full lineage"}</Link></Button> : null}
-          <Button asChild size="sm" variant="ghost"><a href={`https://shokpatra.vividbrandify.com/app.html#/family/${id}`} target="_blank" rel="noreferrer">{L ? "शोकपत्र में खोलें ↗" : "Open in shokpatra ↗"}</a></Button>
+          <Button asChild size="sm" variant="ghost"><a href={`https://shokpatra.kalchuri.org/app.html#/family/${id}`} target="_blank" rel="noreferrer">{L ? "शोकपत्र में खोलें ↗" : "Open in shokpatra ↗"}</a></Button>
         </div>
       </div>
 

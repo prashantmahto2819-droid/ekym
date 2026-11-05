@@ -116,7 +116,7 @@ function AccountPage() {
               <h2 className="font-display text-lg font-semibold">Ways to help today</h2>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button asChild>
-                  <Link to="/my-family">मेरा परिवार (family tree)</Link>
+                  <a href="https://shokpatra.kalchuri.org/app.html">शोकपत्र सेवा / वंश वृक्ष ↗</a>
                 </Button>
                 <Button asChild variant="outline">
                   <Link to="/community">Kalchuri One</Link>
