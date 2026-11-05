@@ -17,7 +17,14 @@ export type Tenant = {
 };
 
 const cache = new Map<string, { at: number; tenant: Tenant | null }>();
-const TTL_MS = 60_000;
+const TTL_MS = 10 * 60_000; // in-isolate memory
+const EDGE_TTL_S = 300; // Cloudflare Cache API (survives isolate restarts in a colo)
+
+type EdgeCache = { match(req: Request): Promise<Response | undefined>; put(req: Request, res: Response): Promise<void> };
+function edgeCache(): EdgeCache | null {
+  try { const c = (globalThis as unknown as { caches?: { default?: EdgeCache } }).caches; return c?.default ?? null; } catch { return null; }
+}
+const edgeKey = (host: string) => new Request(`https://tenant-cache.kalchuri.internal/${encodeURIComponent(host || "_default")}`);
 
 function anonClient() {
   return createClient<Database>(process.env["SUPABASE_URL"]!, process.env["SUPABASE_PUBLISHABLE_KEY"]!, {
@@ -58,14 +65,22 @@ async function lookup(host: string): Promise<Tenant | null> {
   return (def.data?.[0] as Tenant | undefined) ?? null;
 }
 
-/** Organization for the current request (cached per host for a minute). */
+/** Organization for the current request: memory cache → Cloudflare edge cache → database. */
 export async function resolveTenant(): Promise<Tenant> {
   const host = hostOf();
   const hit = cache.get(host);
   if (hit && Date.now() - hit.at < TTL_MS && hit.tenant) return hit.tenant;
+  const ec = edgeCache();
+  if (ec) {
+    try {
+      const r = await ec.match(edgeKey(host));
+      if (r) { const t = (await r.json()) as Tenant; cache.set(host, { at: Date.now(), tenant: t }); return t; }
+    } catch { /* cache unavailable: fall through */ }
+  }
   const tenant = await lookup(host);
   cache.set(host, { at: Date.now(), tenant });
   if (!tenant) throw new Error("No organization is configured for this address");
+  if (ec) { try { await ec.put(edgeKey(host), new Response(JSON.stringify(tenant), { headers: { "content-type": "application/json", "cache-control": `public, max-age=${EDGE_TTL_S}` } })); } catch { /* ignore */ } }
   return tenant;
 }
 

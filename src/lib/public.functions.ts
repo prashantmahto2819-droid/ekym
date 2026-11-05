@@ -15,11 +15,11 @@ function sb() {
 
 const str = (v: unknown) => (typeof v === "string" ? v : "");
 
-export const getOrganization = createServerFn({ method: "GET" }).handler(async () => {
-  const org = await tenantId();
+export async function readOrganization(org: string) {
   const { data } = await sb().from("organization_settings").select("*").eq("organization_id", org).limit(1).maybeSingle();
   return data;
-});
+}
+export const getOrganization = createServerFn({ method: "GET" }).handler(async () => readOrganization(await tenantId()));
 
 export const getHomeData = createServerFn({ method: "GET" }).handler(async () => {
   const org = await tenantId();

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-05 — Phase 20 (गति: साइट धीमी क्यों थी)
+- जाँच: DB तेज़ है (k1_resolve_host 5 ms, k1_my_orgs 21 ms), पर Worker से Supabase की हर call औसतन 250–580 ms और हर पेज पर कई calls। 3 घंटे में `k1_resolve_host` 888 बार (हर server function अलग से tenant ढूँढ रहा था, isolate cache 1 मिनट), `organization_settings` 631 बार; browser में हर query (staleTime 0) SSR के बाद दोबारा चल रही थी; हर SIGNED_IN event (session restore/टैब फोकस) पर सारी queries invalidate → लॉगिन के बाद और धीमा।
+- सुधार: root loader अब एक ही server call `getBoot` (tenant + भाषा + organization settings + origin), route `staleTime` 5 मिनट; tenant cache 10 मिनट + Cloudflare Cache API (5 मिनट, isolate restart के बाद भी); QueryClient defaults (staleTime 2 मिनट, focus पर refetch नहीं); AuthWatcher सिर्फ़ user बदलने पर invalidate; Worker पर Smart Placement (Supabase ap-south-1 के पास चले)।
+- लॉगिन: Kalchuri One पर WhatsApp OTP पहले से पहला विकल्प; shokpatra `login.html` में भी अब WhatsApp OTP पहला/default टैब।
+
 ## 2026-11-05 — Phase 19 (Kalchuri One का शोक संदेश module: अपनी शोकपत्र फोटो)
 - समस्या (owner): Admin → शोक संदेश भेजें में शोकपत्र attach करने का विकल्प नहीं था — सिर्फ़ Design Studio template या text-only।
 - `src/lib/shok-letter.ts`: shokpatra के `js/letterImage.js` का TS port (`fillTemplate`, `renderLetter`, box = fractions; `name_box` format shokpatra जैसा ही `{x,y,w,h,template,cover,font,ink}`)।

@@ -15,8 +15,8 @@ import { Header } from "@/components/site/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { organizationQuery } from "@/lib/queries";
-import { getOrigin, getTenant } from "@/core/tenant.functions";
-import { getLang } from "@/core/lang.functions";
+import { getBoot } from "@/core/tenant.functions";
+import type { getOrganization } from "@/lib/public.functions";
 import { TenantProvider } from "@/core/tenant-context";
 import { LangProvider, type Lang } from "@/core/i18n";
 import type { Tenant } from "@/core/tenant.server";
@@ -81,14 +81,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // One server call for tenant + language + organization settings + origin; re-run at most every 5 minutes
+  // (the language toggle and sign-in/out call router.invalidate()).
+  staleTime: 5 * 60_000,
   loader: async ({ context }) => {
-    const [tenant, lang, org, origin] = await Promise.all([
-      getTenant() as Promise<Tenant>,
-      getLang() as Promise<Lang>,
-      context.queryClient.ensureQueryData(organizationQuery()),
-      getOrigin() as Promise<string>,
-    ]);
-    return { tenant, lang, org, origin };
+    const boot = (await getBoot()) as { tenant: Tenant; lang: Lang; org: Awaited<ReturnType<typeof getOrganization>>; origin: string };
+    context.queryClient.setQueryData(organizationQuery().queryKey, boot.org);
+    return boot;
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -144,8 +143,14 @@ function RootShell({ children }: { children: ReactNode }) {
 function AuthWatcher({ queryClient }: { queryClient: QueryClient }) {
   const router = useRouter();
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    // supabase fires SIGNED_IN again on session restore / token refresh / tab focus; only a real change of user
+    // should throw away every cached query (that refetch was making pages feel slow after login).
+    let lastUser: string | null | undefined;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      const uid = session?.user?.id ?? null;
+      if (event === "SIGNED_IN" && lastUser !== undefined && lastUser === uid) return;
+      lastUser = uid;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });

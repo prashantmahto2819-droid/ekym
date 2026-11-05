@@ -5,6 +5,8 @@
 {
   "name": "kalchuri-one",
   "compatibility_flags": ["nodejs_compat"],
+  // run the Worker close to Supabase (ap-south-1) because each page makes several database calls
+  "placement": { "mode": "smart" },
   "vars": {
     "SUPABASE_URL": "https://udxdxkyfrqlgdwwqaucu.supabase.co",
     "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_KzSzDcvJpg5HBQp5-ka6mQ_bKzJ3T8N",
