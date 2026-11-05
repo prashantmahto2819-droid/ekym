@@ -55,6 +55,7 @@ const ALL_NAV: { to: string; label: string; group: string }[] = [
   { to: "/admin/ads", label: "Ads & revenue", group: "Administration" },
   { to: "/admin/payments", label: "Payment settings", group: "Administration" },
   { to: "/admin/settings", label: "Organization settings", group: "Administration" },
+  { to: "/admin/organizations", label: "Organizations (platform)", group: "Administration" },
   { to: "/admin/users", label: "Users & roles", group: "Administration" },
   { to: "/admin/health", label: "System health & backups", group: "Administration" },
   { to: "/admin/guide", label: "उपयोग गाइड (Hindi guide)", group: "Administration" },

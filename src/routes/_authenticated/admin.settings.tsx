@@ -6,6 +6,8 @@ import { Field } from "@/components/site/Field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageField } from "@/components/admin/ImageField";
+import { MarkupEditor } from "@/components/admin/MarkupEditor";
 import { MODULE_KEYS, moduleOn } from "@/core/modules";
 import { useTenant } from "@/core/tenant-context";
 import { useState } from "react";
@@ -20,7 +22,7 @@ const TEXT_FIELDS: { key: string; label: string; full?: boolean }[] = [
   { key: "organization_name_hi", label: "संगठन का नाम (हिंदी)", full: true },
   { key: "tagline", label: "Tagline (English)", full: true },
   { key: "tagline_hi", label: "टैगलाइन (हिंदी)", full: true },
-  { key: "logo", label: "Logo URL" },
+  { key: "logo", label: "Logo (square works best)" },
   { key: "favicon", label: "Favicon URL" },
   { key: "email", label: "Email" },
   { key: "phone", label: "Phone" },
@@ -39,6 +41,10 @@ const TEXT_FIELDS: { key: string; label: string; full?: boolean }[] = [
   { key: "telegram", label: "Telegram" },
 ];
 
+const MARKUP_FIELDS: { key: string; label: string }[] = [
+  { key: "about_long", label: "About us — full page text (English)" },
+  { key: "about_long_hi", label: "हमारे बारे में — पूरा पाठ (हिंदी)" },
+];
 const LONG_FIELDS: { key: string; label: string }[] = [
   { key: "about_short", label: "Short about text (English)" },
   { key: "about_short_hi", label: "संक्षिप्त परिचय (हिंदी)" },
@@ -92,7 +98,7 @@ function SettingsAdmin() {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const values: Record<string, string | null> = {};
-    for (const f of [...TEXT_FIELDS, ...LONG_FIELDS]) {
+    for (const f of [...TEXT_FIELDS, ...LONG_FIELDS, ...MARKUP_FIELDS]) {
       const v = (form.get(f.key) as string) ?? "";
       values[f.key] = v === "" ? null : v;
     }
@@ -115,7 +121,12 @@ function SettingsAdmin() {
       <form onSubmit={onSubmit} className="surface-card mt-6 grid gap-4 p-6 sm:grid-cols-2">
         {TEXT_FIELDS.map((f) => (
           <Field key={f.key} label={f.label} className={f.full ? "sm:col-span-2" : undefined}>
-            <Input name={f.key} defaultValue={row[f.key] ?? ""} />
+            {f.key === "logo" || f.key === "favicon" ? <ImgInput name={f.key} initial={row[f.key] ?? ""} /> : <Input name={f.key} defaultValue={row[f.key] ?? ""} />}
+          </Field>
+        ))}
+        {MARKUP_FIELDS.map((f) => (
+          <Field key={f.key} label={f.label} className="sm:col-span-2">
+            <MarkupInput name={f.key} initial={row[f.key] ?? ""} />
           </Field>
         ))}
         {LONG_FIELDS.map((f) => (
@@ -152,4 +163,13 @@ function ModulesCard() {
       <Button type="button" size="sm" className="mt-3" onClick={save} disabled={busy}>Save modules</Button>
     </div>
   );
+}
+
+function ImgInput({ name, initial }: { name: string; initial: string }) {
+  const [v, setV] = useState(initial);
+  return <><input type="hidden" name={name} value={v} /><ImageField label="" value={v} onChange={setV} folder="branding" max={800} /></>;
+}
+function MarkupInput({ name, initial }: { name: string; initial: string }) {
+  const [v, setV] = useState(initial);
+  return <><input type="hidden" name={name} value={v} /><MarkupEditor value={v} onChange={setV} rows={10} /></>;
 }

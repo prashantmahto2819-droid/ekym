@@ -14,6 +14,7 @@ import {
 
 import { useAuth } from "@/hooks/use-auth";
 import { useLang, type TKey } from "@/core/i18n";
+import { moduleOn, NAV_MODULE } from "@/core/modules";
 import { useTenant } from "@/core/tenant-context";
 import { telHref } from "@/lib/format";
 import { menusQuery, organizationQuery } from "@/lib/queries";
@@ -118,8 +119,8 @@ export function Footer() {
           ) : null}
         </div>
 
-        <FooterColumn title={t("our_seva")} links={sevaLinks} />
-        <FooterColumn title={t("get_involved")} links={getInvolved} />
+        <FooterColumn title={t("our_seva")} links={sevaLinks.filter((l) => !NAV_MODULE[l.key] || moduleOn(tenant.branding, NAV_MODULE[l.key]!))} />
+        <FooterColumn title={t("get_involved")} links={getInvolved.filter((l) => !NAV_MODULE[l.key] || moduleOn(tenant.branding, NAV_MODULE[l.key]!))} />
         <CustomFooterLinks />
         <div className="space-y-6">
           <FooterColumn title={t("read_watch")} links={readLinks} />

@@ -15,7 +15,7 @@ import { Header } from "@/components/site/Header";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { organizationQuery } from "@/lib/queries";
-import { getTenant } from "@/core/tenant.functions";
+import { getOrigin, getTenant } from "@/core/tenant.functions";
 import { getLang } from "@/core/lang.functions";
 import { TenantProvider } from "@/core/tenant-context";
 import { LangProvider, type Lang } from "@/core/i18n";
@@ -82,12 +82,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async ({ context }) => {
-    const [tenant, lang, org] = await Promise.all([
+    const [tenant, lang, org, origin] = await Promise.all([
       getTenant() as Promise<Tenant>,
       getLang() as Promise<Lang>,
       context.queryClient.ensureQueryData(organizationQuery()),
+      getOrigin() as Promise<string>,
     ]);
-    return { tenant, lang, org };
+    return { tenant, lang, org, origin };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -102,7 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: loaderData?.tenant.name ?? "Kalchuri One" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      ...(loaderData?.org?.logo ? [{ property: "og:image", content: loaderData.org.logo }] : []),
+      ...(loaderData?.org?.logo ? [{ property: "og:image", content: loaderData.org.logo.startsWith("http") ? loaderData.org.logo : `${loaderData.origin}${loaderData.org.logo}` }] : [{ property: "og:image", content: `${loaderData?.origin ?? ""}/kalchuri-one-icon.png` }]),
     ],
     links: [
       { rel: "stylesheet", href: appCss },

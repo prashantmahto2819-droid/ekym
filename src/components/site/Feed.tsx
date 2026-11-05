@@ -14,7 +14,7 @@ import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string };
+export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[] };
 type Comment = { id: string; parent_id: string | null; author_id: string; author_name: string; body: string; created_at: string; mine: boolean };
 
 export const COMMUNITY_NAME = { en: "Kalchuri One", hi: "कलचुरी वन" };
@@ -84,6 +84,8 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
   const [link, setLink] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [vis, setVis] = useState<"members" | "public">("members");
+  const [asOrg, setAsOrg] = useState<string>("");
+  const asOpts = useQuery({ queryKey: ["post_as_options"], queryFn: () => rpc<{ id: string; name: string; name_hi: string | null; logo: string | null }[]>("k1_post_as_options", {}) });
   const [busy, setBusy] = useState(false);
   async function post() {
     if (!body.trim() && !link.trim() && !files.length) return;
@@ -97,8 +99,8 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
         const { error } = await supabase.storage.from("community").upload(path, f, { contentType: f.type }); if (error) throw error;
         media.push({ type: "image", path });
       }
-      const { error } = await supabase.from("cm_posts").insert({ organization_id: org, author_id: uid, body: body.trim() || null, media, link_url: link.trim() || null, link_kind: link.trim() ? linkKind(link.trim()) : null, visibility: vis } as never);
-      if (error) throw error;
+      void uid;
+      await rpc("k1_post_create", { p_org: org, p_body: body.trim() || null, p_media: media, p_link: link.trim() || null, p_link_kind: link.trim() ? linkKind(link.trim()) : null, p_visibility: vis, p_as_org: asOrg || null });
       setBody(""); setLink(""); setFiles([]); onPosted();
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
@@ -110,6 +112,7 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <label className="cursor-pointer rounded-md border border-border px-3 py-1.5">📷 {L ? "फोटो" : "Photos"}{files.length ? ` (${files.length})` : ""}<input type="file" accept="image/*" multiple hidden onChange={(e) => setFiles([...(e.target.files ?? [])])} /></label>
         <select className="h-9 rounded-md border border-input bg-background px-2" value={vis} onChange={(e) => setVis(e.target.value as typeof vis)}><option value="members">{L ? "सिर्फ़ सदस्य" : "Members only"}</option><option value="public">{L ? "सार्वजनिक" : "Public"}</option></select>
+        {asOpts.data?.length ? <select className="h-9 max-w-[220px] rounded-md border border-input bg-background px-2" value={asOrg} onChange={(e) => setAsOrg(e.target.value)} title={L ? "किसकी ओर से" : "Post as"}><option value="">{L ? "व्यक्तिगत पोस्ट" : "Personal post"}</option>{asOpts.data.map((o) => <option key={o.id} value={o.id}>{L ? "संगठन: " : "As: "}{L && o.name_hi ? o.name_hi : o.name}</option>)}</select> : null}
         <Button className="ml-auto" onClick={post} disabled={busy}>{L ? "पोस्ट करें" : "Post"}</Button>
       </div>
       {files.length ? <div className="flex flex-wrap gap-2">{files.map((f, i) => <img key={i} src={URL.createObjectURL(f)} alt="" className="h-16 w-16 rounded object-cover" />)}</div> : null}
@@ -148,7 +151,7 @@ function PostCard({ p, L, signedIn, onChange, onTag }: { p: Post; L: boolean; si
     <article className="surface-card p-4">
       <header className="flex items-center gap-3">
         {p.author_photo ? <img src={p.author_photo} alt="" className="size-10 rounded-full object-cover" /> : <span className="grid size-10 place-items-center rounded-full bg-primary/10 font-display font-semibold text-primary">{p.author_name.slice(0, 1)}</span>}
-        <div className="min-w-0 flex-1"><p className="font-semibold">{p.author_name} {p.pinned ? <Badge className="ml-1">{L ? "पिन" : "pinned"}</Badge> : null}</p><p className="text-xs text-muted-foreground"><Link to="/community/$id" params={{ id: p.id }} className="hover:underline">{new Date(p.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</Link> · {p.visibility === "public" ? (L ? "सार्वजनिक" : "public") : (L ? "सदस्य" : "members")}</p></div>
+        <div className="min-w-0 flex-1"><p className="font-semibold">{p.author_name} {p.as_org ? <Badge variant="outline" className="ml-1 text-[10px]">{L ? "संगठन" : "organization"}</Badge> : null} {p.pinned ? <Badge className="ml-1">{L ? "पिन" : "pinned"}</Badge> : null}</p><p className="text-xs text-muted-foreground"><Link to="/community/$id" params={{ id: p.id }} className="hover:underline">{new Date(p.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</Link> · {p.visibility === "public" ? (L ? "सार्वजनिक" : "public") : (L ? "सदस्य" : "members")}</p></div>
         {(p.mine || p.can_moderate) ? <details className="relative"><summary className="cursor-pointer list-none px-2 text-muted-foreground">⋯</summary><div className="absolute right-0 z-10 mt-1 flex w-40 flex-col rounded-md border border-border bg-background p-1 text-sm shadow">{p.can_moderate ? <><button type="button" className="rounded px-2 py-1 text-left hover:bg-secondary" onClick={() => moderate(null, !p.pinned)}>{p.pinned ? (L ? "अनपिन" : "Unpin") : (L ? "पिन करें" : "Pin")}</button><button type="button" className="rounded px-2 py-1 text-left hover:bg-secondary" onClick={() => moderate("hidden", null)}>{L ? "छिपाएँ" : "Hide"}</button></> : null}{p.mine || p.can_moderate ? <button type="button" className="rounded px-2 py-1 text-left text-destructive hover:bg-secondary" onClick={remove}>{L ? "हटाएँ" : "Delete"}</button> : null}</div></details> : null}
       </header>
       {p.reach === "limited" ? <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">{L ? "⚠️ पहुँच सीमित: यह पोस्ट प्रचार/विज्ञापन जैसी लगी, इसलिए सिर्फ़ आपको और मॉडरेटर को दिख रही है। मॉडरेटर समीक्षा करेंगे।" : "⚠️ Limited reach: this post looks like promotion/advertising, so only you and moderators can see it. A moderator will review it."}{p.can_moderate ? <> · <Link to="/admin/community" className="underline">{L ? "समीक्षा" : "review"}</Link></> : null}{p.mine ? <> · <button type="button" className="underline" onClick={appeal}>{L ? "समीक्षा का अनुरोध करें" : "Request review"}</button></> : null}</p> : null}
@@ -176,7 +179,8 @@ function Comments({ post, L, signedIn }: { post: Post; L: boolean; signedIn: boo
   async function send() {
     if (!body.trim()) return;
     const uid = (await supabase.auth.getUser()).data.user?.id;
-    const { error } = await supabase.from("cm_post_comments").insert({ post_id: post.id, organization_id: tenant.organization_id, author_id: uid, parent_id: replyTo, body: body.trim() } as never);
+    const root = (await rpc<string | null>("k1_root_org", { p_org: tenant.organization_id })) ?? tenant.organization_id;
+    const { error } = await supabase.from("cm_post_comments").insert({ post_id: post.id, organization_id: root, author_id: uid, parent_id: replyTo, body: body.trim() } as never);
     if (error) { toast.error(error.message); return; }
     setBody(""); setReplyTo(null); qc.invalidateQueries({ queryKey: ["comments", post.id] }); qc.invalidateQueries({ queryKey: ["feed"] });
   }

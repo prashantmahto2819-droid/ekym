@@ -42,7 +42,7 @@ export function NetworkSection({ title, subtitle, limit = 6 }: { title: string; 
       <div className="container-page">
         <SectionHeading eyebrow={`${orgs.length} ${hi ? "संस्थाएँ" : "organizations"}`} title={title} subtitle={subtitle} action={orgs.length > limit ? { label: hi ? "सभी देखें" : "View all", to: "/organizations" } : undefined} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{orgs.slice(0, limit).map((o) => <OrgCard key={o.id} o={o} />)}</div>
-        <p className="mt-6 text-sm text-muted-foreground">{hi ? "आपकी समिति / संस्था भी इस मंच पर अपनी वेबसाइट, सदस्य, आयोजन और लेखा चला सकती है — " : "Your samiti or sanstha can run its website, members, events and accounts on this platform too — "}<Link to="/contact" className="underline">{hi ? "संपर्क करें" : "get in touch"}</Link>.</p>
+        <p className="mt-6 text-sm text-muted-foreground">{hi ? "आपकी समिति / संस्था भी इस मंच पर अपनी वेबसाइट, सदस्य, आयोजन और लेखा चला सकती है — " : "Your samiti or sanstha can run its website, members, events and accounts on this platform too — "}<Link to="/register-organization" className="underline">{hi ? "अपना संगठन जोड़ें" : "register your organization"}</Link>.</p>
       </div>
     </section>
   );

@@ -64,9 +64,10 @@ export function Header() {
   const custom = menus.data?.header ? menus.data.header.map(mi) : null;
   const on = (k: string) => !NAV_MODULE[k] || moduleOn(tenant.branding, NAV_MODULE[k]!);
   const umbrella = (tenant.child_count ?? 0) > 0;
+  const isSub = !!tenant.parent_id;
   const defPrimary = [...(umbrella ? [{ key: "organizations" as TKey, to: "/organizations" }] : []), ...primaryNav].filter((i) => on(i.key));
   const primary: NavItem[] = custom ? custom.filter((x) => !x.children).slice(0, 6) : defPrimary.slice(0, 6).map((i) => ({ label: t(i.key), to: i.to }));
-  const more: NavItem[] = custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...defPrimary.slice(6).map((i) => ({ label: t(i.key), to: i.to })), ...moreNav.filter((i) => on(i.key)).map((i) => ({ label: t(i.key), to: i.to })), ...extraPages];
+  const more: NavItem[] = [...(custom ? [...custom.filter((x) => x.children).flatMap((x) => x.children!), ...custom.filter((x) => !x.children).slice(6), ...extraPages] : [...defPrimary.slice(6).map((i) => ({ label: t(i.key), to: i.to })), ...moreNav.filter((i) => on(i.key)).map((i) => ({ label: t(i.key), to: i.to })), ...extraPages]), ...(isSub ? [{ label: lang === "hi" ? "🏠 Kalchuri One (मुख्य मंच)" : "🏠 Kalchuri One (main platform)", to: "https://kalchuri.org" }] : [])];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur">
@@ -109,7 +110,7 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-48">
               {more.map((item) => (
                 <DropdownMenuItem key={item.to} asChild>
-                  <Link to={item.to as "/"}>{item.label}</Link>
+                  {item.to.startsWith("http") ? <a href={item.to}>{item.label}</a> : <Link to={item.to as "/"}>{item.label}</Link>}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -136,9 +137,9 @@ export function Header() {
           >
             {t("switch_lang")}
           </Button>
-          <Button asChild variant="default" size="sm" className="hidden sm:inline-flex">
+          {moduleOn(tenant.branding, "donate") ? <Button asChild variant="default" size="sm" className="hidden sm:inline-flex">
             <Link to="/donate">{t("donate")}</Link>
-          </Button>
+          </Button> : null}
           {user ? (
             <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
               <Link to={isStaff ? "/admin" : "/account"}>
@@ -166,7 +167,9 @@ export function Header() {
                 <Link to="/" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">
                   {t("home")}
                 </Link>
-                {[...primary, ...more].map((item) => (
+                {[...primary, ...more].map((item) => item.to.startsWith("http") ? (
+                  <a key={item.to} href={item.to} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">{item.label}</a>
+                ) : (
                   <Link
                     key={item.to}
                     to={item.to as "/"}
@@ -177,11 +180,11 @@ export function Header() {
                     {item.label}
                   </Link>
                 ))}
-                <Button asChild className="mt-3">
+                {moduleOn(tenant.branding, "donate") ? <Button asChild className="mt-3">
                   <Link to="/donate" onClick={() => setOpen(false)}>
                     {t("donate")}
                   </Link>
-                </Button>
+                </Button> : null}
                 <Button asChild variant="outline" className="mt-2">
                   <Link to={user ? (isStaff ? "/admin" : "/account") : "/auth"} onClick={() => setOpen(false)}>
                     {user ? (isStaff ? t("admin_panel") : t("my_account")) : "Sign in"}

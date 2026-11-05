@@ -86,6 +86,7 @@ function MembersPage() {
 
   return (
     <div className="space-y-10">
+      {(tenant.child_count ?? 0) > 0 ? <NetworkMembers org={tenant.organization_id} /> : null}
       <section>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -211,5 +212,35 @@ function MembersPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+type NetRow = { id: string; organization_id: string; org_name: string; org_slug: string; member_no: string | null; full_name: string; mobile: string; village: string | null; city: string | null; status: string; category: string; family_id: string | null; applied_at: string };
+/** Umbrella admins: every member of every organization on the platform; approve or move to another organization. */
+function NetworkMembers({ org }: { org: string }) {
+  const qc = useQueryClient();
+  const [q, setQ] = useState("");
+  const rows = useQuery({ queryKey: ["k1_network_members", org, q], queryFn: async () => { const { data, error } = await supabase.rpc("k1_network_members", { p_org: org, p_q: q || null, p_limit: 500 } as never); if (error) throw new Error(error.message); return (data ?? []) as unknown as NetRow[]; } });
+  const orgs = useQuery({ queryKey: ["contact_targets", org], queryFn: async () => { const { data } = await supabase.rpc("k1_contact_targets", { p_org: org } as never); return (data ?? []) as unknown as { id: string; name: string }[]; } });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["k1_network_members"] }); qc.invalidateQueries({ queryKey: ["admin", "org_memberships"] }); };
+  async function move(r: NetRow, to: string) { if (!to || to === r.organization_id) return; const { error } = await supabase.rpc("k1_membership_move", { p_id: r.id, p_org: to } as never); if (error) toast.error(error.message); else { toast.success("Moved"); refresh(); } }
+  async function approve(r: NetRow) { const { error } = await supabase.rpc("k1_decide_membership", { p_id: r.id, p_approve: true, p_category: r.category } as never); if (error) toast.error(error.message); else { toast.success("Approved"); refresh(); } }
+  const list = rows.data ?? [];
+  const byStatus = (st: string) => list.filter((r) => r.status === st).length;
+  return (
+    <section className="rounded-lg border border-border bg-background p-4">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div><h2 className="font-display text-xl font-semibold">All organizations — members</h2><p className="text-sm text-muted-foreground">Who registered where. Applications are approved by that organization's admin or by you here; a member can be moved to another organization (e.g. registered under Kalchuri One before their samiti existed). {byStatus("applied")} applied · {byStatus("active")} active</p></div>
+        <Input className="w-56" placeholder="Search name / mobile / organization" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-2">Member</th><th className="p-2">Mobile</th><th className="p-2">Place</th><th className="p-2">Organization</th><th className="p-2">Status</th><th className="p-2">Applied</th><th className="p-2">Move to</th><th className="p-2"></th></tr></thead>
+        <tbody>{list.map((r) => <tr key={r.id} className={`border-t border-border ${r.status === "applied" ? "bg-amber-50/60 dark:bg-amber-950/20" : ""}`}>
+          <td className="p-2"><b>{r.full_name}</b>{r.member_no ? <span className="ml-1 text-xs text-muted-foreground">#{r.member_no}</span> : null}</td>
+          <td className="p-2 text-xs">{r.mobile}</td><td className="p-2 text-xs">{r.village || r.city || "—"}</td>
+          <td className="p-2 text-xs">{r.org_name}</td><td className="p-2 text-xs">{r.status}</td><td className="p-2 text-xs">{new Date(r.applied_at).toLocaleDateString("en-IN")}</td>
+          <td className="p-2"><select className="h-8 rounded-md border border-input bg-background px-1 text-xs" value={r.organization_id} onChange={(e) => void move(r, e.target.value)}>{(orgs.data ?? []).map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></td>
+          <td className="p-2">{r.status === "applied" ? <Button size="sm" onClick={() => approve(r)}>Approve</Button> : null}</td>
+        </tr>)}{rows.isSuccess && !list.length ? <tr><td className="p-3 text-muted-foreground" colSpan={8}>None.</td></tr> : null}</tbody></table></div>
+    </section>
   );
 }

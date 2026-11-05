@@ -25,6 +25,13 @@ function anonClient() {
   });
 }
 
+/** https://host of the current request, falling back to PUBLIC_SITE_URL. */
+export function requestOrigin(): string {
+  const h = hostOf();
+  if (h) return (h.startsWith("localhost") ? "http://" : "https://") + h;
+  return process.env["PUBLIC_SITE_URL"] ?? "https://kalchuri.org";
+}
+
 function hostOf(): string {
   try {
     const h = getRequest().headers.get("x-forwarded-host") ?? getRequest().headers.get("host") ?? "";

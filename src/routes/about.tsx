@@ -1,4 +1,8 @@
 import { useTenant } from "@/core/tenant-context";
+import { useLang } from "@/core/i18n";
+import { moduleOn } from "@/core/modules";
+import { RichText } from "@/components/site/Blocks";
+import { Committees } from "@/components/site/Committees";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { HandHeart, HeartHandshake, ShieldCheck, Users } from "lucide-react";
@@ -63,6 +67,8 @@ function AboutPage() {
   const { data: org } = useSuspenseQuery(organizationQuery());
   const tenant = useTenant();
   const { data: seva } = useSuspenseQuery(sevaListQuery());
+  const { lang } = useLang();
+  const hi = lang === "hi";
 
   return (
     <>
@@ -74,29 +80,26 @@ function AboutPage() {
 
       <section className="section-y">
         <div className="container-page grid gap-10 lg:grid-cols-[2fr_1fr]">
-          <div className="prose-content">
-            <p>
-              {org?.about_short ?? `${tenant.name} is a community organisation. Its introduction can be written from the admin panel (Organization settings → Short about text).`}
-            </p>
-            <p>
-              Our work is organised into {seva.length || 21} seva prakalp. Each has a small team, a
-              simple plan and a public record of what happened. This keeps our promises small and
-              our delivery consistent.
-            </p>
-            <p>
-              We are building this platform so anyone can see what we did today, raise a need, offer
-              help, or join a team — without a phone call or a form to print.
-            </p>
+          <div>
+            {(hi && org?.about_long_hi) || org?.about_long ? (
+              <RichText text={(hi && org?.about_long_hi) || org?.about_long || ""} />
+            ) : (
+              <div className="prose-content">
+                <p>{(hi && org?.about_short_hi) || org?.about_short || `${tenant.name} is a community organisation. Its introduction can be written from the admin panel (Organization settings → About us).`}</p>
+                {seva.length ? <p>{hi ? `हमारा काम ${seva.length} सेवा प्रकल्पों में बँटा है।` : `Our work is organised into ${seva.length} seva prakalp.`}</p> : null}
+              </div>
+            )}
+            <Committees />
           </div>
           <aside className="surface-card h-fit p-6">
             <h2 className="font-display text-lg font-semibold">Get involved</h2>
             <div className="mt-4 flex flex-col gap-2">
               <Button asChild>
-                <Link to="/volunteer">Volunteer with us</Link>
+                <Link to="/join">{hi ? "सदस्य बनें" : "Become a member"}</Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/donate">Donate</Link>
-              </Button>
+              {moduleOn(tenant.branding, "donate") ? <Button asChild variant="outline">
+                <Link to="/donate">{hi ? "दान करें" : "Donate"}</Link>
+              </Button> : null}
               <Button asChild variant="outline">
                 <Link to="/contact">Contact us</Link>
               </Button>

@@ -1400,6 +1400,7 @@ export type Database = {
       }
       cm_posts: {
         Row: {
+          as_org: string | null
           author_id: string
           body: string | null
           comment_count: number
@@ -1422,6 +1423,7 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          as_org?: string | null
           author_id: string
           body?: string | null
           comment_count?: number
@@ -1444,6 +1446,7 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          as_org?: string | null
           author_id?: string
           body?: string | null
           comment_count?: number
@@ -5041,6 +5044,8 @@ export type Database = {
       }
       organization_settings: {
         Row: {
+          about_long: string | null
+          about_long_hi: string | null
           about_short: string | null
           about_short_hi: string | null
           address: string | null
@@ -5075,6 +5080,8 @@ export type Database = {
           youtube: string | null
         }
         Insert: {
+          about_long?: string | null
+          about_long_hi?: string | null
           about_short?: string | null
           about_short_hi?: string | null
           address?: string | null
@@ -5109,6 +5116,8 @@ export type Database = {
           youtube?: string | null
         }
         Update: {
+          about_long?: string | null
+          about_long_hi?: string | null
           about_short?: string | null
           about_short_hi?: string | null
           address?: string | null
@@ -6979,6 +6988,8 @@ export type Database = {
           p_post?: string
         }
         Returns: {
+          as_org: string
+          as_org_name: string
           author_id: string
           author_name: string
           author_photo: string
@@ -6997,6 +7008,7 @@ export type Database = {
           pinned: boolean
           reach: string
           share_count: number
+          tags: string[]
           visibility: string
         }[]
       }
@@ -7009,6 +7021,8 @@ export type Database = {
           p_tag?: string
         }
         Returns: {
+          as_org: string
+          as_org_name: string
           author_id: string
           author_name: string
           author_photo: string
@@ -7027,6 +7041,7 @@ export type Database = {
           pinned: boolean
           reach: string
           share_count: number
+          tags: string[]
           visibility: string
         }[]
       }
@@ -7135,6 +7150,10 @@ export type Database = {
         Args: { p_member: string; p_phone2?: string; p_photo?: string }
         Returns: undefined
       }
+      k1_membership_move: {
+        Args: { p_id: string; p_org: string }
+        Returns: undefined
+      }
       k1_my_family: { Args: never; Returns: Json }
       k1_my_orgs: {
         Args: never
@@ -7148,6 +7167,24 @@ export type Database = {
         }[]
       }
       k1_network: { Args: { p_limit?: number; p_org: string }; Returns: Json }
+      k1_network_members: {
+        Args: { p_limit?: number; p_org: string; p_q?: string }
+        Returns: {
+          applied_at: string
+          category: string
+          city: string
+          family_id: string
+          full_name: string
+          id: string
+          member_no: string
+          mobile: string
+          org_name: string
+          org_slug: string
+          organization_id: string
+          status: string
+          village: string
+        }[]
+      }
       k1_next_number: {
         Args: { p_kind: string; p_org: string }
         Returns: string
@@ -7176,6 +7213,10 @@ export type Database = {
           slug: string
         }[]
       }
+      k1_org_decide: {
+        Args: { p_approve: boolean; p_note?: string; p_org: string }
+        Returns: undefined
+      }
       k1_org_domains: {
         Args: { p_org: string }
         Returns: {
@@ -7188,6 +7229,46 @@ export type Database = {
         }[]
       }
       k1_org_export: { Args: { p_org: string }; Returns: Json }
+      k1_org_list: {
+        Args: never
+        Returns: {
+          admins: string
+          city: string
+          created_at: string
+          district: string
+          hostname: string
+          id: string
+          kind: string
+          level: string
+          members: number
+          name: string
+          name_hi: string
+          parent_id: string
+          parent_name: string
+          phone: string
+          requester: string
+          slug: string
+          state: string
+          status: string
+        }[]
+      }
+      k1_org_register: {
+        Args: {
+          p_about: string
+          p_city: string
+          p_contact_name: string
+          p_district: string
+          p_email: string
+          p_kind: string
+          p_level: string
+          p_name: string
+          p_name_hi: string
+          p_parent?: string
+          p_phone: string
+          p_state: string
+        }
+        Returns: Json
+      }
       k1_org_roles: {
         Args: { p_org: string }
         Returns: {
@@ -7231,6 +7312,15 @@ export type Database = {
       k1_ping: { Args: never; Returns: Json }
       k1_poll_close: { Args: { p_poll: string }; Returns: undefined }
       k1_poll_results: { Args: { p_poll: string }; Returns: Json }
+      k1_post_as_options: {
+        Args: never
+        Returns: {
+          id: string
+          logo: string
+          name: string
+          name_hi: string
+        }[]
+      }
       k1_post_comments: {
         Args: { p_post: string }
         Returns: {
@@ -7242,6 +7332,18 @@ export type Database = {
           mine: boolean
           parent_id: string
         }[]
+      }
+      k1_post_create: {
+        Args: {
+          p_as_org?: string
+          p_body: string
+          p_link?: string
+          p_link_kind?: string
+          p_media?: Json
+          p_org: string
+          p_visibility?: string
+        }
+        Returns: string
       }
       k1_post_decide: {
         Args: {
@@ -7297,6 +7399,7 @@ export type Database = {
           slug: string
         }[]
       }
+      k1_root_org: { Args: { p_org: string }; Returns: string }
       k1_rsvp: {
         Args: {
           p_answer: string
@@ -7315,6 +7418,7 @@ export type Database = {
         Args: { p_id: string; p_path: string }
         Returns: undefined
       }
+      k1_slugify: { Args: { p: string }; Returns: string }
       k1_submit_document: {
         Args: { p_id: string }
         Returns: {
