@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+
+import { CompareDialog, EmptyTrees, FamilyPreviewDialog, MatchHints, type EmptyFam, type HintRow } from "@/components/family/FamilyCompare";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -26,6 +28,23 @@ function FamiliesPage() {
   const ctx = useFamilyCtx();
   const [newOpen, setNewOpen] = useState(false);
   const [limit, setLimit] = useState(200);
+  const [preview, setPreview] = useState<string | null>(null);      // popup: one tree
+  const [cmp, setCmp] = useState<string[]>([]);                      // compare set (max 3)
+  const [cmpOpen, setCmpOpen] = useState(false);
+  const isAdmin = !!ctx.data && (ctx.data.shok_admin || ctx.data.family_manage || ctx.data.platform_admin);
+  const hints = useQuery({
+    queryKey: ["shok_hints"],
+    enabled: isAdmin,
+    staleTime: 60000,
+    queryFn: async () => { const { data, error } = await supabase.rpc("shok_match_hints", { p_limit: 100 } as never); if (error) throw error; return (data ?? []) as unknown as HintRow[]; },
+  });
+  const empties = useQuery({
+    queryKey: ["shok_empty_families"],
+    enabled: ctx.data?.approved === true,
+    staleTime: 60000,
+    queryFn: async () => { const { data, error } = await supabase.rpc("shok_empty_families"); if (error) throw error; return (data ?? []) as unknown as EmptyFam[]; },
+  });
+  const toggleCmp = (id: string) => setCmp((c) => c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? (toast.error(L ? "एक बार में ज़्यादा से ज़्यादा 3 वंश वृक्ष" : "At most 3 trees at once"), c) : [...c, id]);
   const rows = useQuery({
     queryKey: ["k1_families", status, q, limit],
     enabled: ctx.data?.approved === true,
@@ -66,21 +85,38 @@ function FamiliesPage() {
         </div>
       </header>
 
+      {isAdmin && hints.data?.length ? <MatchHints rows={hints.data} L={L} isAdmin={isAdmin} /> : null}
+      {empties.data?.length ? <EmptyTrees rows={empties.data} L={L} /> : null}
+      {cmp.length ? (
+        <div className="sticky top-2 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-primary/40 bg-background/95 p-2 text-sm shadow-sm backdrop-blur">
+          <span className="text-muted-foreground">{L ? "तुलना के लिए चुने:" : "Selected to compare:"}</span>
+          {cmp.map((id) => <Badge key={id} variant="secondary" className="cursor-pointer" onClick={() => toggleCmp(id)} title={L ? "हटाएँ" : "remove"}>{list.find((r) => r.id === id)?.family_name ?? "…"} ✕</Badge>)}
+          <Button size="sm" onClick={() => setCmpOpen(true)} disabled={cmp.length < 2}>{L ? `साथ-साथ देखें (${cmp.length})` : `Compare (${cmp.length})`}</Button>
+          <Button size="sm" variant="ghost" onClick={() => setCmp([])}>{L ? "साफ़ करें" : "Clear"}</Button>
+        </div>
+      ) : null}
+
       {sections.map(([title, items]) => items.length ? (
         <section key={title} className="space-y-2">
           <h2 className="font-display text-lg font-semibold">{title} <span className="text-sm font-normal text-muted-foreground">({items.length})</span></h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((f) => (
-              <Link key={f.id} to="/admin/families/$id" params={{ id: f.id }} className="rounded-lg border border-border bg-background p-3 transition hover:border-primary/50 hover:shadow-sm">
+              <div key={f.id} className={`rounded-lg border bg-background p-3 transition hover:border-primary/50 hover:shadow-sm ${cmp.includes(f.id) ? "border-primary" : "border-border"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-display text-base font-semibold">{f.family_name}</p>
+                    <Link to="/admin/families/$id" params={{ id: f.id }} className="font-display text-base font-semibold hover:underline">{f.family_name}</Link>
                     <p className="text-xs text-muted-foreground">{f.head_name ? `${L ? "मुखिया" : "Head"}: ${f.head_name}` : (L ? "मुखिया दर्ज नहीं" : "No head yet")}{f.village_name ? ` · ${f.village_name}` : ""}</p>
                   </div>
                   <Badge variant={f.status === "approved" ? "default" : f.status === "rejected" ? "destructive" : "secondary"}>{f.status}</Badge>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">{f.members} {L ? "सदस्य" : "members"}{f.main_whatsapp ? ` · ${f.main_whatsapp}` : ""}</p>
-              </Link>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-muted-foreground">{f.members} {L ? "सदस्य" : "members"}{f.main_whatsapp ? ` · ${f.main_whatsapp}` : ""}{f.members <= 1 ? <span className="ml-1 text-amber-700">· {L ? "खाली" : "empty"}</span> : null}</p>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => setPreview(f.id)} title={L ? "बिना पेज बदले वंश वृक्ष देखें" : "Quick view"}>👁 {L ? "देखें" : "View"}</Button>
+                    <Button size="sm" variant={cmp.includes(f.id) ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => toggleCmp(f.id)} title={L ? "2–3 वंश वृक्ष साथ-साथ देखने के लिए चुनें" : "Select to compare 2–3 trees"}>{cmp.includes(f.id) ? "✓ " : "⇄ "}{L ? "तुलना" : "Compare"}</Button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </section>
@@ -90,6 +126,8 @@ function FamiliesPage() {
       {rows.error ? <p className="text-sm text-destructive">{(rows.error as Error).message}</p> : null}
       <p className="text-xs text-muted-foreground">{L ? "पुराना शोकपत्र ऐप भी चलता रहेगा; दोनों एक ही डेटा पर काम करते हैं।" : "The shokpatra app keeps working; both use the same data."} <Button asChild size="sm" variant="link"><a href="https://shokpatra.kalchuri.org/app.html" target="_blank" rel="noreferrer">shokpatra ↗</a></Button></p>
       <NewFamilyDialog open={newOpen} onClose={() => setNewOpen(false)} L={L} />
+      <FamilyPreviewDialog id={preview} L={L} onClose={() => setPreview(null)} />
+      {cmpOpen ? <CompareDialog ids={cmp} L={L} onClose={() => setCmpOpen(false)} onRemove={(id) => { toggleCmp(id); if (cmp.length <= 1) setCmpOpen(false); }} /> : null}
     </div>
   );
 }

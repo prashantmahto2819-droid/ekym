@@ -6437,6 +6437,42 @@ export type Database = {
         }
         Relationships: []
       }
+      shok_match_dismissals: {
+        Row: {
+          created_at: string
+          dismissed_by: string | null
+          member_a: string
+          member_b: string
+        }
+        Insert: {
+          created_at?: string
+          dismissed_by?: string | null
+          member_a: string
+          member_b: string
+        }
+        Update: {
+          created_at?: string
+          dismissed_by?: string | null
+          member_a?: string
+          member_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shok_match_dismissals_member_a_fkey"
+            columns: ["member_a"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shok_match_dismissals_member_b_fkey"
+            columns: ["member_b"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_profiles: {
         Row: {
           address: string | null
@@ -8738,6 +8774,10 @@ export type Database = {
           via_name: string
         }[]
       }
+      shok_dismiss_match: {
+        Args: { p_a: string; p_b: string }
+        Returns: undefined
+      }
       shok_eldest_son_phone: {
         Args: { p_depth?: number; p_member: string }
         Returns: {
@@ -8746,11 +8786,67 @@ export type Database = {
           phone: string
         }[]
       }
+      shok_empty_families: {
+        Args: never
+        Returns: {
+          created_at: string
+          family_name: string
+          id: string
+          main_whatsapp: string
+          members: number
+          mine: boolean
+          owner_id: string
+          owner_name: string
+          owner_phone: string
+          status: string
+          village_name: string
+        }[]
+      }
+      shok_match_hint_count: { Args: never; Returns: number }
+      shok_match_hints: {
+        Args: { p_limit?: number }
+        Returns: {
+          family_id: string
+          family_name: string
+          family_status: string
+          link_parent_id: string
+          member_id: string
+          member_name: string
+          other_family_id: string
+          other_family_name: string
+          other_family_status: string
+          other_member_id: string
+          other_name: string
+          reason: string
+          score: number
+        }[]
+      }
+      shok_norm_name: { Args: { t: string }; Returns: string }
       shok_reroute_recipient: { Args: { p_recipient: string }; Returns: Json }
       shok_sees_org: { Args: { p_org: string }; Returns: boolean }
       shok_send_whatsapp: {
         Args: { p_phone: string; p_text: string }
         Returns: boolean
+      }
+      shok_similar_members: {
+        Args: { p_family: string; p_member?: string; p_min_score?: number }
+        Returns: {
+          father_name: string
+          link_parent_id: string
+          member_id: string
+          member_name: string
+          other_family_id: string
+          other_family_name: string
+          other_family_status: string
+          other_father: string
+          other_is_root: boolean
+          other_member_id: string
+          other_name: string
+          other_native: string
+          other_village: string
+          reason: string
+          score: number
+        }[]
       }
       shok_user_org: { Args: never; Returns: string }
       submit_letter: { Args: { p_letter_id: string }; Returns: Json }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-08 — Phase 31 (वंश वृक्ष: झलक, तुलना, मिलाने के सुझाव, खाली वृक्ष)
+- Migration `shok_04_match_hints_empty_trees`: `shok_norm_name` (स्व./श्री/जी हटाकर मिलान), `shok_similar_members(family)` (एक जैसा नाम दूसरे वृक्ष में; पिता/मूल ग्राम/निवास/दोनों-जड़ से अंक), `shok_match_hints` (एडमिन, पूरी सूची), `shok_dismiss_match` ("अलग व्यक्ति"), `shok_empty_families` (1 दिन से पुराने, ≤1 सदस्य); शोकपत्र digest में दोनों गिनतियाँ।
+- Admin → वंश वृक्ष सूची: हर कार्ड पर "👁 देखें" (पॉपअप, पेज बदले बिना) और "⇄ तुलना" (2–3 वृक्ष साथ-साथ); ऊपर "मिलाने के सुझाव" पैनल (दोनों देखें · → X में मिलाएँ (`merge_families_same_father`) · वंश जोड़ें (`request_family_link`) · अलग व्यक्ति) और "खाली वंश वृक्ष" (WhatsApp याद दिलाएँ)।
+- परिवार पेज: "इस वृक्ष के नाम दूसरे वृक्षों में भी हैं" पैनल; सदस्य जोड़ते ही मिलता नाम हो तो toast।
+- शोकपत्र ऐप में वही सब (`js/views/treeview.js`): मेरे परिवार / सभी परिवार में झलक + तुलना, परिवार पेज पैनल, मंज़ूरी बाकी में एडमिन सुझाव + खाली वृक्ष।
+- `useFamilyMembers`/`useSimilarMembers` अब `src/family/hooks.ts` में; नया `components/family/FamilyCompare.tsx`।
+
 ## 2026-11-05 — Phase 30 (शोकपत्र: कई शाखा-मुखिया, WhatsApp न होने पर बड़े पुत्र को पिता के नाम से कार्ड)
 - Migrations `shok_03_branch_heads_whatsapp_fallback` + `shok_03a_deliver_phone2`: एक परिवार में कई मुखिया (बंटवारे के बाद हर शाखा का; `set_family_head` जोड़ता है, `unset_family_head` हटाता है, कम से कम एक रहता है); `members.whatsapp_ok`, `families.main_whatsapp_ok`; `letter_recipients.via_member_id/via_name`.
 - `shok_deliver_phone(member, mode)`: अपना नंबर → दूसरा नंबर (phone2) → सबसे बड़ा जीवित पुत्र (पोते तक) → शाखा का मुखिया → उसका बड़ा पुत्र → परिवार का मुख्य नंबर; `create_letter_recipients` इसी से नंबर लेता है, नाम पिता का ही रहता है।

@@ -4,12 +4,13 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { FamilyChart } from "@/components/family/FamilyChart";
+import { MatchHints, similarToHint } from "@/components/family/FamilyCompare";
 import { MemberDialog, type MemberDialogProps } from "@/components/family/MemberDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/core/i18n";
-import { ANCESTOR_RELATION, DecidedMsg, ensureVillage, loadOrigins, loadVillages, rpc, validPhone, type Origin, type Village } from "@/family/api";
-import { useFamilyCtx } from "@/family/hooks";
+import { ANCESTOR_RELATION, DecidedMsg, ensureVillage, loadOrigins, loadVillages, rpc, validPhone, type Origin } from "@/family/api";
+import { useFamilyCtx, useFamilyMembers, useSimilarMembers } from "@/family/hooks";
 import { ancestorsOf, buildUnits, descendantsOf, type Person, type Unit } from "@/family/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,23 +22,6 @@ type Family = { id: string; family_name: string; status: string; main_whatsapp: 
 type LinkInfo = { link_id: string; direction: string; status: string; other_family_id: string; other_family_name: string; member_id: string; member_name: string; note: string | null };
 type Member = Person & { village_id?: string | null };
 
-/** Members of a family: own/managed families read the table (phones included), others go through family_tree() (no phones). */
-function useFamilyMembers(id: string, canRead: boolean, villages: Village[] | undefined) {
-  return useQuery({
-    queryKey: ["family_members", id, !!villages],
-    enabled: canRead,
-    queryFn: async (): Promise<{ people: Member[]; direct: boolean }> => {
-      const { data: rows } = await supabase.from("members").select("*").eq("family_id", id).limit(2000);
-      if (rows && rows.length) {
-        const vn = new Map((villages ?? []).map((x) => [x.id, x.name] as const));
-        return { direct: true, people: (rows as unknown as Member[]).map((m) => ({ ...m, village_name: m.village_id ? vn.get(m.village_id) ?? null : null })) };
-      }
-      const { data, error } = await supabase.rpc("family_tree", { p_family: id });
-      if (error) throw error;
-      return { direct: false, people: (data ?? []) as unknown as Member[] };
-    },
-  });
-}
 
 function FamilyPage() {
   const { id } = Route.useParams();
@@ -73,6 +57,7 @@ function FamilyPage() {
     queryFn: async () => { const { data } = await supabase.rpc("family_link_info", { p_family: id }); return (data ?? []) as unknown as LinkInfo[]; },
   });
 
+  const similar = useSimilarMembers(id, ctx.data?.approved === true && !!fam.data && fam.data.status !== "deleted");
   const people = useMemo(() => (members.data?.people ?? []).map((p) => ({ ...p, village_name: p.village_name ?? fam.data?.villages?.name ?? null })), [members.data, fam.data]);
   const head = people.find((p) => p.is_head);
   const units = useMemo(() => buildUnits(people), [people]);
@@ -87,7 +72,7 @@ function FamilyPage() {
   const hideContacts = isAdmin && !isOwner && !ctx.data?.super && !ctx.data?.platform_admin && !ctx.data?.shok_admin;
 
   async function reload() {
-    await Promise.all([qc.invalidateQueries({ queryKey: ["family_members", id] }), qc.invalidateQueries({ queryKey: ["family", id] }), qc.invalidateQueries({ queryKey: ["family_links", id] }), qc.invalidateQueries({ queryKey: ["k1_families"] })]);
+    await Promise.all([qc.invalidateQueries({ queryKey: ["family_members", id] }), qc.invalidateQueries({ queryKey: ["shok_similar", id] }), qc.invalidateQueries({ queryKey: ["family", id] }), qc.invalidateQueries({ queryKey: ["family_links", id] }), qc.invalidateQueries({ queryKey: ["k1_families"] })]);
   }
   async function run(label: string, fn: () => Promise<unknown>) {
     setBusy(true);
@@ -262,10 +247,16 @@ function FamilyPage() {
           </ul>
         </section>
       ) : null}
+      {similar.data?.length ? <MatchHints rows={similar.data.map((r) => similarToHint(id, f.family_name, f.status, r))} L={L} isAdmin={isAdmin} title={L ? "इस वंश वृक्ष के नाम दूसरे वंश वृक्षों में भी हैं" : "Names from this tree also appear in other trees"} onChanged={reload} /> : null}
       <p className="text-xs text-muted-foreground">{L ? "वंश जोड़ना (दूसरे परिवार से कड़ी), परिवार मिलाना और नाम सुझाव अभी शोकपत्र ऐप में हैं।" : "Linking lineages, merging families and name suggestions are still in the shokpatra app."}</p>
 
       {dlg ? (
-        <MemberDialog open onClose={(saved) => { setDlg(null); if (saved) reload(); }} familyId={id} familyVillage={f.villages?.name ?? null} villages={villages.data ?? []} origins={origins.data ?? []} members={people as Member[]} isAdmin={isAdmin} hideContacts={hideContacts} L={L} {...dlg} />
+        <MemberDialog open onClose={(saved, savedName) => { setDlg(null); if (saved) { void reload().then(async () => {
+            if (!savedName) return;
+            const { data } = await supabase.rpc("shok_similar_members", { p_family: id } as never);
+            const hits = ((data ?? []) as { member_name: string; other_family_name: string }[]).filter((x) => x.member_name.trim() === savedName.trim());
+            if (hits.length) toast.info(L ? `"${savedName}" नाम "${hits[0]!.other_family_name}" वंश वृक्ष में भी है — नीचे सुझाव देखिए (मिलाएँ / वंश जोड़ें / अलग व्यक्ति)।` : `"${savedName}" also appears in "${hits[0]!.other_family_name}" — see the suggestions below.`, { duration: 9000 });
+          }); } }} familyId={id} familyVillage={f.villages?.name ?? null} villages={villages.data ?? []} origins={origins.data ?? []} members={people as Member[]} isAdmin={isAdmin} hideContacts={hideContacts} L={L} {...dlg} />
       ) : null}
     </div>
   );

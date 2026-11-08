@@ -14,7 +14,8 @@ import { normPhone } from "@/lib/comms";
 
 export type MemberDialogProps = {
   open: boolean;
-  onClose: (saved: boolean) => void;
+  /** savedName is set after a successful save (used to warn about the same name in other trees) */
+  onClose: (saved: boolean, savedName?: string) => void;
   familyId: string;
   familyVillage: string | null;
   villages: Village[];
@@ -111,7 +112,7 @@ export function MemberDialog(p: MemberDialogProps) {
         try { await rpc("request_origin_village", { p_name: native.trim(), p_region: null }); } catch { /* optional */ }
       }
       toast.success(L ? "सहेज लिया।" : "Saved");
-      p.onClose(true);
+      p.onClose(true, nm || undefined);
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
   }
 
