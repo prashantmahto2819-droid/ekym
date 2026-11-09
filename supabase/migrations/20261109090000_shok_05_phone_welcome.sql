@@ -93,12 +93,12 @@ begin
     msg := 'नमस्ते ' || coalesce(w.person_name, '') || ' जी 🙏' || E'\n\n'
         || '"' || coalesce(fam.family_name, 'परिवार') || '"' || case when fam.village is not null then ' (' || fam.village || ')' else '' end
         || ' के वंश वृक्ष में आपका नाम और यह नंबर ' || coalesce(adder, 'परिवार के सदस्य') || ' ने जोड़ा है — '
-        || coalesce(fam.org_hi, fam.org, 'समाज') || ' की शोकपत्र सेवा में, जो *Kalchuri One* (kalchuri.org) — कलचुरी समाज के साझा डिजिटल मंच — पर चलती है।' || E'\n'
+        || '*Kalchuri One* (kalchuri.org) की शोकपत्र सेवा में, ' || coalesce(fam.org_hi, fam.org, 'समाज') || ' के लिए। Kalchuri One कलचुरी समाज का साझा डिजिटल मंच है; शोकपत्र सेवा उसी की एक सेवा है।' || E'\n'
         || 'समाज के शोक-समाचार / शोकपत्र अब इसी नंबर पर आएँगे।' || E'\n\n'
         || '🙏 कृपया यह नंबर अपने फ़ोन में "' || cname || '" नाम से सेव कर लीजिए'
         || case when cphone <> '' then ' (साथ में कार्ड भेजा है — उसे खोलकर Save दबाइए)' else '' end || ', ताकि संदेश न छूटें।' || E'\n'
         || 'नंबर गलत जुड़ा हो या बदलवाना हो तो यहीं जवाब दीजिए।' || E'\n\n'
-        || 'अपना वंश वृक्ष देखें / समाज से जुड़ें: https://kalchuri.org' || E'\n' || 'शोकपत्र सेवा: https://shokpatra.kalchuri.org';
+        || 'Kalchuri One: https://kalchuri.org' || E'\n' || 'शोकपत्र सेवा: https://shokpatra.kalchuri.org';
     body := jsonb_build_object('to', w.phone, 'text', msg, 'preview', false, 'unique_code', 'ref');
     if cphone <> '' then body := body || jsonb_build_object('then', jsonb_build_array(jsonb_build_object('contact', jsonb_build_object('name', cname, 'phone', cphone)))); end if;
     begin
