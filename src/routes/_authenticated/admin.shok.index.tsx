@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLang } from "@/core/i18n";
 import { DecidedMsg, rpc } from "@/family/api";
 import { useFamilyCtx } from "@/family/hooks";
@@ -23,6 +24,7 @@ function ShokList() {
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
   const [limit, setLimit] = useState(100);
+  const [detail, setDetail] = useState<Letter | null>(null); // per-recipient popup
   const letters = useQuery({
     queryKey: ["shok_letters", limit],
     enabled: ctx.data?.approved === true,
@@ -82,6 +84,7 @@ function ShokList() {
                     {isAdmin && l.status === "pending_approval" ? <><Button size="sm" onClick={() => decide(l, true)} disabled={busy === l.id}>{L ? "मंज़ूर" : "Approve"}</Button><Button size="sm" variant="outline" onClick={() => decide(l, false)} disabled={busy === l.id}>{L ? "अस्वीकार" : "Reject"}</Button></> : null}
                     {c.failed > 0 && ["done", "failed", "sending", "queued"].includes(l.status) ? <Button size="sm" variant="outline" onClick={() => retry(l)} disabled={busy === l.id}>{L ? "असफल दोबारा" : "Retry failed"}</Button> : null}
                     {l.status === "draft" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "ड्राफ़्ट हटाएँ?" : "Delete draft?")) act(l.id, L ? "हटाया" : "Deleted", async () => { const { error } = await supabase.from("letters").delete().eq("id", l.id); if (error) throw error; }); }}>{L ? "हटाएँ" : "Delete"}</Button> : null}
+                    {c.total > 0 ? <Button size="sm" variant="outline" onClick={() => setDetail(l)}>{L ? "विवरण" : "Details"}</Button> : null}
                     <Button asChild size="sm" variant="ghost"><a href="https://shokpatra.kalchuri.org/app.html#/letters" target="_blank" rel="noreferrer">↗</a></Button>
                   </div>
                 </td>
@@ -92,6 +95,54 @@ function ShokList() {
         </table>
         {(letters.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button variant="outline" size="sm" onClick={() => setLimit((n) => n + 100)}>{L ? "और दिखाएँ" : "Show more"}</Button></div> : null}
       </div>
+      {detail ? <RecipientsDialog letter={detail} L={L} onClose={() => setDetail(null)} /> : null}
     </div>
+  );
+}
+
+type Recip = { recipient_id: string; recipient_name: string; father_name: string | null; village_name: string | null; via_name: string | null; status: string; error: string | null };
+
+/** Who got (or will get) this letter — name, father, village, whose WhatsApp carried it, status/error. Polls while sending. */
+function RecipientsDialog({ letter, L, onClose }: { letter: Letter; L: boolean; onClose: () => void }) {
+  const [q, setQ] = useState("");
+  const [only, setOnly] = useState<"all" | "sent" | "failed" | "left">("all");
+  const rows = useQuery({
+    queryKey: ["letter_recipients_review", letter.id],
+    refetchInterval: letter.status === "sending" || letter.status === "queued" ? 5000 : false,
+    queryFn: async () => { const { data, error } = await supabase.rpc("letter_recipients_review", { p_letter_id: letter.id } as never); if (error) throw error; return (data ?? []) as unknown as Recip[]; },
+  });
+  const all = rows.data ?? [];
+  const list = all.filter((r) => (only === "all" || (only === "sent" ? r.status === "sent" : only === "failed" ? r.status === "failed" : r.status !== "sent" && r.status !== "failed"))
+    && (!q || [r.recipient_name, r.father_name, r.village_name, r.via_name].some((x) => (x ?? "").toLowerCase().includes(q.toLowerCase()))));
+  const n = { sent: all.filter((r) => r.status === "sent").length, failed: all.filter((r) => r.status === "failed").length };
+  const badge = (s: string) => <Badge variant={s === "sent" ? "default" : s === "failed" ? "destructive" : "secondary"}>{s === "sent" ? (L ? "भेजा" : "sent") : s === "failed" ? (L ? "असफल" : "failed") : s === "sending" ? (L ? "जा रहा" : "sending") : (L ? "कतार में" : "queued")}</Badge>;
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-4xl p-3 sm:p-5">
+        <DialogHeader><DialogTitle className="font-display">{letter.deceased_name} — {L ? "किस-किस को गया" : "Recipients"} <span className="text-sm font-normal text-muted-foreground">({all.length} · {L ? "भेजे" : "sent"} {n.sent} · {L ? "असफल" : "failed"} {n.failed})</span></DialogTitle></DialogHeader>
+        <div className="flex flex-wrap items-center gap-2">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L ? "नाम / पिता / गाँव खोजें" : "Search name / father / village"} className="h-9 min-w-[200px] flex-1 rounded-md border border-input bg-background px-3 text-sm" />
+          {(["all", "sent", "failed", "left"] as const).map((k) => <Button key={k} size="sm" variant={only === k ? "default" : "outline"} onClick={() => setOnly(k)}>{k === "all" ? (L ? "सब" : "All") : k === "sent" ? (L ? "भेजे" : "Sent") : k === "failed" ? (L ? "असफल" : "Failed") : (L ? "बाकी" : "Left")}</Button>)}
+        </div>
+        <div className="max-h-[60vh] overflow-auto rounded-md border border-border">
+          <table className="w-full text-left text-sm">
+            <thead className="sticky top-0 bg-secondary/80 text-xs uppercase text-muted-foreground"><tr><th className="p-2">{L ? "नाम" : "Name"}</th><th className="p-2">{L ? "पिता" : "Father"}</th><th className="p-2">{L ? "गाँव" : "Village"}</th><th className="p-2">{L ? "किसके WhatsApp पर" : "Via"}</th><th className="p-2">{L ? "स्थिति" : "Status"}</th><th className="p-2">{L ? "कारण" : "Note"}</th></tr></thead>
+            <tbody>
+              {list.map((r) => (
+                <tr key={r.recipient_id} className="border-t border-border/60">
+                  <td className="p-2 font-medium">{r.recipient_name}</td>
+                  <td className="p-2 text-muted-foreground">{r.father_name ?? "—"}</td>
+                  <td className="p-2 text-muted-foreground">{r.village_name ?? "—"}</td>
+                  <td className="p-2 text-xs">{r.via_name ?? (L ? "इन्हीं के नंबर पर" : "own number")}</td>
+                  <td className="p-2">{badge(r.status)}</td>
+                  <td className="p-2 text-xs text-muted-foreground">{r.error ?? ""}</td>
+                </tr>
+              ))}
+              {rows.isSuccess && !list.length ? <tr><td className="p-3 text-muted-foreground" colSpan={6}>{L ? "कोई नहीं।" : "None."}</td></tr> : null}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
