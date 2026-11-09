@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
-import { CompareDialog, EmptyTrees, FamilyPreviewDialog, MatchHints, type EmptyFam, type HintRow } from "@/components/family/FamilyCompare";
+import { CompareDialog, EmptyTrees, FamilyPreviewDialog, MatchHints, MergeLeftovers, type EmptyFam, type HintRow, type Leftover } from "@/components/family/FamilyCompare";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -44,6 +44,12 @@ function FamiliesPage() {
     staleTime: 60000,
     queryFn: async () => { const { data, error } = await supabase.rpc("shok_empty_families"); if (error) throw error; return (data ?? []) as unknown as EmptyFam[]; },
   });
+  const leftovers = useQuery({
+    queryKey: ["shok_leftovers"],
+    enabled: isAdmin,
+    staleTime: 60000,
+    queryFn: async () => { const { data, error } = await supabase.rpc("shok_merge_leftovers" as never); if (error) return [] as Leftover[]; return (data ?? []) as unknown as Leftover[]; },
+  });
   const toggleCmp = (id: string) => setCmp((c) => c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? (toast.error(L ? "एक बार में ज़्यादा से ज़्यादा 3 वंश वृक्ष" : "At most 3 trees at once"), c) : [...c, id]);
   const rows = useQuery({
     queryKey: ["k1_families", status, q, limit],
@@ -85,6 +91,7 @@ function FamiliesPage() {
         </div>
       </header>
 
+      {isAdmin && leftovers.data?.length ? <MergeLeftovers rows={leftovers.data} L={L} /> : null}
       {isAdmin && hints.data?.length ? <MatchHints rows={hints.data} L={L} isAdmin={isAdmin} /> : null}
       {empties.data?.length ? <EmptyTrees rows={empties.data} L={L} /> : null}
       {cmp.length ? (

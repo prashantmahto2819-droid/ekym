@@ -104,19 +104,17 @@ export function MatchHints({ rows, L, isAdmin, title, onChanged }: { rows: HintR
   const [cmp, setCmp] = useState<{ ids: string[]; hl: Record<string, string> } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   if (!rows.length) return null;
+  async function refresh() {
+    await Promise.all([qc.invalidateQueries({ queryKey: ["shok_hints"] }), qc.invalidateQueries({ queryKey: ["shok_similar"] }), qc.invalidateQueries({ queryKey: ["k1_families"] }), qc.invalidateQueries({ queryKey: ["family_members"] }), qc.invalidateQueries({ queryKey: ["shok_leftovers"] })]);
+    onChanged?.();
+  }
   async function act(key: string, label: string, fn: () => Promise<unknown>) {
     setBusy(key);
-    try { await fn(); toast.success(label); await qc.invalidateQueries({ queryKey: ["shok_hints"] }); await qc.invalidateQueries({ queryKey: ["shok_similar"] }); await qc.invalidateQueries({ queryKey: ["k1_families"] }); await qc.invalidateQueries({ queryKey: ["family_members"] }); onChanged?.(); }
+    try { await fn(); toast.success(label); await refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(null); }
   }
-  const merge = (r: HintRow, dir: "ab" | "ba") => {
-    const from = dir === "ab" ? r : { family_id: r.other_family_id, family_name: r.other_family_name, member_id: r.other_member_id };
-    const to = dir === "ab" ? { family_id: r.other_family_id, family_name: r.other_family_name, member_id: r.other_member_id } : r;
-    const q = L ? `"${from.family_name}" में ${r.member_name} के नीचे के सभी सदस्य "${to.family_name}" में उसी नाम के व्यक्ति के नीचे चले जाएँगे; "${from.family_name}" कचरे में जाएगा (वापस लाया जा सकता है)। ठीक?`
-      : `Everyone below ${r.member_name} in "${from.family_name}" moves under the same person in "${to.family_name}"; "${from.family_name}" goes to the trash (restorable). OK?`;
-    if (!confirm(q)) return;
-    void act(r.member_id + dir, L ? "परिवार मिला दिए।" : "Merged", () => rpc("merge_families_same_father", { p_from: from.family_id, p_to: to.family_id, p_from_node: from.member_id, p_to_node: to.member_id }));
-  };
+  const [mergeDlg, setMergeDlg] = useState<{ r: HintRow; dir: "ab" | "ba" } | null>(null);
+  const merge = (r: HintRow, dir: "ab" | "ba") => setMergeDlg({ r, dir });
   const link = (r: HintRow) => {
     if (!r.link_parent_id) return;
     if (!confirm(L ? `"${r.family_name}" को "${r.other_family_name}" के वंश में ${r.member_name} के पिता के नीचे जोड़ें (कड़ी; डेटा नहीं हिलता)?` : `Link "${r.family_name}" under ${r.member_name}'s father in "${r.other_family_name}"? (no data moves)`)) return;
@@ -150,7 +148,71 @@ export function MatchHints({ rows, L, isAdmin, title, onChanged }: { rows: HintR
         ))}
       </ul>
       {cmp ? <CompareDialog ids={cmp.ids} L={L} onClose={() => setCmp(null)} highlights={cmp.hl} /> : null}
+      {mergeDlg ? <MergeDialog r={mergeDlg.r} dir={mergeDlg.dir} L={L} onClose={() => setMergeDlg(null)} onDone={() => { setMergeDlg(null); void refresh(); }} /> : null}
     </section>
+  );
+}
+
+type Preview = { below: number; above_beside: number; total: number; pairs: string[]; unplaced: string | null; to_has_father: boolean; from_has_father: boolean };
+
+/**
+ * Merge confirmation: both trees side by side (matched people highlighted), direction, and what will happen —
+ * how many move below the matched person, how many above/beside (fathers, brothers) come along, which pairs collapse,
+ * whether a line ends up as an extra root. Uses merge_trees (whole tree); falls back to the old subtree merge if the
+ * new RPC is not installed yet.
+ */
+export function MergeDialog({ r, dir, L, onClose, onDone }: { r: HintRow; dir: "ab" | "ba"; L: boolean; onClose: () => void; onDone: () => void }) {
+  const from = dir === "ab" ? { fid: r.family_id, name: r.family_name, mid: r.member_id, person: r.member_name } : { fid: r.other_family_id, name: r.other_family_name, mid: r.other_member_id, person: r.other_name };
+  const to = dir === "ab" ? { fid: r.other_family_id, name: r.other_family_name, mid: r.other_member_id, person: r.other_name } : { fid: r.family_id, name: r.family_name, mid: r.member_id, person: r.member_name };
+  const [busy, setBusy] = useState(false);
+  const pv = useQuery({
+    queryKey: ["merge_preview", from.mid, to.mid],
+    queryFn: async (): Promise<Preview | null> => {
+      const { data, error } = await supabase.rpc("merge_trees_preview" as never, { p_from: from.fid, p_to: to.fid, p_from_node: from.mid, p_to_node: to.mid } as never);
+      if (error) return null; // RPC not installed yet → old behaviour
+      return data as unknown as Preview;
+    },
+  });
+  const p = pv.data;
+  async function go() {
+    setBusy(true);
+    try {
+      if (p) {
+        const res = await rpc<{ moved: number; merged_pairs: number; unplaced_roots: number }>("merge_trees", { p_from: from.fid, p_to: to.fid, p_from_node: from.mid, p_to_node: to.mid });
+        toast.success(L ? `मिला दिया: ${res.moved} सदस्य आए, ${res.merged_pairs} नाम एक हुए${res.unplaced_roots ? `, ${res.unplaced_roots} शाखा अलग जड़ के रूप में (ले जाएँ से जोड़िए)` : ""}` : `Merged: ${res.moved} moved, ${res.merged_pairs} pairs collapsed${res.unplaced_roots ? `, ${res.unplaced_roots} extra root` : ""}`);
+      } else {
+        await rpc("merge_families_same_father", { p_from: from.fid, p_to: to.fid, p_from_node: from.mid, p_to_node: to.mid });
+        toast.success(L ? "शाखा मिला दी।" : "Branch merged");
+      }
+      onDone();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
+  }
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-[96vw] p-3 sm:p-4">
+        <DialogHeader><DialogTitle className="font-display">{L ? `"${from.name}" → "${to.name}" में मिलाएँ` : `Merge "${from.name}" → "${to.name}"`}</DialogTitle></DialogHeader>
+        <div className="rounded-md border border-amber-300/60 bg-amber-50/60 p-3 text-sm dark:border-amber-700/40 dark:bg-amber-950/20">
+          {pv.isLoading ? <p>{L ? "जाँच रहा हूँ…" : "Checking…"}</p> : p ? (
+            <ul className="list-disc space-y-1 pl-5">
+              <li>{L ? <>पूरा वृक्ष <b>"{from.name}"</b> ({p.total} सदस्य) <b>"{to.name}"</b> में जाएगा — कोई भी पीछे नहीं छूटेगा। <b>{from.person}</b> और <b>{to.person}</b> एक व्यक्ति माने जाएँगे।</> : <>The whole tree "{from.name}" ({p.total} members) moves into "{to.name}"; nobody is left behind. <b>{from.person}</b> and <b>{to.person}</b> become one person.</>}</li>
+              <li>{L ? <>उसके नीचे <b>{p.below}</b> सदस्य (पुत्र/पुत्री/पत्नी/पोते) उसी के नीचे जुड़ेंगे; ऊपर/बगल के <b>{p.above_beside}</b> सदस्य (पिता, भाई…) भी साथ आएँगे।</> : <>{p.below} below him join under him; {p.above_beside} above/beside (fathers, brothers…) come along too.</>}</li>
+              {p.pairs.length > 1 ? <li>{L ? "ऊपर की ओर ये नाम भी एक हो जाएँगे: " : "Going up, these also collapse into one: "}{p.pairs.slice(1).join("; ")}</li> : null}
+              {!p.to_has_father && p.from_has_father ? <li>{L ? `"${to.name}" में ${to.person} के ऊपर कोई नहीं था — अब "${from.name}" वाले पूर्वज उसके ऊपर आ जाएँगे।` : `"${to.name}" had no one above ${to.person}; the ancestors from "${from.name}" will sit above him now.`}</li> : null}
+              {p.unplaced ? <li className="text-amber-800">{L ? `पिता के नाम अलग हैं (${p.unplaced}) — वह ऊपरी शाखा "${to.name}" में अलग जड़ के रूप में दिखेगी; बाद में "ले जाएँ" से सही जगह लगाइए।` : `Fathers differ (${p.unplaced}) — that upper line will appear as a separate root in "${to.name}"; place it later with "Move".`}</li> : null}
+              <li>{L ? `"${from.name}" खाली होकर कचरे में जाएगा (वापस लाया जा सकता है, पर उसमें कोई सदस्य नहीं रहेगा)।` : `"${from.name}" becomes empty and goes to the trash.`}</li>
+            </ul>
+          ) : <p>{L ? `पुराना तरीका: सिर्फ़ ${from.person} के नीचे की शाखा "${to.name}" में जाएगी; ऊपर/बगल के लोग "${from.name}" (कचरा) में रह जाएँगे।` : `Old behaviour: only the branch below ${from.person} moves; people above/beside stay in the trashed "${from.name}".`}</p>}
+        </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <FamilyPreview id={from.fid} L={L} height={420} highlight={from.mid} />
+          <FamilyPreview id={to.fid} L={L} height={420} highlight={to.mid} />
+        </div>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>{L ? "रहने दें" : "Cancel"}</Button>
+          <Button onClick={go} disabled={busy || pv.isLoading}>{L ? `हाँ, "${to.name}" में मिलाएँ` : `Yes, merge into "${to.name}"`}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -175,6 +237,45 @@ export function EmptyTrees({ rows, L }: { rows: EmptyFam[]; L: boolean }) {
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+
+export type Leftover = { family_id: string; family_name: string; village_name: string | null; deleted_at: string | null; admin_note: string | null; members: number; names: string | null; from_node: string | null; from_name: string | null; to_family_id: string | null; to_family_name: string | null; to_node: string | null; to_name: string | null };
+
+/** Trashed families that still hold people (left behind by the old branch-only merge): restore, or merge the rest into the best-matching tree. */
+export function MergeLeftovers({ rows, L, onChanged }: { rows: Leftover[]; L: boolean; onChanged?: () => void }) {
+  const qc = useQueryClient();
+  const [dlg, setDlg] = useState<{ r: HintRow } | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  if (!rows.length) return null;
+  const refresh = async () => { await Promise.all([qc.invalidateQueries({ queryKey: ["shok_leftovers"] }), qc.invalidateQueries({ queryKey: ["k1_families"] }), qc.invalidateQueries({ queryKey: ["family_members"] })]); onChanged?.(); };
+  const restore = async (f: Leftover) => {
+    if (!confirm(L ? `"${f.family_name}" को कचरे से वापस लाएँ? इसमें ${f.members} सदस्य हैं।` : `Restore "${f.family_name}" (${f.members} members)?`)) return;
+    setBusy(f.family_id);
+    try { await rpc("restore_family", { p_id: f.family_id }); toast.success(L ? "वापस आ गया।" : "Restored"); await refresh(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(null); }
+  };
+  return (
+    <section className="rounded-lg border border-rose-300/60 bg-rose-50/50 p-3 text-sm dark:border-rose-800/40 dark:bg-rose-950/20">
+      <h2 className="font-display font-semibold">{L ? "पहले मिलाए गए परिवारों में पीछे छूटे लोग" : "People left behind by earlier merges"} <span className="font-normal text-muted-foreground">({rows.length})</span></h2>
+      <p className="mt-1 text-xs text-muted-foreground">{L ? "पुराने तरीके से मिलाने पर सिर्फ़ नीचे की शाखा गई थी; ये परिवार कचरे में हैं पर इनमें अभी लोग (पिता, भाई…) हैं। \"बाकी भी मिलाएँ\" से वे सही वृक्ष में ऊपर/बगल में जुड़ जाएँगे, या \"वापस लाएँ\" से परिवार अलग से लौट आएगा।" : "The old merge moved only the branch below; these trashed families still hold people. Merge the rest into the right tree, or restore the family."}</p>
+      <ul className="mt-2 divide-y divide-border/60">
+        {rows.map((f) => (
+          <li key={f.family_id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+            <div className="min-w-0">
+              <p><b>{f.family_name}</b> <span className="text-xs text-muted-foreground">· {f.village_name ?? "—"} · {f.members} {L ? "सदस्य" : "members"}{f.deleted_at ? ` · ${new Date(f.deleted_at).toLocaleDateString("hi-IN")}` : ""}</span></p>
+              <p className="text-xs text-muted-foreground">{f.names}</p>
+              {f.to_family_name ? <p className="text-xs">{L ? "मिलता है: " : "Matches: "}<b>{f.from_name}</b> ↔ <b>{f.to_name}</b> ({f.to_family_name})</p> : null}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {f.to_family_id && f.from_node && f.to_node ? <Button size="sm" disabled={!!busy} onClick={() => setDlg({ r: { member_id: f.from_node!, member_name: f.from_name ?? "", family_id: f.family_id, family_name: f.family_name, family_status: "deleted", other_member_id: f.to_node!, other_name: f.to_name ?? "", other_family_id: f.to_family_id!, other_family_name: f.to_family_name ?? "", other_family_status: "", link_parent_id: null, score: 0, reason: null } })}>{L ? `→ ${f.to_family_name} में बाकी भी मिलाएँ` : `Merge rest → ${f.to_family_name}`}</Button> : null}
+              <Button size="sm" variant="outline" disabled={!!busy} onClick={() => restore(f)}>{L ? "वापस लाएँ" : "Restore"}</Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      {dlg ? <MergeDialog r={dlg.r} dir="ab" L={L} onClose={() => setDlg(null)} onDone={() => { setDlg(null); void refresh(); }} /> : null}
     </section>
   );
 }
