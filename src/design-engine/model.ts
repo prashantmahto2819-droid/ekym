@@ -29,7 +29,7 @@ export const FONTS: Record<FontKey, { label: string; css: string }> = {
   manrope: { label: "Manrope", css: "Manrope" },
 };
 
-export type ArtName = "diya" | "lotus" | "flower" | "om" | "divider" | "ornament" | "leaf" | "garland";
+export type ArtName = "diya" | "lotus" | "flower" | "om" | "divider" | "ornament" | "leaf" | "garland" | "seal" | "mandala" | "flourish";
 export type FrameStyle = "single" | "double" | "corner" | "ornate" | "rounded";
 
 type Base = {
@@ -61,6 +61,7 @@ export type TextLayer = Base & {
   indent?: number;
   nowrap?: boolean;
   fit?: boolean;             // shrink font until it fits the box (single-line fields such as names)
+  ls?: number;               // letter spacing px (labels in capitals)
 };
 export type FlowLayer = Base & {
   type: "flow";              // long body text; paginates onto following pages
@@ -72,11 +73,14 @@ export type FlowLayer = Base & {
   align?: "left" | "justify";
   paraGap?: number;
 };
-export type RectLayer = Base & { type: "rect"; fill?: string; color?: string; lw?: number; radius?: number };
+/** fill2 + grad turn the fill into a linear gradient (v = top→bottom, h = left→right). */
+export type RectLayer = Base & { type: "rect"; fill?: string; fill2?: string; grad?: "v" | "h"; color?: string; lw?: number; radius?: number };
 export type LineLayer = Base & { type: "line"; color?: string; lw?: number; dash?: boolean };
 export type FrameLayer = Base & { type: "frame"; style?: FrameStyle; color?: string; lw?: number; radius?: number };
 export type ArtLayer = Base & { type: "art"; art: ArtName; color?: string };
-export type ImageLayer = Base & { type: "image"; src: string; shape?: "rect" | "circle"; radius?: number; ring?: number; color?: string; fit?: "cover" | "contain" };
+/** When the picture is missing: `monogram` (merge text, e.g. "{{org.name}}") draws a round badge with its first letter;
+ *  otherwise nothing is drawn on the final output (the editor shows a dashed placeholder). */
+export type ImageLayer = Base & { type: "image"; src: string; shape?: "rect" | "circle"; radius?: number; ring?: number; color?: string; fit?: "cover" | "contain"; monogram?: string };
 export type QrLayer = Base & { type: "qr"; data: string; color?: string };   // data may contain merge fields
 export type TableLayer = Base & {
   type: "table";

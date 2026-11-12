@@ -21,8 +21,26 @@ function format(v: unknown, fmt?: string): string {
   return String(v);
 }
 
+const OPTIONAL = /\[\[([\s\S]*?)\]\]/g;
+const SEP = /[·•]/;
+const DROP = "\u0000";
+
+/** Fill {{tokens}}. `[[ … ]]` marks an optional segment that is dropped when any token inside it is empty
+ *  (e.g. "[[Mob: {{member.mobile}}]]"). Separators (· •) left dangling by empty values are tidied away. */
 export function mergeText(text: string, data: MergeData): string {
-  return text.replace(TOKEN, (_m, path: string, fmt?: string) => format(lookup(data, path), fmt));
+  const fill = (s: string) => s.replace(TOKEN, (_m, path: string, fmt?: string) => format(lookup(data, path), fmt));
+  const withOptional = text.replace(OPTIONAL, (_m, inner: string) => {
+    let empty = false;
+    const out = inner.replace(TOKEN, (_t, path: string, fmt?: string) => { const v = format(lookup(data, path), fmt); if (!v.trim()) empty = true; return v; });
+    return empty ? DROP : out;
+  });
+  // a line that held only dropped optional segments disappears completely (no blank gap in address blocks)
+  const merged = fill(withOptional).split("\n").filter((ln) => !(ln.includes(DROP) && !ln.split(DROP).join("").trim())).join("\n").split(DROP).join("");
+  if (!SEP.test(merged)) return merged;
+  return merged.split("\n").map((ln) => ln
+    .replace(/([ \t]*[·•][ \t]*){2,}/g, " · ")
+    .replace(/^[ \t]*[·•][ \t]*/, "")
+    .replace(/[ \t]*[·•][ \t]*$/, "")).join("\n");
 }
 
 /** Indian-system amount in words (rupees). */

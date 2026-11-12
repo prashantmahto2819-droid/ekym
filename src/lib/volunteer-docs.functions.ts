@@ -60,7 +60,7 @@ export const volunteerDocument = createServerFn({ method: "POST" })
 
     const { data: orgRow } = await supabaseAdmin
       .from("organization_settings")
-      .select("organization_name,address,city,state,pincode,phone,email,website")
+      .select("organization_name,address,city,state,pincode,phone,email,website,logo")
       .eq("organization_id", (row as { organization_id: string }).organization_id)
       .maybeSingle();
 

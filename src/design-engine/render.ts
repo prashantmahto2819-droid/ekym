@@ -13,6 +13,9 @@ const fontCss = (key?: FontKey) => (FONTS[key ?? "mukta"] ?? FONTS.mukta).css;
 const fstr = (key: FontKey | undefined, weight: number, size: number, italic?: boolean) =>
   `${italic ? "italic " : ""}${weight} ${Math.max(4, Math.round(size * 100) / 100)}px ${fontCss(key)}, "Noto Sans Devanagari", sans-serif`;
 
+type LsCtx = CanvasRenderingContext2D & { letterSpacing?: string };
+const setLs = (ctx: CanvasRenderingContext2D, px?: number) => { (ctx as LsCtx).letterSpacing = `${px || 0}px`; };
+
 let measureCtx: CanvasRenderingContext2D | null = null;
 export function mctx() {
   if (!measureCtx) measureCtx = document.createElement("canvas").getContext("2d");
@@ -60,12 +63,13 @@ function markup(p: string) {
   p.split("**").forEach((t, i) => { if (i > 0) b = !b; if (t) out.push({ t, b }); });
   return out;
 }
-function wrapPara(ctx: CanvasRenderingContext2D, L: { font?: FontKey; size?: number; weight?: number; italic?: boolean }, segs: { t: string; b: boolean }[], maxW: number, indent: number): Line[] {
+function wrapPara(ctx: CanvasRenderingContext2D, L: { font?: FontKey; size?: number; weight?: number; italic?: boolean; ls?: number }, segs: { t: string; b: boolean }[], maxW: number, indent: number): Line[] {
   const size = L.size || 16, base = L.weight || 400;
   const toks: Omit<Tok, "w">[] = [];
   for (const s of segs) for (const p of s.t.split(/(\s+)/).filter(Boolean)) toks.push({ t: p, b: s.b, space: /^\s+$/.test(p) });
   const lines: Line[] = [{ toks: [], ind: indent, w: 0 }];
   let x = indent;
+  setLs(ctx, L.ls);
   for (const tk of toks) {
     ctx.font = fstr(L.font, tk.b ? 700 : base, size, L.italic);
     const w = ctx.measureText(tk.t).width;
@@ -84,6 +88,7 @@ function wrapPara(ctx: CanvasRenderingContext2D, L: { font?: FontKey; size?: num
     l.w = l.toks.reduce((a, t) => a + t.w, 0);
   }
   lines[lines.length - 1]!.last = true;
+  setLs(ctx, 0);
   return lines;
 }
 export function textLines(ctx: CanvasRenderingContext2D, L: TextLayer | FlowLayer, text: string): Line[] {
@@ -100,6 +105,7 @@ export const textWidth = (L: TextLayer, text = L.text) => Math.max(0, ...textLin
 function drawTextLines(ctx: CanvasRenderingContext2D, L: TextLayer | FlowLayer, lines: Line[], x0: number, y0: number, justify = false) {
   const lh = lhOf(L), size = L.size || 16, weight = (L as TextLayer).weight || 400;
   ctx.fillStyle = L.color || "#111";
+  setLs(ctx, (L as TextLayer).ls);
   lines.forEach((ln, i) => {
     let x = x0 + ln.ind;
     const align = L.align;
@@ -122,6 +128,7 @@ function drawTextLines(ctx: CanvasRenderingContext2D, L: TextLayer | FlowLayer, 
       ctx.beginPath(); ctx.moveTo(xs, cy + size * 0.62); ctx.lineTo(xs + ln.w, cy + size * 0.62); ctx.stroke();
     }
   });
+  setLs(ctx, 0);
 }
 
 /* ---------------- clip art (from शोकपत्र) ---------------- */
@@ -167,8 +174,48 @@ export function drawArt(ctx: CanvasRenderingContext2D, name: ArtLayer["art"], w:
     ctx.strokeStyle = "#7a5a1a"; ctx.lineWidth = 2; ctx.beginPath();
     for (let i = 0; i <= n; i++) { const x = (w / n) * i, y = Math.sin((i / n) * Math.PI) * h * 0.12; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
     for (let i = 0; i <= n; i++) { const x = (w / n) * i, y = Math.sin((i / n) * Math.PI) * h * 0.12; ctx.fillStyle = i % 2 ? "#f4a11d" : "#f6c445"; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.beginPath(); ctx.arc(x - r * 0.25, y - r * 0.25, r * 0.35, 0, Math.PI * 2); ctx.fill(); }
+  } else if (name === "seal") {
+    // gold rosette: scalloped edge, two rings, ribbon tails; reads as an official seal
+    const r = Math.min(w, h * 0.78) / 2; ctx.translate(0, -h * 0.11);
+    ctx.fillStyle = c;
+    for (const sg of [-1, 1]) { ctx.save(); ctx.rotate(sg * 0.32); ctx.beginPath(); ctx.moveTo(-r * 0.22, r * 0.5); ctx.lineTo(r * 0.22, r * 0.5); ctx.lineTo(r * 0.22, r * 1.55); ctx.lineTo(0, r * 1.36); ctx.lineTo(-r * 0.22, r * 1.55); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    const n = 28; ctx.beginPath();
+    for (let i = 0; i <= n * 2; i++) { const a = (i / (n * 2)) * Math.PI * 2, rad = i % 2 ? r * 0.9 : r; ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad); }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.75)"; ctx.lineWidth = Math.max(1, r * 0.035);
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.76, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.66, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,.9)";
+    const star = (R: number) => { ctx.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rad = i % 2 ? R * 0.42 : R; ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad); } ctx.closePath(); ctx.fill(); };
+    star(r * 0.34);
+  } else if (name === "mandala") {
+    // concentric petal rings — use with low opacity as a watermark
+    const R = Math.min(w, h) / 2; ctx.strokeStyle = c; ctx.lineWidth = Math.max(0.8, R * 0.008);
+    for (const [k, cnt, len] of [[0.95, 32, 0.16], [0.74, 24, 0.18], [0.52, 16, 0.2], [0.3, 12, 0.16]] as const) {
+      for (let i = 0; i < cnt; i++) { ctx.save(); ctx.rotate((i / cnt) * Math.PI * 2); ctx.beginPath(); ctx.ellipse(0, -R * (k - len / 2), R * len * 0.32, R * len / 2, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
+      ctx.beginPath(); ctx.arc(0, 0, R * (k - len), 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.08, 0, Math.PI * 2); ctx.stroke();
+  } else if (name === "flourish") {
+    // symmetric scroll divider with a centre lozenge
+    ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineCap = "round"; ctx.lineWidth = Math.max(1.2, h * 0.07);
+    for (const sg of [-1, 1]) {
+      ctx.beginPath(); ctx.moveTo(sg * h * 0.55, 0); ctx.bezierCurveTo(sg * w * 0.12, -h * 0.45, sg * w * 0.22, h * 0.45, sg * w * 0.32, 0); ctx.lineTo(sg * w * 0.5, 0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(sg * w * 0.32, -h * 0.18, h * 0.12, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(sg * w * 0.5, 0, h * 0.07, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.beginPath(); ctx.moveTo(0, -h * 0.42); ctx.lineTo(h * 0.36, 0); ctx.lineTo(0, h * 0.42); ctx.lineTo(-h * 0.36, 0); ctx.closePath(); ctx.fill();
   }
   ctx.restore();
+}
+
+/** First letter (grapheme, so "प्र" stays whole) for a monogram badge. */
+function initialOf(s: string) {
+  const t = s.replace(/^(श्री|shri|sri|the)\s+/i, "").trim();
+  if (!t) return "";
+  const Seg = (Intl as unknown as { Segmenter?: new (l?: string, o?: { granularity: string }) => { segment: (x: string) => Iterable<{ segment: string }> } }).Segmenter;
+  if (Seg) for (const g of new Seg(undefined, { granularity: "grapheme" }).segment(t)) return g.segment.toUpperCase();
+  return t[0]!.toUpperCase();
 }
 
 function drawFrame(ctx: CanvasRenderingContext2D, L: FrameLayer) {
@@ -288,7 +335,10 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
       case "frame": drawFrame(ctx, L); break;
       case "rect":
         rr(ctx, L.x, L.y, L.w, Lh, L.radius || 0);
-        if (L.fill) { ctx.fillStyle = L.fill; ctx.fill(); }
+        if (L.fill && L.fill2) {
+          const g = L.grad === "h" ? ctx.createLinearGradient(L.x, 0, L.x + L.w, 0) : ctx.createLinearGradient(0, L.y, 0, L.y + Lh);
+          g.addColorStop(0, L.fill); g.addColorStop(1, L.fill2); ctx.fillStyle = g; ctx.fill();
+        } else if (L.fill) { ctx.fillStyle = L.fill; ctx.fill(); }
         if (L.lw) { ctx.strokeStyle = L.color || "#111"; ctx.lineWidth = L.lw; ctx.stroke(); }
         break;
       case "line":
@@ -307,7 +357,18 @@ export async function renderPage(canvas: HTMLCanvasElement, doc: DesignDoc, page
           ctx.drawImage(img, L.x + L.w / 2 - (img.width * s) / 2, L.y + Lh / 2 - (img.height * s) / 2, img.width * s, img.height * s);
           ctx.restore();
           if (L.ring) { ctx.strokeStyle = L.color || "#111"; ctx.lineWidth = L.ring; ctx.beginPath(); if (L.shape === "circle") ctx.ellipse(L.x + L.w / 2, L.y + Lh / 2, L.w / 2, Lh / 2, 0, 0, Math.PI * 2); else rr(ctx, L.x, L.y, L.w, Lh, L.radius || 0); ctx.stroke(); }
-        } else { ctx.fillStyle = "#e6e9ef"; ctx.fillRect(L.x, L.y, L.w, Lh); ctx.fillStyle = "#9aa3b2"; ctx.font = fstr("manrope", 500, Math.min(14, Lh / 3)); ctx.textAlign = "center"; ctx.fillText("image", L.x + L.w / 2, L.y + Lh / 2); }
+        } else if (L.monogram && initialOf(mergeText(L.monogram, data))) {
+          const r = Math.min(L.w, Lh) / 2, cx = L.x + L.w / 2, cy = L.y + Lh / 2;
+          ctx.fillStyle = L.color || "#1b2a4a";
+          if (L.shape === "circle" || L.fit === "contain") {
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = Math.max(1, r * 0.05); ctx.beginPath(); ctx.arc(cx, cy, r * 0.84, 0, Math.PI * 2); ctx.stroke();
+          } else { rr(ctx, L.x, L.y, L.w, Lh, L.radius || 0); ctx.fill(); }
+          ctx.fillStyle = "#ffffff"; ctx.font = fstr("tiro", 700, r * 0.95); ctx.textAlign = "center"; ctx.fillText(initialOf(mergeText(L.monogram, data)), cx, cy + r * 0.06);
+        } else if (o.guides) {
+          ctx.setLineDash([4, 4]); ctx.strokeStyle = "#9aa3b2"; ctx.lineWidth = 1; ctx.strokeRect(L.x, L.y, L.w, Lh); ctx.setLineDash([]);
+          ctx.fillStyle = "#9aa3b2"; ctx.font = fstr("mukta", 500, Math.max(6, Math.min(13, Lh / 4))); ctx.textAlign = "center"; ctx.fillText(L.name || "फोटो", L.x + L.w / 2, L.y + Lh / 2);
+        }
         break;
       }
       case "qr": {

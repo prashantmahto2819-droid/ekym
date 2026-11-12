@@ -99,6 +99,23 @@ function StudioIndex() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] }),
   });
+  /** Replace a saved template's design with the latest built-in design of the same kind (old one kept as an archived copy). */
+  const refresh = useMutation({
+    mutationFn: async (t: TemplateRow) => {
+      const starter = STARTER_TEMPLATES.find((s) => s.kind === t.kind);
+      if (!starter) throw new Error("इस प्रकार का नया डिज़ाइन उपलब्ध नहीं है");
+      const { data: full, error: e1 } = await supabase.from("docs_templates").select("design").eq("id", t.id).single();
+      if (e1) throw e1;
+      await supabase.from("docs_templates").insert({ organization_id: tenant.organization_id, kind: t.kind, name: `${t.name} (पुराना)`, name_hi: t.name_hi, status: "archived", design: (full as { design: DesignDoc }).design as never } as never);
+      const old = (full as { design: DesignDoc }).design;
+      const accent = (old.master.find((l) => l.type === "rect" && "fill" in l && l.fill) as { fill?: string } | undefined)?.fill;
+      const design = starter.make({ name: org?.organization_name ?? tenant.name, name_hi: org?.organization_name_hi ?? tenant.name_hi, logo: org?.logo, ...(accent && /^#[0-9a-f]{6}$/i.test(accent) ? { color: accent } : {}) });
+      const { error } = await supabase.from("docs_templates").update({ design: cleanDoc(design) as never, thumbnail: null } as never).eq("id", t.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] }); toast.success("नया डिज़ाइन लग गया — पुराना 'पुराना' नाम से संग्रह में रखा है"); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const archive = useMutation({
     mutationFn: async (t: TemplateRow) => { const { error } = await supabase.from("docs_templates").update({ status: "archived" } as never).eq("id", t.id); if (error) throw error; },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] }),
@@ -152,6 +169,7 @@ function StudioIndex() {
                 <div className="flex flex-wrap gap-1">
                   {t.organization_id && canEdit ? <Button asChild size="sm"><Link to="/admin/studio/$id" params={{ id: t.id }}>Edit</Link></Button> : null}
                   <Button size="sm" variant="outline" onClick={() => duplicate.mutate(t)} disabled={!canEdit}>Duplicate</Button>
+                  {t.organization_id && canEdit && STARTER_TEMPLATES.some((s) => s.kind === t.kind) ? <Button size="sm" variant="secondary" disabled={refresh.isPending} onClick={() => { if (confirm("इस टेम्पलेट पर नया डिज़ाइन लगाएँ? आपके किए बदलाव हट जाएँगे (पुराना डिज़ाइन संग्रह में रहेगा)।")) refresh.mutate(t); }}>✨ नया डिज़ाइन लगाएँ</Button> : null}
                   {t.organization_id && canEdit ? <Button size="sm" variant="ghost" onClick={() => setDefault.mutate(t)} disabled={t.is_default}>Set default</Button> : null}
                   {t.organization_id && canEdit ? <Button size="sm" variant="ghost" onClick={() => { if (confirm("Archive this template?")) archive.mutate(t); }}>Archive</Button> : null}
                 </div>
