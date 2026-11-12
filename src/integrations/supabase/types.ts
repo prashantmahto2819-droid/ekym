@@ -1330,6 +1330,7 @@ export type Database = {
         Row: {
           about: string | null
           birth_year: number
+          card: Json
           city: string | null
           consent_at: string
           contact_phone: string
@@ -1351,6 +1352,10 @@ export type Database = {
           photo_path: string | null
           photos: string[]
           profession: string | null
+          share_image: string | null
+          share_mode: string
+          share_token: string | null
+          share_views: number
           special_note: string | null
           state: string | null
           status: string
@@ -1362,6 +1367,7 @@ export type Database = {
         Insert: {
           about?: string | null
           birth_year: number
+          card?: Json
           city?: string | null
           consent_at?: string
           contact_phone: string
@@ -1383,6 +1389,10 @@ export type Database = {
           photo_path?: string | null
           photos?: string[]
           profession?: string | null
+          share_image?: string | null
+          share_mode?: string
+          share_token?: string | null
+          share_views?: number
           special_note?: string | null
           state?: string | null
           status?: string
@@ -1394,6 +1404,7 @@ export type Database = {
         Update: {
           about?: string | null
           birth_year?: number
+          card?: Json
           city?: string | null
           consent_at?: string
           contact_phone?: string
@@ -1415,6 +1426,10 @@ export type Database = {
           photo_path?: string | null
           photos?: string[]
           profession?: string | null
+          share_image?: string | null
+          share_mode?: string
+          share_token?: string | null
+          share_views?: number
           special_note?: string | null
           state?: string | null
           status?: string
@@ -1926,6 +1941,8 @@ export type Database = {
           show_email: boolean
           show_phone: boolean
           state: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
           theme: Json
           updated_at: string
           user_id: string
@@ -1951,6 +1968,8 @@ export type Database = {
           show_email?: boolean
           show_phone?: boolean
           state?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           theme?: Json
           updated_at?: string
           user_id: string
@@ -1976,6 +1995,8 @@ export type Database = {
           show_email?: boolean
           show_phone?: boolean
           state?: string | null
+          terms_accepted_at?: string | null
+          terms_version?: string | null
           theme?: Json
           updated_at?: string
           user_id?: string
@@ -7833,6 +7854,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
       is_super: { Args: never; Returns: boolean }
+      k1_accept_terms: { Args: { p_version?: string }; Returns: string }
       k1_achievement_decide: {
         Args: { p_approve: boolean; p_id: string; p_note?: string }
         Returns: undefined
@@ -8645,6 +8667,10 @@ export type Database = {
           verified: boolean
         }[]
       }
+      k1_matrimony_card_save: {
+        Args: { p_card: Json; p_profile: string }
+        Returns: undefined
+      }
       k1_matrimony_contact: { Args: { p_profile: string }; Returns: Json }
       k1_matrimony_inbox: {
         Args: { p_org: string }
@@ -8663,9 +8689,15 @@ export type Database = {
         Args: { p_from: string; p_to: string }
         Returns: undefined
       }
+      k1_matrimony_mine: { Args: { p_profile: string }; Returns: Json }
+      k1_matrimony_public: { Args: { p_token: string }; Returns: Json }
       k1_matrimony_respond: {
         Args: { p_accept: boolean; p_interest: string }
         Returns: undefined
+      }
+      k1_matrimony_share: {
+        Args: { p_image?: string; p_mode: string; p_profile: string }
+        Returns: string
       }
       k1_matrimony_verify: {
         Args: { p_id: string; p_verified: boolean }
@@ -9164,6 +9196,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      k1_terms_status: { Args: never; Returns: Json }
       k1_toggle_like: { Args: { p_post: string }; Returns: boolean }
       k1_touch_presence: { Args: never; Returns: undefined }
       k1_unfriend: { Args: { p_user: string }; Returns: undefined }

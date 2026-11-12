@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-12 — Phase 37 (वैवाहिक बायोडाटा कार्ड: JPG/PDF + QR + शेयर)
+- Migration `cm_12_matrimony_cards` (applied): `cm_matrimony_profiles.card` (डिज़ाइन jsonb), `share_token`, `share_mode` off|members|link, `share_image`, `share_views`; storage policy `community/matri/<uid>/…`; RPCs `k1_matrimony_card_save` (सत्यापन नहीं हटता), `k1_matrimony_share` (सिर्फ़ सत्यापित+चालू प्रोफ़ाइल; token स्थायी ताकि छपे QR चलते रहें), `k1_matrimony_public(token)` (anon; सुरक्षित fields, फ़ोन कभी नहीं), `k1_matrimony_mine`.
+- `components/matrimony/biodataCard.ts`: canvas renderer — 5 टेम्पलेट (शाही मैरून, गुलाबी फूल, क्लासिक हाथीदाँत, केसरिया उत्सव, आधुनिक नीला), accent रंग, 3 फ़ॉन्ट, 3 आकार (मोबाइल 1080×1920, पोस्ट 4:5, A4), फोटो गोल/मेहराब/आयत, ॥ श्री गणेशाय नमः ॥, 13 fields चालू/बंद, बाकी फोटो की पट्टी, मोबाइल वैकल्पिक, QR (share page), footer; JPG और PDF (pdf-lib)।
+- `CardDesigner.tsx`: "मेरे प्रोफ़ाइल" में "🎨 बायोडाटा कार्ड / QR / शेयर" — live preview, डिज़ाइन सहेजें, ⬇ JPG/PDF, 📤 फ़ोन share sheet (WhatsApp), शेयर मोड (बंद / सिर्फ़ सदस्य / लिंक वाला कोई भी), लिंक कॉपी, views।
+- `/m/$token`: QR/लिंक का पेज — कार्ड image + सुरक्षित विवरण + "रुचि भेजें" (लॉगिन) / "सदस्य बनें"; members-mode में लॉगिन माँगता है; noindex.
+- fix: `/membership` लिंक → `/join`.
+
 ## 2026-11-12 — Phase 36 (समुदाय सहमति + शर्तें)
 - Terms (`/terms`) में नया खंड "सामुदायिक सुविधाएँ: चैट, प्रोफ़ाइल, स्टोरी, मित्र" (सामग्री का कॉपीराइट उपयोगकर्ता का, सीमित licence, वही डालें जिसका अधिकार हो, पहुँच/गोपनीयता विकल्प, स्टोरी 24h, ऑनलाइन स्थिति, राजनीतिक/प्रचार सामग्री की मंज़ूरी, ब्लॉक/रिपोर्ट); Privacy policy में समुदाय-डेटा खंड (हिंदी+English)।
 - Migration `cm_11_community_consent` (applied): `cm_user_profiles.terms_accepted_at/terms_version`, RPC `k1_accept_terms(version)`, `k1_terms_status()`.

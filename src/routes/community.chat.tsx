@@ -61,7 +61,7 @@ function ChatPage() {
 
   if (loading) return <div className="container-page py-10 text-sm text-muted-foreground">…</div>;
   if (!user) return <Gate L={L} text={L ? "चैट के लिए पहले साइन इन कीजिए।" : "Sign in to use the community chat."} to="/auth" btn={L ? "साइन इन" : "Sign in"} />;
-  if (!isMember) return <Gate L={L} text={L ? "चैट सिर्फ़ सदस्यों के लिए है। सदस्यता के लिए आवेदन कीजिए; मंज़ूरी मिलते ही चैट खुल जाएगी।" : "Chat is for members. Apply for membership; it opens as soon as you are approved."} to="/membership" btn={L ? "सदस्यता आवेदन" : "Apply"} />;
+  if (!isMember) return <Gate L={L} text={L ? "चैट सिर्फ़ सदस्यों के लिए है। सदस्यता के लिए आवेदन कीजिए; मंज़ूरी मिलते ही चैट खुल जाएगी।" : "Chat is for members. Apply for membership; it opens as soon as you are approved."} to="/join" btn={L ? "सदस्यता आवेदन" : "Apply"} />;
 
   const list = rooms.data ?? [];
   const channels = list.filter((r) => r.kind === "channel");

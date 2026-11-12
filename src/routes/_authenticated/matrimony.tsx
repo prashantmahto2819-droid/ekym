@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { CardDesigner } from "@/components/matrimony/CardDesigner";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,6 +104,7 @@ function MatrimonyPage() {
 function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onChange: () => void; L: boolean }) {
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [design, setDesign] = useState<string | null>(null);   // biodata card designer
   const [f, setF] = useState<Record<string, string>>({ created_for: "self", gender: "male" });
   async function startEdit(id: string) {
     const { data, error } = await supabase.from("cm_matrimony_profiles").select("*").eq("id", id).single();
@@ -142,7 +144,8 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
   const In = (k: string, label: string, type = "text") => <label key={k} className="block text-sm"><span className="mb-1 block text-xs text-muted-foreground">{label}</span><Input type={type} value={f[k] ?? ""} onChange={(e) => set(k, e.target.value)} /></label>;
   return (
     <div className="space-y-3 text-sm">
-      <ul className="space-y-2">{mine.map((m) => <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"><span><b>{m.display_name}</b> · {m.gender} · {new Date().getFullYear() - m.birth_year} {L ? "वर्ष" : "yrs"} · {m.created_for} {m.verified_at ? <Badge className="ml-1">{L ? "सत्यापित" : "verified"}</Badge> : <Badge variant="secondary" className="ml-1">{L ? "सत्यापन बाकी" : "pending verification"}</Badge>} <Badge variant="outline" className="ml-1">{m.status}</Badge></span><span className="flex gap-1">{m.status !== "removed" ? <Button size="sm" variant="outline" onClick={() => void startEdit(m.id)}>{L ? "बदलें" : "Edit"}</Button> : null}{m.status === "active" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "paused")}>{L ? "रोकें" : "Pause"}</Button> : m.status === "paused" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "active")}>{L ? "फिर चालू" : "Resume"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "प्रोफ़ाइल हटाएँ?" : "Remove profile?")) setStatus(m.id, "removed"); }}>{L ? "हटाएँ" : "Remove"}</Button> : null}</span></li>)}</ul>
+      <ul className="space-y-2">{mine.map((m) => <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"><span><b>{m.display_name}</b> · {m.gender} · {new Date().getFullYear() - m.birth_year} {L ? "वर्ष" : "yrs"} · {m.created_for} {m.verified_at ? <Badge className="ml-1">{L ? "सत्यापित" : "verified"}</Badge> : <Badge variant="secondary" className="ml-1">{L ? "सत्यापन बाकी" : "pending verification"}</Badge>} <Badge variant="outline" className="ml-1">{m.status}</Badge></span><span className="flex flex-wrap gap-1">{m.status !== "removed" ? <Button size="sm" onClick={() => setDesign(m.id)}>🎨 {L ? "बायोडाटा कार्ड / QR / शेयर" : "Biodata card / QR / share"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="outline" onClick={() => void startEdit(m.id)}>{L ? "बदलें" : "Edit"}</Button> : null}{m.status === "active" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "paused")}>{L ? "रोकें" : "Pause"}</Button> : m.status === "paused" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "active")}>{L ? "फिर चालू" : "Resume"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "प्रोफ़ाइल हटाएँ?" : "Remove profile?")) setStatus(m.id, "removed"); }}>{L ? "हटाएँ" : "Remove"}</Button> : null}</span></li>)}</ul>
+      {design ? <CardDesigner profileId={design} L={L} onClose={() => setDesign(null)} /> : null}
       {!open ? <Button onClick={() => { setEditId(null); setF({ created_for: "self", gender: "male" }); setFiles([]); setConsent(false); setOpen(true); }}>+ {L ? "नया प्रोफ़ाइल" : "New profile"}</Button> : (
         <div className="grid gap-3 rounded-lg border border-border bg-background p-4 sm:grid-cols-2">
           <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "किसके लिए" : "Profile for"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["created_for"]} onChange={(e) => set("created_for", e.target.value)}>{["self", "son", "daughter", "brother", "sister", "relative"].map((o) => <option key={o} value={o}>{o}</option>)}</select></label>
