@@ -41,6 +41,14 @@ function ExamsPage() {
       <PageHeader title={hi ? "परीक्षा व प्रतियोगिताएँ" : "Exams & competitions"} description={hi ? "समाज के विद्यार्थियों के लिए — स्कूल/कॉलेज कोई भी हो। 18 वर्ष से कम आयु के विद्यार्थी अभिभावक के साथ पंजीयन करें।" : "For students of the community — any school or college. Students under 18 register with a parent/guardian."} crumbs={[{ label: hi ? "परीक्षा" : "Exams" }]} />
       <section className="section-y">
         <div className="container-page space-y-8">
+          <Link to="/exams/levels" className="surface-card lift-on-hover flex flex-wrap items-center gap-4 border-2 border-primary/30 p-5">
+            <span className="text-4xl">🏅</span>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-xl font-semibold">{hi ? "स्तर प्रमाण-पत्र कार्यक्रम" : "Level certificate programme"}</p>
+              <p className="text-sm text-muted-foreground">{hi ? "स्कूल कक्षाएँ, सरकारी नौकरी, प्रवेश परीक्षाएँ और कलचुरि इतिहास — 5 स्तर, हर स्तर पर प्रमाण-पत्र। कभी भी अभ्यास करें।" : "School classes, government jobs, entrance exams and Kalchuri history — 5 levels with a certificate at each. Practise any time."}</p>
+            </div>
+            <span className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">{hi ? "शुरू करें ›" : "Start ›"}</span>
+          </Link>
           {user && mine.data?.length ? (
             <div className="surface-card p-4">
               <h2 className="font-display text-lg font-semibold">{hi ? "मेरे पंजीयन" : "My registrations"}</h2>

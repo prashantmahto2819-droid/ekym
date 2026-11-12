@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { CrudPage } from "@/components/admin/CrudPage";
+import { LevelAdmin } from "@/components/exams/LevelAdmin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +23,7 @@ function Page() {
   const tenant = useTenant();
   const { isPlatformAdmin, can } = useAuth();
   const [exam, setExam] = useState<Exam | null>(null);
-  const [tab, setTab] = useState<"exams" | "bank">("exams");
+  const [tab, setTab] = useState<"exams" | "bank" | "levels">("exams");
   if (!isPlatformAdmin && !can("exam.manage")) return <p className="text-sm text-muted-foreground">सिर्फ़ platform admin या exam.manage वाली भूमिका।</p>;
   return (
     <div className="space-y-6">
@@ -30,8 +31,8 @@ function Page() {
         <h1 className="font-display text-2xl font-semibold">परीक्षा व प्रतियोगिताएँ</h1>
         <p className="mt-1 text-sm text-muted-foreground">Kalchuri One पर बनी परीक्षा सभी संस्थाओं के विद्यार्थियों को दिखती है; संस्था की अपनी परीक्षा उसकी साइट पर। प्रश्न-बैंक → परीक्षा के प्रश्न-पूल में भरें → पंजीयन → परीक्षा → परिणाम/प्रमाण-पत्र।</p>
       </div>
-      <div className="flex gap-2 text-sm">{(["exams", "bank"] as const).map((k) => <button key={k} type="button" className={`rounded-full px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : "bg-secondary"}`} onClick={() => setTab(k)}>{k === "exams" ? "परीक्षाएँ" : "प्रश्न-बैंक"}</button>)}</div>
-      {tab === "bank" ? <QuestionBank org={tenant.organization_id} /> : (
+      <div className="flex gap-2 text-sm">{(["exams", "bank", "levels"] as const).map((k) => <button key={k} type="button" className={`rounded-full px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : "bg-secondary"}`} onClick={() => setTab(k)}>{k === "exams" ? "परीक्षाएँ" : k === "bank" ? "प्रश्न-बैंक" : "स्तर कार्यक्रम व AI"}</button>)}</div>
+      {tab === "levels" ? <LevelAdmin org={tenant.organization_id} /> : tab === "bank" ? <QuestionBank org={tenant.organization_id} /> : (
         <>
           <CrudPage
             table="ex_exams" title="परीक्षाएँ" description="पंक्ति पर क्लिक करके श्रेणियाँ, प्रश्न-पूल, पंजीयन और परिणाम देखें। status: draft → open (पंजीयन) → running (परीक्षा) → closed → results (compute results बटन से)।"
@@ -155,17 +156,18 @@ function QuestionBank({ org }: { org: string }) {
         <Button size="sm" className="mt-2" onClick={imp} disabled={busy}>जोड़ें</Button>
       </div>
       <CrudPage table="ex_questions" title="प्रश्न-बैंक" description={'विकल्प JSON array में (जैसे ["3","4","5"]) और correct में सही विकल्प का index (0 से; जैसे [1])। retired प्रश्न पेपर में नहीं आते।'} orderBy="created_at" createdBy
-        defaults={{ status: "active", difficulty: "medium", lang: "hi", qtype: "mcq", options: ["", "", "", ""], correct: [0] }}
-        columns={[{ key: "subject", label: "विषय" }, { key: "question", label: "प्रश्न", render: (r) => <span className="line-clamp-1">{r.question_hi || r.question}</span> }, { key: "class_from", label: "कक्षा", render: (r) => (r.class_from ? `${r.class_from}–${r.class_to ?? r.class_from}` : "—") }, { key: "difficulty", label: "कठिनाई" }, { key: "lang", label: "भाषा" }, { key: "status", label: "स्थिति" }]}
+        defaults={{ status: "active", difficulty: "medium", lang: "hi", qtype: "mcq", level: 2, options: ["", "", "", ""], correct: [0] }}
+        columns={[{ key: "subject", label: "विषय" }, { key: "question", label: "प्रश्न", render: (r) => <span className="line-clamp-1">{r.question_hi || r.question}</span> }, { key: "class_from", label: "कक्षा", render: (r) => (r.class_from ? `${r.class_from}–${r.class_to ?? r.class_from}` : "—") }, { key: "level", label: "स्तर", render: (r) => (r.level ? String(r.level) : "—") }, { key: "source", label: "स्रोत" }, { key: "status", label: "स्थिति" }]}
         fields={[
           { key: "subject", label: "विषय", required: true }, { key: "topic", label: "टॉपिक" },
           { key: "class_from", label: "कक्षा से", type: "number" }, { key: "class_to", label: "कक्षा तक", type: "number" },
+          { key: "level", label: "स्तर (1–5)", type: "select", required: true, options: [{ value: "1", label: "1 · प्रारंभिक" }, { value: "2", label: "2 · कांस्य" }, { value: "3", label: "3 · रजत" }, { value: "4", label: "4 · स्वर्ण" }, { value: "5", label: "5 · विशेषज्ञ" }] },
           { key: "difficulty", label: "कठिनाई", type: "select", options: ["easy", "medium", "hard"] }, { key: "lang", label: "भाषा", type: "select", options: ["hi", "en"] },
           { key: "qtype", label: "प्रकार", type: "select", options: [{ value: "mcq", label: "एक सही" }, { value: "multi", label: "एक से अधिक सही" }, { value: "truefalse", label: "सही/गलत" }] },
           { key: "question", label: "प्रश्न", type: "textarea", full: true, required: true }, { key: "question_hi", label: "प्रश्न (हिंदी, वैकल्पिक)", type: "textarea", full: true },
           { key: "image", label: "चित्र", type: "image" },
-          { key: "options", label: "विकल्प (JSON array)", type: "json", full: true, hint: '["3","4","5","6"]' }, { key: "correct", label: "सही (JSON index array)", type: "json", hint: "[1]" },
-          { key: "explanation", label: "व्याख्या", type: "textarea", full: true }, { key: "status", label: "स्थिति", type: "select", options: ["active", "draft", "retired"] },
+          { key: "options", label: "विकल्प (JSON array)", type: "json", full: true, hint: '["3","4","5","6"]' }, { key: "options_hi", label: "विकल्प हिंदी में (JSON array, उसी क्रम में)", type: "json", full: true, hint: '["तीन","चार","पाँच","छह"]' }, { key: "correct", label: "सही (JSON index array)", type: "json", hint: "[1]" },
+          { key: "explanation", label: "व्याख्या (अंग्रेज़ी में)", type: "textarea", full: true }, { key: "explanation_hi", label: "व्याख्या (हिंदी में)", type: "textarea", full: true }, { key: "status", label: "स्थिति", type: "select", options: ["active", "draft", "retired"] },
         ]}
       />
     </div>
