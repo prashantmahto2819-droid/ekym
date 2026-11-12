@@ -30,7 +30,8 @@ export const TEMPLATES: Tpl[] = [
 export const SIZES = { story: [1080, 1920], portrait: [1080, 1350], a4: [1240, 1754] } as const;
 const FONT_CSS = { tiro: '"Tiro Devanagari Hindi"', mukta: "Mukta", notoserif: '"Noto Serif Devanagari"' } as const;
 
-const LBL: Record<"hi" | "en", Record<string, string>> = {
+type Labels = { headline: string; inv: string; age: string; height: string; education: string; profession: string; income: string; city: string; gotra: string; native: string; created_for: string; interests: string; about: string; expectations: string; special_note: string; contact: string; years: string; groom: string; bride: string; scan: string; via: string };
+const LBL: Record<"hi" | "en", Labels> = {
   hi: { headline: "शुभ विवाह हेतु परिचय", inv: "॥ श्री गणेशाय नमः ॥", age: "आयु", height: "कद", education: "शिक्षा", profession: "व्यवसाय", income: "आय", city: "निवास", gotra: "गोत्र", native: "मूल ग्राम", created_for: "प्रोफ़ाइल", interests: "रुचियाँ", about: "परिचय", expectations: "अपेक्षाएँ", special_note: "विशेष", contact: "संपर्क", years: "वर्ष", groom: "वर", bride: "वधू", scan: "स्कैन करें — पूरा परिचय देखें", via: "Kalchuri One · kalchuri.org" },
   en: { headline: "Marriage Biodata", inv: "|| Shri Ganeshaya Namah ||", age: "Age", height: "Height", education: "Education", profession: "Profession", income: "Income", city: "Lives in", gotra: "Gotra", native: "Native place", created_for: "Profile for", interests: "Interests", about: "About", expectations: "Looking for", special_note: "Note", contact: "Contact", years: "yrs", groom: "Groom", bride: "Bride", scan: "Scan to view the full profile", via: "Kalchuri One · kalchuri.org" },
 };
@@ -153,21 +154,21 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
   // details panel
   const rows: [string, string][] = [];
   const F = { ...DEFAULT_FIELDS, ...o.fields };
-  if (F.age) rows.push([L.age!, `${age} ${L.years} (${d.birth_year})`]);
-  if (F.height && d.height_cm) rows.push([L.height!, `${ft(d.height_cm)} (${d.height_cm} cm)`]);
-  if (F.education && d.education) rows.push([L.education!, d.education]);
-  if (F.profession && d.profession) rows.push([L.profession!, d.profession]);
-  if (F.income && d.income_range) rows.push([L.income!, d.income_range]);
-  if (F.city && (d.city || d.district)) rows.push([L.city!, [d.city, d.district].filter(Boolean).join(", ")]);
-  if (F.gotra && d.gotra) rows.push([L.gotra!, d.gotra]);
-  if (F.native && d.native_place) rows.push([L.native!, d.native_place]);
-  if (F.created_for && d.created_for) rows.push([L.created_for!, d.created_for]);
-  if (F.interests && d.interests) rows.push([L.interests!, d.interests]);
-  if (o.showContact && d.contact_phone) rows.push([L.contact!, `+${d.contact_phone.replace(/\D/g, "")}`]);
+  if (F.age) rows.push([L.age, `${age} ${L.years} (${d.birth_year})`]);
+  if (F.height && d.height_cm) rows.push([L.height, `${ft(d.height_cm)} (${d.height_cm} cm)`]);
+  if (F.education && d.education) rows.push([L.education, d.education]);
+  if (F.profession && d.profession) rows.push([L.profession, d.profession]);
+  if (F.income && d.income_range) rows.push([L.income, d.income_range]);
+  if (F.city && (d.city || d.district)) rows.push([L.city, [d.city, d.district].filter(Boolean).join(", ")]);
+  if (F.gotra && d.gotra) rows.push([L.gotra, d.gotra]);
+  if (F.native && d.native_place) rows.push([L.native, d.native_place]);
+  if (F.created_for && d.created_for) rows.push([L.created_for, d.created_for]);
+  if (F.interests && d.interests) rows.push([L.interests, d.interests]);
+  if (o.showContact && d.contact_phone) rows.push([L.contact, `+${d.contact_phone.replace(/\D/g, "")}`]);
   const paras: [string, string][] = [];
-  if (F.about && d.about) paras.push([L.about!, d.about]);
-  if (F.expectations && d.expectations) paras.push([L.expectations!, d.expectations]);
-  if (F.special_note && d.special_note) paras.push([L.special_note!, d.special_note]);
+  if (F.about && d.about) paras.push([L.about, d.about]);
+  if (F.expectations && d.expectations) paras.push([L.expectations, d.expectations]);
+  if (F.special_note && d.special_note) paras.push([L.special_note, d.special_note]);
 
   const footerH = d.qrUrl ? W * 0.26 : W * 0.1;
   const extraH = o.extraPhotos && imgs.length > 1 ? W * 0.2 : 0;
@@ -227,10 +228,10 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
     ctx.drawImage(qc, qx, qy, qs, qs);
     ctx.textAlign = "left"; ctx.fillStyle = t.ink; ctx.font = `700 ${W * 0.032}px Mukta, sans-serif`;
     const tx = qx + qs + W * 0.04; let ty = qy + W * 0.05;
-    for (const ln of wrap(ctx, L.scan!, W - tx - pad)) { ctx.fillText(ln, tx, ty); ty += W * 0.04; }
+    for (const ln of wrap(ctx, L.scan, W - tx - pad)) { ctx.fillText(ln, tx, ty); ty += W * 0.04; }
     ctx.fillStyle = t.sub; ctx.font = `500 ${W * 0.026}px Mukta, sans-serif`;
     if (d.org) { for (const ln of wrap(ctx, d.org, W - tx - pad).slice(0, 2)) { ctx.fillText(ln, tx, ty); ty += W * 0.034; } }
-    ctx.fillStyle = accent; ctx.fillText(o.footerNote?.trim() || L.via!, tx, ty);
+    ctx.fillStyle = accent; ctx.fillText(o.footerNote?.trim() || L.via, tx, ty);
   } else {
     ctx.textAlign = "center"; ctx.fillStyle = t.sub; ctx.font = `500 ${W * 0.026}px Mukta, sans-serif`;
     ctx.fillText([d.org, o.footerNote?.trim() || L.via].filter(Boolean).join(" · "), cx, fy + footerH / 2);
