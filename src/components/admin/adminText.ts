@@ -20,7 +20,7 @@ const PAIRS: [string, string][] = [
   ["Headline", "शीर्षक"], ["Featured image URL", "मुख्य चित्र"], ["Image URL", "चित्र"], ["Author (byline)", "लेखक का नाम"], ["Publish date", "प्रकाशन तिथि"],
   ["Show on homepage", "होम पेज पर दिखाएँ"], ["Breaking", "ताज़ा खबर"], ["SEO title", "खोज इंजन के लिए शीर्षक"], ["SEO description", "खोज इंजन के लिए विवरण"],
   ["Source (if external)", "स्रोत (बाहरी हो तो)"], ["External link", "बाहरी लिंक"], ["Views", "देखा गया"], ["Full story", "पूरी खबर"], ["Excerpt", "सार"], ["Content", "मुख्य पाठ"],
-  ["सार", "Summary"], ["लेख", "Article"], ["पूरी खबर", "Full story"], ["विज्ञापन पाठ", "Ad text"], ["Text ad", "विज्ञापन पाठ"],
+  ["Text ad", "विज्ञापन पाठ"],
   ["Save", "सहेजें"], ["Saved", "सहेज लिया"], ["Saving…", "सहेज रहे हैं…"], ["Delete", "हटाएँ"], ["Deleted", "हटा दिया"], ["Edit", "बदलें"], ["New", "नया"], ["Add", "जोड़ें"],
   ["Cancel", "रद्द करें"], ["Close", "बंद करें"], ["Search", "खोजें"], ["Approve", "मंज़ूर करें"], ["Reject", "अस्वीकार करें"], ["Approved", "मंज़ूर"], ["Rejected", "अस्वीकार"],
   ["Pending", "बाकी"], ["review", "समीक्षा"], ["published", "प्रकाशित"], ["archived", "संग्रहित"], ["draft", "मसौदा"], ["new", "नया"], ["contacted", "संपर्क किया"], ["approved", "मंज़ूर"], ["rejected", "अस्वीकार"], ["pending", "बाकी"], ["submitted", "जमा"], ["shortlisted", "चयन सूची में"], ["selected", "चयनित"], ["closed", "बंद"], ["resolved", "हल हुआ"], ["active", "सक्रिय"], ["inactive", "निष्क्रिय"], ["verified", "सत्यापित"], ["fulfilled", "पूरा हुआ"], ["cancelled", "रद्द"], ["completed", "पूरा"], ["ongoing", "जारी"], ["upcoming", "आगामी"], ["Draft", "मसौदा"], ["Yes", "हाँ"], ["No", "नहीं"], ["All", "सभी"], ["Show more", "और दिखाएँ"], ["Loading…", "लोड हो रहा है…"], ["Download", "डाउनलोड"],
@@ -33,7 +33,7 @@ const PAIRS: [string, string][] = [
 ];
 const EN2HI = new Map(PAIRS.map(([e, h]) => [e.toLowerCase(), h]));
 const HI2EN = new Map(PAIRS.map(([e, h]) => [h, e]));
-HI2EN.set("शीर्षक", "Title"); HI2EN.set("नाम", "Name"); HI2EN.set("स्थान", "Place"); HI2EN.set("टिप्पणी", "Notes"); HI2EN.set("सदस्य", "Members"); HI2EN.set("प्रकार", "Type");
+HI2EN.set("सार", "Summary"); HI2EN.set("लेख", "Article"); HI2EN.set("पूरी खबर", "Full story"); HI2EN.set("विज्ञापन पाठ", "Ad text"); HI2EN.set("शीर्षक", "Title"); HI2EN.set("नाम", "Name"); HI2EN.set("स्थान", "Place"); HI2EN.set("टिप्पणी", "Notes"); HI2EN.set("सदस्य", "Members"); HI2EN.set("प्रकार", "Type");
 
 const DEV = /[ऀ-ॿ]/;
 const LAT = /[A-Za-z]{2,}/;
