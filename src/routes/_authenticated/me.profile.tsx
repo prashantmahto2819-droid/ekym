@@ -44,7 +44,11 @@ function EditProfile() {
   async function pick(kind: "cover" | "photo", file: File | undefined) {
     if (!file || !user) return;
     setBusy(true);
-    try { const url = await uploadCommunityImage(file, `profiles/${user.id}`, kind === "cover" ? 1800 : 600);  // GIF kept as-is (animated cover) set(kind === "cover" ? "cover_url" : "photo_url", url); toast.success(L ? "फोटो लग गई — नीचे \"सहेजें\" दबाइए" : "Uploaded — press Save"); }
+    try {
+      const url = await uploadCommunityImage(file, `profiles/${user.id}`, kind === "cover" ? 1800 : 600); // a GIF is kept as-is (animated cover)
+      set(kind === "cover" ? "cover_url" : "photo_url", url);
+      toast.success(L ? "लग गई — नीचे \"सहेजें\" दबाइए" : "Uploaded — press Save");
+    }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
   }
   async function save() {
