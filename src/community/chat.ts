@@ -15,9 +15,14 @@ export async function call<T = unknown>(fn: string, args: Record<string, unknown
 
 export type Room = { id: string; organization_id: string; org_name: string; kind: "channel" | "group" | "dm"; name: string; name_hi: string | null; description: string | null; category: string | null; sort_order: number; is_private: boolean; member_count: number; unread: number; last_message_at: string | null; last_text: string | null; joined: boolean; other_user: string | null; other_name: string | null; other_photo: string | null; other_online: boolean | null };
 export type Msg = { id: string; sender_id: string; sender_name: string; sender_photo: string | null; body: string | null; media: { type: string; url: string }[]; reply_to: string | null; reply_text: string | null; reply_name: string | null; created_at: string; edited_at: string | null; deleted: boolean; mine: boolean };
-export type Person = { user_id: string; name: string; photo_url: string | null; org_names: string | null; village: string | null; last_seen_at: string | null; online: boolean };
+export type Person = { user_id: string; name: string; photo_url: string | null; org_names: string | null; village: string | null; district?: string | null; last_seen_at: string | null; online: boolean; friend_status?: FriendStatus; total?: number };
+export type FriendStatus = "none" | "pending_out" | "pending_in" | "friends";
+export type Facets = { total: number; online: number; today: number; friends: number; incoming: number; orgs: { id: string; name: string; n: number }[]; districts: { name: string; n: number }[]; cities: { name: string; n: number }[] };
+export type FriendRequest = { user_id: string; name: string; photo_url: string | null; direction: "in" | "out"; since: string; org_names: string | null; mutual: number };
+export type Recommendation = { user_id: string; name: string; photo_url: string | null; org_names: string | null; village: string | null; online: boolean; score: number; why: string | null; mutual: number };
+export type PeopleFilter = { q: string; onlineOnly: boolean; friendsOnly: boolean; city: string; org: string };
 export type RoomMember = { user_id: string; name: string; photo_url: string | null; role: string; online: boolean; last_seen_at: string | null };
-export type Profile = { user_id: string; name: string; photo_url: string | null; cover_url: string | null; bio: string | null; village: string | null; district: string | null; state: string | null; occupation: string | null; interests: string[]; links: Record<string, string>; last_seen_at: string | null; online: boolean; mine: boolean; dm_from: string; show_phone: boolean; show_email: boolean; phone: string | null; email: string | null; joined_at: string | null; orgs: { id: string; slug: string; name: string; name_hi: string | null; member_no: string | null; since: string | null; family_id: string | null }[]; roles: { org: string | null; org_en: string; role: string | null; role_en: string }[]; posts: number; blocked: boolean };
+export type Profile = { user_id: string; name: string; photo_url: string | null; cover_url: string | null; theme?: { preset?: string; layout?: string; stickers?: { e: string; x: number; y: number; s: number }[] }; bio: string | null; village: string | null; district: string | null; state: string | null; occupation: string | null; interests: string[]; links: Record<string, string>; last_seen_at: string | null; online: boolean; mine: boolean; dm_from: string; show_phone: boolean; show_email: boolean; phone: string | null; email: string | null; joined_at: string | null; orgs: { id: string; slug: string; name: string; name_hi: string | null; member_no: string | null; since: string | null; family_id: string | null }[]; roles: { org: string | null; org_en: string; role: string | null; role_en: string }[]; posts: number; blocked: boolean };
 
 export const roomTitle = (r: Room, L: boolean) => r.kind === "dm" ? (r.other_name ?? "…") : (L ? (r.name_hi || r.name) : r.name);
 
@@ -78,14 +83,36 @@ export function usePresence(enabled: boolean, me: { id: string; name: string; ph
   return online;
 }
 
-export function usePeople(q: string, onlineOnly: boolean, enabled: boolean) {
+export function usePeople(f: PeopleFilter, enabled: boolean, limit = 80) {
   const tenant = useTenant();
   return useQuery({
-    queryKey: ["chat_people", tenant.organization_id, q, onlineOnly],
+    queryKey: ["chat_people", tenant.organization_id, f, limit],
     enabled,
     staleTime: 20000,
-    queryFn: () => call<Person[]>("k1_people", { p_org: tenant.organization_id, p_q: q || null, p_online: onlineOnly, p_limit: 80 }),
+    queryFn: () => call<Person[]>("k1_people", { p_org: tenant.organization_id, p_q: f.q || null, p_online: f.onlineOnly, p_limit: limit, p_friends: f.friendsOnly, p_city: f.city || null, p_filter_org: f.org || null, p_offset: 0 }),
   });
+}
+export function useFacets(enabled: boolean) {
+  const tenant = useTenant();
+  return useQuery({ queryKey: ["people_facets", tenant.organization_id], enabled, staleTime: 60000, queryFn: () => call<Facets>("k1_people_facets", { p_org: tenant.organization_id }).catch(() => null) });
+}
+export function useFriendRequests(enabled: boolean) {
+  return useQuery({ queryKey: ["friend_requests"], enabled, refetchInterval: 60000, queryFn: () => call<FriendRequest[]>("k1_friend_requests").catch(() => [] as FriendRequest[]) });
+}
+export function useRecommendations(enabled: boolean) {
+  const tenant = useTenant();
+  return useQuery({ queryKey: ["people_recommend", tenant.organization_id], enabled, staleTime: 120000, queryFn: () => call<Recommendation[]>("k1_people_recommend", { p_org: tenant.organization_id, p_limit: 12 }).catch(() => [] as Recommendation[]) });
+}
+/** Friend actions; all invalidate the people/profile queries. */
+export function useFriendActions() {
+  const tenant = useTenant();
+  const qc = useQueryClient();
+  const done = async () => { await Promise.all([qc.invalidateQueries({ queryKey: ["chat_people"] }), qc.invalidateQueries({ queryKey: ["friend_requests"] }), qc.invalidateQueries({ queryKey: ["people_recommend"] }), qc.invalidateQueries({ queryKey: ["people_facets"] }), qc.invalidateQueries({ queryKey: ["profile_social"] }), qc.invalidateQueries({ queryKey: ["friends_of"] })]); };
+  return {
+    request: async (uid: string) => { const r = await call<string>("k1_friend_request", { p_org: tenant.organization_id, p_user: uid }); await done(); return r as FriendStatus; },
+    respond: async (uid: string, accept: boolean) => { await call("k1_friend_respond", { p_org: tenant.organization_id, p_user: uid, p_accept: accept }); await done(); },
+    unfriend: async (uid: string) => { await call("k1_unfriend", { p_user: uid }); await done(); },
+  };
 }
 
 export function useProfile(userId: string | null) {
@@ -105,6 +132,13 @@ export function useChatUnread(enabled: boolean) {
 /** Upload a picture into the public community bucket; returns its public URL. */
 export async function uploadCommunityImage(file: File, folder: string, maxEdge = 1600): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("image only");
+  if (file.type === "image/gif") {
+    if (file.size > 5 * 1024 * 1024) throw new Error("GIF 5 MB से छोटी रखें");
+    const gpath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.gif`;
+    const { error: gerr } = await supabase.storage.from("community").upload(gpath, file, { contentType: "image/gif", upsert: true });
+    if (gerr) throw new Error(gerr.message);
+    return supabase.storage.from("community").getPublicUrl(gpath).data.publicUrl;
+  }
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");

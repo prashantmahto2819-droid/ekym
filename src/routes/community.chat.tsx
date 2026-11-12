@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, ProfileCard } from "@/components/community/ChatBits";
+import { Avatar, FriendButton, ProfileCard } from "@/components/community/ChatBits";
 import { OccasionsCard } from "@/components/community/Occasions";
-import { call, roomTitle, timeAgo, uploadCommunityImage, useMe, useMessages, usePeople, usePresence, useRooms, useStickToBottom, type Msg, type Person, type Room, type RoomMember } from "@/community/chat";
+import { call, roomTitle, timeAgo, uploadCommunityImage, useFacets, useFriendRequests, useMe, useMessages, usePeople, usePresence, useRecommendations, useRooms, useStickToBottom, type Msg, type PeopleFilter, type Person, type Room, type RoomMember } from "@/community/chat";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
@@ -135,26 +135,64 @@ function RoomRow({ r, L, active, onClick, online }: { r: Room; L: boolean; activ
 }
 
 function PeoplePane({ L, online, onOpen, onDm }: { L: boolean; online: Set<string>; onOpen: (uid: string) => void; onDm: (uid: string) => void }) {
-  const [q, setQ] = useState(""); const [onlyOnline, setOnlyOnline] = useState(false);
-  const people = usePeople(q, onlyOnline, true);
+  const [tab, setTab] = useState<"all" | "friends" | "suggest" | "requests">("all");
+  const [f, setF] = useState<PeopleFilter>({ q: "", onlineOnly: false, friendsOnly: false, city: "", org: "" });
+  const filter = { ...f, friendsOnly: tab === "friends" };
+  const people = usePeople(filter, tab === "all" || tab === "friends");
+  const facets = useFacets(true);
+  const reqs = useFriendRequests(true);
+  const recs = useRecommendations(tab === "suggest");
   const rows = (people.data ?? []).map((p) => ({ ...p, online: p.online || online.has(p.user_id) })).sort((a, b) => Number(b.online) - Number(a.online));
+  const total = rows[0]?.total ?? rows.length;
+  const incoming = (reqs.data ?? []).filter((r) => r.direction === "in");
+  const fc = facets.data;
+  const Tab = ({ id, label, n }: { id: typeof tab; label: string; n?: number }) => <button type="button" onClick={() => setTab(id)} className={`rounded-full px-2.5 py-1 text-xs ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/70"}`}>{label}{n ? <span className="ml-1 rounded-full bg-background/30 px-1.5">{n}</span> : null}</button>;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="space-y-2 border-b border-border p-2">
-        <div className="relative"><Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L ? "नाम, संगठन या गाँव खोजें" : "Search name, organization, village"} className="h-9 pl-8" /></div>
-        <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={onlyOnline} onChange={(e) => setOnlyOnline(e.target.checked)} /> {L ? "सिर्फ़ ऑनलाइन" : "Online only"}</label>
+        {fc ? <p className="text-[11px] text-muted-foreground">👥 {L ? "कुल सदस्य" : "Members"} <b>{fc.total}</b> · 🟢 {L ? "ऑनलाइन" : "online"} <b>{Math.max(fc.online, online.size)}</b> · {L ? "आज सक्रिय" : "active today"} <b>{fc.today}</b> · {L ? "मेरे मित्र" : "friends"} <b>{fc.friends}</b></p> : null}
+        <div className="flex flex-wrap gap-1"><Tab id="all" label={L ? "सभी समुदाय" : "All"} /><Tab id="friends" label={L ? "मित्र" : "Friends"} n={fc?.friends} /><Tab id="suggest" label={L ? "सुझाव" : "Suggestions"} /><Tab id="requests" label={L ? "अनुरोध" : "Requests"} n={incoming.length} /></div>
+        {tab === "all" || tab === "friends" ? <>
+          <div className="relative"><Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" /><Input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder={L ? "नाम, संगठन, गाँव/शहर खोजें" : "Search name, organization, city"} className="h-9 pl-8" /></div>
+          <div className="flex flex-wrap gap-1">
+            <select value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} className="h-8 max-w-[150px] rounded-md border border-input bg-background px-2 text-xs"><option value="">{L ? "सभी शहर/ज़िले" : "All cities"}</option>{(fc?.districts ?? []).map((d) => <option key={"d" + d.name} value={d.name}>{d.name} ({d.n})</option>)}{(fc?.cities ?? []).filter((c) => !(fc?.districts ?? []).some((d) => d.name === c.name)).map((c) => <option key={"c" + c.name} value={c.name}>{c.name} ({c.n})</option>)}</select>
+            <select value={f.org} onChange={(e) => setF({ ...f, org: e.target.value })} className="h-8 max-w-[170px] rounded-md border border-input bg-background px-2 text-xs"><option value="">{L ? "सभी संगठन" : "All organizations"}</option>{(fc?.orgs ?? []).map((o) => <option key={o.id} value={o.id}>{o.name} ({o.n})</option>)}</select>
+            <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={f.onlineOnly} onChange={(e) => setF({ ...f, onlineOnly: e.target.checked })} /> {L ? "ऑनलाइन" : "online"}</label>
+          </div>
+          <p className="text-[11px] text-muted-foreground">{people.isFetching ? "…" : `${total} ${L ? "लोग" : "people"}${rows.length < total ? ` (${L ? "पहले" : "first"} ${rows.length})` : ""}`}</p>
+        </> : null}
       </div>
       <ul className="min-h-0 flex-1 overflow-y-auto p-1 text-sm">
-        {rows.map((p: Person) => (
-          <li key={p.user_id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary">
-            <button type="button" onClick={() => onOpen(p.user_id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-              <Avatar url={p.photo_url} name={p.name} size={8} online={p.online} />
-              <span className="min-w-0"><span className="block truncate font-medium">{p.name}</span><span className="block truncate text-[11px] text-muted-foreground">{[p.org_names, p.village].filter(Boolean).join(" · ")}{!p.online && p.last_seen_at ? ` · ${timeAgo(p.last_seen_at, L)}` : ""}</span></span>
-            </button>
-            <Button size="icon" variant="ghost" className="size-8" title={L ? "संदेश" : "Message"} onClick={() => onDm(p.user_id)}><Send className="size-4" /></Button>
-          </li>
-        ))}
-        {people.isSuccess && !rows.length ? <li className="p-3 text-xs text-muted-foreground">{L ? "कोई नहीं मिला।" : "No one found."}</li> : null}
+        {(tab === "all" || tab === "friends") ? <>
+          {rows.map((p: Person) => (
+            <li key={p.user_id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary">
+              <button type="button" onClick={() => onOpen(p.user_id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                <Avatar url={p.photo_url} name={p.name} size={8} online={p.online} />
+                <span className="min-w-0"><span className="block truncate font-medium">{p.name}{p.friend_status === "friends" ? <span className="ml-1 text-[10px] text-emerald-700">✓ {L ? "मित्र" : "friend"}</span> : null}</span><span className="block truncate text-[11px] text-muted-foreground">{[p.org_names, p.village || p.district].filter(Boolean).join(" · ")}{!p.online && p.last_seen_at ? ` · ${timeAgo(p.last_seen_at, L)}` : ""}</span></span>
+              </button>
+              {p.friend_status && p.friend_status !== "friends" ? <span className="hidden sm:block"><FriendButton userId={p.user_id} status={p.friend_status} L={L} /></span> : null}
+              <Button size="icon" variant="ghost" className="size-8" title={L ? "संदेश" : "Message"} onClick={() => onDm(p.user_id)}><Send className="size-4" /></Button>
+            </li>
+          ))}
+          {people.isSuccess && !rows.length ? <li className="p-3 text-xs text-muted-foreground">{tab === "friends" ? (L ? "अभी कोई मित्र नहीं — \"सुझाव\" या \"सभी समुदाय\" में से मित्र बनाइए।" : "No friends yet — add some from Suggestions or All.") : (L ? "कोई नहीं मिला।" : "No one found.")}</li> : null}
+        </> : null}
+        {tab === "suggest" ? <>
+          <li className="px-2 py-1 text-[11px] text-muted-foreground">{L ? "आपके गाँव/ज़िले, संगठन, मूल ग्राम और साझा मित्रों के आधार पर" : "Based on your village/district, organization, native place and mutual friends"}</li>
+          {(recs.data ?? []).map((p) => (
+            <li key={p.user_id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary">
+              <button type="button" onClick={() => onOpen(p.user_id)} className="flex min-w-0 flex-1 items-center gap-2 text-left"><Avatar url={p.photo_url} name={p.name} size={8} online={p.online || online.has(p.user_id)} /><span className="min-w-0"><span className="block truncate font-medium">{p.name}</span><span className="block truncate text-[11px] text-muted-foreground">{p.why || p.org_names}</span></span></button>
+              <FriendButton userId={p.user_id} status="none" L={L} />
+            </li>
+          ))}
+          {recs.isSuccess && !recs.data?.length ? <li className="p-3 text-xs text-muted-foreground">{L ? "अभी कोई सुझाव नहीं — प्रोफ़ाइल में गाँव/ज़िला भरिए तो बेहतर सुझाव मिलेंगे।" : "No suggestions yet — fill your village/district in the profile."}</li> : null}
+        </> : null}
+        {tab === "requests" ? <>
+          {incoming.length ? <li className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{L ? "आए हुए" : "Incoming"}</li> : null}
+          {incoming.map((r) => <li key={r.user_id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary"><button type="button" onClick={() => onOpen(r.user_id)} className="flex min-w-0 flex-1 items-center gap-2 text-left"><Avatar url={r.photo_url} name={r.name} size={8} online={online.has(r.user_id)} /><span className="min-w-0"><span className="block truncate font-medium">{r.name}</span><span className="block truncate text-[11px] text-muted-foreground">{[r.org_names, r.mutual ? `${r.mutual} ${L ? "साझा मित्र" : "mutual"}` : null].filter(Boolean).join(" · ")} · {timeAgo(r.since, L)}</span></span></button><FriendButton userId={r.user_id} status="pending_in" L={L} /></li>)}
+          {(reqs.data ?? []).some((r) => r.direction === "out") ? <li className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{L ? "भेजे हुए" : "Sent"}</li> : null}
+          {(reqs.data ?? []).filter((r) => r.direction === "out").map((r) => <li key={r.user_id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-secondary"><button type="button" onClick={() => onOpen(r.user_id)} className="flex min-w-0 flex-1 items-center gap-2 text-left"><Avatar url={r.photo_url} name={r.name} size={8} /><span className="min-w-0"><span className="block truncate font-medium">{r.name}</span><span className="block truncate text-[11px] text-muted-foreground">{timeAgo(r.since, L)}</span></span></button><FriendButton userId={r.user_id} status="pending_out" L={L} /></li>)}
+          {reqs.isSuccess && !reqs.data?.length ? <li className="p-3 text-xs text-muted-foreground">{L ? "कोई अनुरोध नहीं।" : "No requests."}</li> : null}
+        </> : null}
       </ul>
     </div>
   );
@@ -258,7 +296,7 @@ function NewRoomDialog({ L, onClose, onCreated }: { L: boolean; onClose: () => v
   const [kind, setKind] = useState<"group" | "channel">(canChannel ? "channel" : "group");
   const [name, setName] = useState(""); const [nameHi, setNameHi] = useState(""); const [cat, setCat] = useState(""); const [desc, setDesc] = useState(""); const [priv, setPriv] = useState(false);
   const [q, setQ] = useState(""); const [picked, setPicked] = useState<Person[]>([]);
-  const people = usePeople(q, false, kind === "group");
+  const people = usePeople({ q, onlineOnly: false, friendsOnly: false, city: "", org: "" }, kind === "group" || priv);
   const [busy, setBusy] = useState(false);
   const options = useMemo(() => (people.data ?? []).filter((p) => !picked.some((x) => x.user_id === p.user_id)).slice(0, 8), [people.data, picked]);
   async function create() {

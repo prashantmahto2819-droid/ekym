@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/community/ChatBits";
+import { Cover, ThemeEditor, presetOf, type Theme } from "@/components/community/ProfileTheme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/me/profile")({
   component: EditProfile,
 });
 
-type Form = { display_name: string; bio: string; photo_url: string; cover_url: string; village: string; district: string; state: string; occupation: string; interests: string; links: Record<string, string>; show_phone: boolean; show_email: boolean; dm_from: string };
+type Form = { display_name: string; bio: string; photo_url: string; cover_url: string; theme: Theme; village: string; district: string; state: string; occupation: string; interests: string; links: Record<string, string>; show_phone: boolean; show_email: boolean; dm_from: string };
 
 function EditProfile() {
   const { lang } = useLang(); const L = lang === "hi";
@@ -29,20 +30,21 @@ function EditProfile() {
   const [f, setF] = useState<Form | null>(null);
   const [busy, setBusy] = useState(false);
   const coverRef = useRef<HTMLInputElement>(null); const photoRef = useRef<HTMLInputElement>(null);
+  const [picked, setPicked] = useState<string | null>(null); const [stSize, setStSize] = useState(36);
   type Occ = { birthday: string | null; anniversary: string | null; show_birthday: boolean; show_birth_year: boolean; show_anniversary: boolean };
   const occQ = useQuery({ queryKey: ["profile_occasions", user?.id], enabled: !!user, queryFn: () => call<Occ>("k1_profile_occasions", { p_user: user!.id }).catch(() => null) });
   const [occ, setOcc] = useState<Occ | null>(null);
   useEffect(() => { if (occQ.data && !occ) setOcc(occQ.data); }, [occQ.data, occ]);
   useEffect(() => {
     const d: Profile | null = p.data ?? null;
-    if (d && !f) setF({ display_name: d.mine ? (d.name === "Member" ? "" : d.name) : "", bio: d.bio ?? "", photo_url: d.photo_url ?? "", cover_url: d.cover_url ?? "", village: d.village ?? "", district: d.district ?? "", state: d.state ?? "", occupation: d.occupation ?? "", interests: d.interests.join(", "), links: { facebook: d.links["facebook"] ?? "", instagram: d.links["instagram"] ?? "", youtube: d.links["youtube"] ?? "", website: d.links["website"] ?? "" }, show_phone: d.show_phone, show_email: d.show_email, dm_from: d.dm_from });
+    if (d && !f) setF({ display_name: d.mine ? (d.name === "Member" ? "" : d.name) : "", bio: d.bio ?? "", photo_url: d.photo_url ?? "", cover_url: d.cover_url ?? "", theme: d.theme ?? {}, village: d.village ?? "", district: d.district ?? "", state: d.state ?? "", occupation: d.occupation ?? "", interests: d.interests.join(", "), links: { facebook: d.links["facebook"] ?? "", instagram: d.links["instagram"] ?? "", youtube: d.links["youtube"] ?? "", website: d.links["website"] ?? "" }, show_phone: d.show_phone, show_email: d.show_email, dm_from: d.dm_from });
   }, [p.data, f]);
   if (!user || !f) return <section className="container-page py-10 text-sm text-muted-foreground">…</section>;
   const set = (k: keyof Form, v: unknown) => setF({ ...f, [k]: v } as Form);
   async function pick(kind: "cover" | "photo", file: File | undefined) {
     if (!file || !user) return;
     setBusy(true);
-    try { const url = await uploadCommunityImage(file, `profiles/${user.id}`, kind === "cover" ? 1800 : 600); set(kind === "cover" ? "cover_url" : "photo_url", url); toast.success(L ? "फोटो लग गई — नीचे \"सहेजें\" दबाइए" : "Uploaded — press Save"); }
+    try { const url = await uploadCommunityImage(file, `profiles/${user.id}`, kind === "cover" ? 1800 : 600);  // GIF kept as-is (animated cover) set(kind === "cover" ? "cover_url" : "photo_url", url); toast.success(L ? "फोटो लग गई — नीचे \"सहेजें\" दबाइए" : "Uploaded — press Save"); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
   }
   async function save() {
@@ -59,19 +61,26 @@ function EditProfile() {
   return (
     <section className="container-page py-4 sm:py-6">
       <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="relative h-44 bg-gradient-to-r from-primary/30 via-primary/15 to-amber-200/40 bg-cover bg-center sm:h-56" style={f.cover_url ? { backgroundImage: `url(${f.cover_url})` } : undefined}>
-          <input ref={coverRef} type="file" accept="image/*" hidden onChange={(e) => void pick("cover", e.target.files?.[0])} />
-          <Button size="sm" variant="secondary" className="absolute bottom-3 right-3" onClick={() => coverRef.current?.click()} disabled={busy}><Camera className="size-4" /> {L ? "कवर फोटो बदलें" : "Change cover"}</Button>
-        </div>
+        <Cover url={f.cover_url} theme={f.theme} height={(f.theme.layout ?? "classic") === "banner" ? "h-56 sm:h-80" : "h-44 sm:h-56"}
+          onPlace={picked ? (x, y) => { set("theme", { ...f.theme, stickers: [...(f.theme.stickers ?? []), { e: picked, x: Math.round(x), y: Math.round(y), s: stSize }].slice(-12) }); } : undefined}
+          onRemove={(i) => set("theme", { ...f.theme, stickers: (f.theme.stickers ?? []).filter((_, j) => j !== i) })}>
+          <input ref={coverRef} type="file" accept="image/*,.gif" hidden onChange={(e) => void pick("cover", e.target.files?.[0])} />
+          <div className="absolute bottom-3 right-3 flex gap-1" onClick={(e) => e.stopPropagation()}>
+            {f.cover_url ? <Button size="sm" variant="secondary" onClick={() => set("cover_url", "")}>{L ? "कवर हटाएँ" : "Remove"}</Button> : null}
+            <Button size="sm" variant="secondary" onClick={() => coverRef.current?.click()} disabled={busy}><Camera className="size-4" /> {L ? "कवर फोटो / GIF" : "Cover photo / GIF"}</Button>
+          </div>
+          {picked ? <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2 py-1 text-xs shadow">{L ? `कवर पर क्लिक करके ${picked} लगाइए` : `Click on the cover to place ${picked}`}</span> : null}
+        </Cover>
         <div className="px-4 pb-5 sm:px-6">
           <div className="-mt-12 flex items-end gap-3">
             <div className="relative">
-              <span className="block rounded-full border-4 border-card bg-card"><Avatar url={f.photo_url} name={f.display_name || p.data?.name || "?"} size={24} /></span>
+              <span className={`block rounded-full border-4 ${presetOf(f.theme).ring} bg-card`}><Avatar url={f.photo_url} name={f.display_name || p.data?.name || "?"} size={24} /></span>
               <input ref={photoRef} type="file" accept="image/*" hidden onChange={(e) => void pick("photo", e.target.files?.[0])} />
               <button type="button" onClick={() => photoRef.current?.click()} disabled={busy} className="absolute bottom-1 right-1 grid size-8 place-items-center rounded-full bg-primary text-primary-foreground shadow" title={L ? "प्रोफ़ाइल फोटो (DP) बदलें" : "Change photo"}><Camera className="size-4" /></button>
             </div>
             <div className="pb-2"><h1 className="font-display text-xl font-semibold">{L ? "मेरी प्रोफ़ाइल" : "My profile"}</h1><p className="text-xs text-muted-foreground"><Link to="/u/$id" params={{ id: user.id }} className="hover:underline">{L ? "जैसी दूसरों को दिखती है ↗" : "View as others see it ↗"}</Link></p></div>
           </div>
+          <div className="mt-4"><ThemeEditor theme={f.theme} onChange={(t) => set("theme", t)} L={L} picked={picked} setPicked={setPicked} size={stSize} setSize={setStSize} /></div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "दिखने वाला नाम" : "Display name"}</span><Input value={f.display_name} onChange={(e) => set("display_name", e.target.value)} placeholder={p.data?.name} /></label>
             <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपने बारे में" : "About you"}</span><Textarea value={f.bio} onChange={(e) => set("bio", e.target.value)} rows={3} maxLength={1000} placeholder={L ? "परिचय, रुचियाँ, समाज के लिए क्या करते हैं…" : "Introduction, interests, what you do for the community…"} /></label>

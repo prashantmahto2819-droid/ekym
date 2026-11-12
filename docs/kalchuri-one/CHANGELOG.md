@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-12 — Phase 34 (मित्र, पोस्ट की visibility, लोगों की डायरेक्टरी, प्रोफ़ाइल थीम/स्टिकर) — DB apply pending
+- Migration `cm_09_friends_visibility_directory`: `cm_friendships` (request/accept/decline, 30-दिन cooldown), RPCs `k1_is_friend`, `k1_friend_status`, `k1_friend_request` (दोनों तरफ़ से भेजने पर auto-accept), `k1_friend_respond`, `k1_unfriend`, `k1_friend_requests`, `k1_mutual_friends`, `k1_friends(p_user)`, `k1_friend_counts`, `k1_people_recommend` (साझा मित्र ×5, गाँव +4, मूल ग्राम +3, ज़िला +2, संगठन +1, हाल में सक्रिय +1), `k1_people` (filters: search, online, friends-only, city/district, organization, offset; `total`), `k1_people_facets` (कुल/ऑनलाइन/आज/मित्र/अनुरोध + संगठन-वार व ज़िला/शहर-वार गिनती), `k1_profile_social`; notifications kinds friend_request/friend_accept.
+- Post visibility `friends` (public / community members / friends only): constraint, RLS `cm_posts_member_read`, `k1_feed`/`k1_feed_search` filter; composer में 🌍/👥/🤝 विकल्प, कार्ड पर लेबल।
+- `cm_user_profiles.theme` jsonb ({preset, layout, stickers}); `k1_profile`/`k1_profile_save` में theme।
+- UI: चैट "लोग" → टैब सभी समुदाय / मित्र / सुझाव / अनुरोध; header "कुल सदस्य · ऑनलाइन · आज सक्रिय · मित्र"; फ़िल्टर शहर/ज़िला (गिनती सहित), संगठन, ऑनलाइन; हर पंक्ति पर "+ मित्र बनाएँ"/स्वीकारें; `FriendButton`, `SocialLine` (N मित्र · M साझा); प्रोफ़ाइल कार्ड व `/u/$id` पर मित्र बटन + मित्र सूची (avatars)।
+- प्रोफ़ाइल थीम (`ProfileTheme.tsx`): 6 रंग-प्रीसेट (क्लासिक, केसरिया, शाही, हरियाली, गुलाबी, रात), 3 लेआउट (क्लासिक, बीच में फोटो, बड़ा कवर), 30 इमोजी स्टिकर कवर पर क्लिक करके लगाना/हटाना (आकार स्लाइडर, ≤12); कवर में GIF (animated, ≤5 MB, जस का तस) या static image; "कवर हटाएँ"।
+
 ## 2026-11-12 — Phase 33 (जन्मदिन-वर्षगाँठ + राजनीतिक पोस्ट की मंज़ूरी) — DB apply pending
 - Migration `cm_07_birthdays_anniversaries`: `cm_user_profiles.birthday/anniversary` (+show toggles; जन्मदिन default सदस्यता फ़ॉर्म की dob से), `cm_occasion_wishes` (per year), `cm_occasion_log`; RPCs `k1_occasions` (आज + 7 दिन), `k1_wish`, `k1_wishes_for`, `k1_profile_occasions`, `k1_profile_save_occasions`; cron `k1-occasions` 09:00 IST → व्यक्ति को बधाई (in-app + WhatsApp/email via k1_notify_user), चौपाल पर संगठन की ओर से पोस्ट (mention), `cm_settings.occasion_posts/occasion_greetings` switches.
 - UI: चैट साइडबार + चौपाल पर "🎉 जन्मदिन और वर्षगाँठ" कार्ड (आज वालों पर एक-टैप शुभकामना, preset संदेश), प्रोफ़ाइल पर "शुभकामनाएँ" दीवार (कोई भी कभी भी पोस्ट कर सकता है; birthday/anniversary बटन), प्रोफ़ाइल संपादन में तिथियाँ + गोपनीयता (दिन-महीना / उम्र दिखे)।
