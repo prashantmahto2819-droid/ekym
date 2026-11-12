@@ -117,7 +117,7 @@ function StoryComposer({ L, onClose, onDone }: { L: boolean; onClose: () => void
   function pick(f: File | undefined) { if (!f) return; setFile(f); setPreview(URL.createObjectURL(f)); }
   async function post() {
     if (!user) return;
-    if (!file && !caption.trim()) return toast.error(L ? "फोटो चुनिए या कुछ लिखिए" : "Pick a photo or write something");
+    if (!file && !caption.trim()) { toast.error(L ? "फोटो चुनिए या कुछ लिखिए" : "Pick a photo or write something"); return; }
     setBusy(true);
     try {
       let path = "";
