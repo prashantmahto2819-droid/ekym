@@ -69,7 +69,6 @@ export function Feed({ postId }: { postId?: string }) {
         <div className="flex flex-wrap items-center gap-2">
           <Input className="max-w-xs" placeholder={L ? "खोजें… (नाम, शब्द, #टैग)" : "Search… (name, words, #tag)"} value={q} onChange={(e) => { const v = e.target.value; if (v.startsWith("#") && v.length > 1) { setTag(v.slice(1)); setQ(""); } else setQ(v); }} />
           {tag ? <Badge className="cursor-pointer" onClick={() => setTag(null)}>#{tag} ×</Badge> : null}
-          {user ? <NotificationsBell L={L} /> : null}
         </div>
       ) : null}
       {!postId && !tag && tags.data?.length ? <div className="flex flex-wrap gap-1 text-xs">{tags.data.map((t) => <button key={t.tag} type="button" className="rounded-full border border-border px-2 py-0.5 hover:bg-secondary" onClick={() => setTag(t.tag)}>#{t.tag} <span className="text-muted-foreground">{t.n}</span></button>)}</div> : null}
@@ -217,21 +216,3 @@ function Comments({ post, L, signedIn }: { post: Post; L: boolean; signedIn: boo
   );
 }
 
-type Notif = { id: string; kind: string; text: string | null; post_id: string | null; comment_id: string | null; read_at: string | null; created_at: string; unread: number };
-function NotificationsBell({ L }: { L: boolean }) {
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const q = useQuery({ queryKey: ["cm_notifications"], refetchInterval: 60_000, queryFn: () => rpc<Notif[]>("k1_cm_notifications", { p_limit: 30 }) });
-  const unread = q.data?.[0]?.unread ?? 0;
-  async function markAll() { await rpc("k1_cm_notifications_read", { p_ids: null }); qc.invalidateQueries({ queryKey: ["cm_notifications"] }); }
-  const icon: Record<string, string> = { mention: "@",  like: "👍", comment: "💬", reply: "↩️", moderation: "🛡️", appeal: "🙋" };
-  return (
-    <div className="relative ml-auto">
-      <Button size="sm" variant="outline" onClick={() => { setOpen((v) => !v); if (!open && unread) void markAll(); }}>🔔 {L ? "सूचनाएँ" : "Notifications"}{unread ? <span className="ml-1 rounded-full bg-destructive px-1.5 text-[10px] text-destructive-foreground">{unread}</span> : null}</Button>
-      {open ? <div className="absolute right-0 z-20 mt-1 max-h-96 w-80 overflow-y-auto rounded-md border border-border bg-background p-1 text-sm shadow-lg">
-        {(q.data ?? []).map((n) => <Link key={n.id} to="/community/$id" params={{ id: n.post_id ?? "" }} disabled={!n.post_id} className={`block rounded px-2 py-1.5 hover:bg-secondary ${n.read_at ? "text-muted-foreground" : "font-medium"}`} onClick={() => setOpen(false)}>{icon[n.kind] ?? "•"} {n.text}<span className="block text-[11px] font-normal text-muted-foreground">{new Date(n.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</span></Link>)}
-        {q.isSuccess && !q.data.length ? <p className="p-2 text-muted-foreground">{L ? "अभी कोई सूचना नहीं।" : "No notifications yet."}</p> : null}
-      </div> : null}
-    </div>
-  );
-}

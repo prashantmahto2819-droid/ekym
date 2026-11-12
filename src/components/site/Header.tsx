@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { MemberBell } from "@/components/community/MemberBell";
 import { useChatUnread } from "@/community/chat";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang, type TKey } from "@/core/i18n";
@@ -148,6 +149,7 @@ export function Header() {
           {moduleOn(tenant.branding, "donate") ? <Button asChild variant="default" size="sm" className="hidden sm:inline-flex">
             <Link to="/donate">{t("donate")}</Link>
           </Button> : null}
+          {user ? <MemberBell L={lang === "hi"} userId={user.id} /> : null}
           {chatOn ? (
             <Button asChild variant="ghost" size="icon" className="relative" title={lang === "hi" ? "समुदाय चैट" : "Community chat"}>
               <Link to="/community/chat">
@@ -203,6 +205,7 @@ export function Header() {
                 </Button> : null}
                 {chatOn ? <Link to="/community/chat" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">💬 {lang === "hi" ? "समुदाय चैट" : "Community chat"}{(unread.data ?? 0) > 0 ? ` (${unread.data})` : ""}</Link> : null}
                 {user ? <Link to="/me/profile" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">{lang === "hi" ? "मेरी प्रोफ़ाइल" : "My profile"}</Link> : null}
+                {user ? <Link to="/me/notifications" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">{lang === "hi" ? "सूचना सेटिंग" : "Notification settings"}</Link> : null}
                 <Button asChild variant="outline" className="mt-2">
                   <Link to={user ? (isStaff ? "/admin" : "/account") : "/auth"} onClick={() => setOpen(false)}>
                     {user ? (isStaff ? t("admin_panel") : t("my_account")) : "Sign in"}

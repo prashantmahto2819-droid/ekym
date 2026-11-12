@@ -1455,6 +1455,7 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          link: string | null
           organization_id: string
           post_id: string | null
           read_at: string | null
@@ -1467,6 +1468,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind: string
+          link?: string | null
           organization_id: string
           post_id?: string | null
           read_at?: string | null
@@ -1479,6 +1481,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          link?: string | null
           organization_id?: string
           post_id?: string | null
           read_at?: string | null
@@ -5178,6 +5181,90 @@ export type Database = {
         }
         Relationships: []
       }
+      k1_deferred_whatsapp: {
+        Row: {
+          body: string
+          created_at: string
+          full_name: string | null
+          id: string
+          organization_id: string
+          phone: string
+          ref: string | null
+          ref_table: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          organization_id: string
+          phone: string
+          ref?: string | null
+          ref_table?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          organization_id?: string
+          phone?: string
+          ref?: string | null
+          ref_table?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      k1_notification_prefs: {
+        Row: {
+          email: boolean
+          muted_kinds: string[]
+          quiet_end: number
+          quiet_start: number
+          updated_at: string
+          user_id: string
+          whatsapp: boolean
+        }
+        Insert: {
+          email?: boolean
+          muted_kinds?: string[]
+          quiet_end?: number
+          quiet_start?: number
+          updated_at?: string
+          user_id: string
+          whatsapp?: boolean
+        }
+        Update: {
+          email?: boolean
+          muted_kinds?: string[]
+          quiet_end?: number
+          quiet_start?: number
+          updated_at?: string
+          user_id?: string
+          whatsapp?: boolean
+        }
+        Relationships: []
+      }
+      k1_renewal_log: {
+        Row: {
+          created_at: string
+          membership_id: string
+          stage: string
+        }
+        Insert: {
+          created_at?: string
+          membership_id: string
+          stage: string
+        }
+        Update: {
+          created_at?: string
+          membership_id?: string
+          stage?: string
+        }
+        Relationships: []
+      }
       letter_designs: {
         Row: {
           created_at: string
@@ -8522,6 +8609,7 @@ export type Database = {
           village: string
         }[]
       }
+      k1_flush_deferred_whatsapp: { Args: never; Returns: number }
       k1_friend_counts: { Args: never; Returns: Json }
       k1_friend_request: {
         Args: { p_org: string; p_user: string }
@@ -8563,6 +8651,7 @@ export type Database = {
       }
       k1_health: { Args: never; Returns: Json }
       k1_in_family: { Args: { p_family: string }; Returns: boolean }
+      k1_in_quiet_hours: { Args: { p_user: string }; Returns: boolean }
       k1_is_applicant: { Args: { p_org: string }; Returns: boolean }
       k1_is_friend: { Args: { p_a: string; p_b: string }; Returns: boolean }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
@@ -8711,6 +8800,7 @@ export type Database = {
         Args: { p_id: string; p_org: string }
         Returns: undefined
       }
+      k1_membership_renewals: { Args: never; Returns: number }
       k1_mention_search: {
         Args: { p_limit?: number; p_org: string; p_q: string }
         Returns: {
@@ -8721,6 +8811,22 @@ export type Database = {
       }
       k1_mutual_friends: { Args: { p_a: string; p_b: string }; Returns: number }
       k1_my_family: { Args: never; Returns: Json }
+      k1_my_notifications: {
+        Args: { p_before?: string; p_limit?: number }
+        Returns: {
+          actor_id: string
+          actor_name: string
+          actor_photo: string
+          created_at: string
+          id: string
+          kind: string
+          link: string
+          post_id: string
+          read_at: string
+          text: string
+          unread: number
+        }[]
+      }
       k1_my_orgs: {
         Args: never
         Returns: {
@@ -8756,6 +8862,8 @@ export type Database = {
         Returns: string
       }
       k1_norm_contact: { Args: { p: string }; Returns: string }
+      k1_notification_prefs_get: { Args: never; Returns: Json }
+      k1_notification_prefs_save: { Args: { p: Json }; Returns: undefined }
       k1_notify_org_admins: {
         Args: {
           p_body: string

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-12 — Phase 38 (सदस्य की घंटी, सूचना सेटिंग, सदस्यता नवीनीकरण)
+- Migration `cm_13_member_notifications` (applied): `k1_notification_prefs` (WhatsApp/ईमेल चालू-बंद, शांत समय IST default 21–08, muted kinds), `k1_deferred_whatsapp` + cron `k1-deferred-whatsapp` (हर 15 मिनट, शांत समय खत्म होते ही भेजता है, 3 दिन से पुराने हटाता है), `k1_in_quiet_hours`; `k1_notify_user` अब preferences मानता है और हर संदेश की in-app प्रति (`cm_notifications` kind system/renewal, नया `link` column) बनाता है; `cm_notifications` Realtime में; `k1_my_notifications` (actor नाम/फोटो, link), `k1_notification_prefs_get/save`; `k1_membership_renewals` + cron 09:30 IST — valid_to से 30/7/0 दिन पहले याद, बीत जाने पर status lapsed + सूचना (`k1_renewal_log` से एक बार ही)।
+- UI: हेडर में 🔔 `MemberBell` (हर लॉगिन व्यक्ति के लिए; unread badge, realtime, खोलते ही पढ़ा, क्लिक पर सही पेज), `/me/notifications` सेटिंग पेज, मोबाइल मेनू में लिंक; चौपाल के अंदर वाली पुरानी घंटी हटाई।
+
 ## 2026-11-12 — Phase 37 (वैवाहिक बायोडाटा कार्ड: JPG/PDF + QR + शेयर)
 - Migration `cm_12_matrimony_cards` (applied): `cm_matrimony_profiles.card` (डिज़ाइन jsonb), `share_token`, `share_mode` off|members|link, `share_image`, `share_views`; storage policy `community/matri/<uid>/…`; RPCs `k1_matrimony_card_save` (सत्यापन नहीं हटता), `k1_matrimony_share` (सिर्फ़ सत्यापित+चालू प्रोफ़ाइल; token स्थायी ताकि छपे QR चलते रहें), `k1_matrimony_public(token)` (anon; सुरक्षित fields, फ़ोन कभी नहीं), `k1_matrimony_mine`.
 - `components/matrimony/biodataCard.ts`: canvas renderer — 5 टेम्पलेट (शाही मैरून, गुलाबी फूल, क्लासिक हाथीदाँत, केसरिया उत्सव, आधुनिक नीला), accent रंग, 3 फ़ॉन्ट, 3 आकार (मोबाइल 1080×1920, पोस्ट 4:5, A4), फोटो गोल/मेहराब/आयत, ॥ श्री गणेशाय नमः ॥, 13 fields चालू/बंद, बाकी फोटो की पट्टी, मोबाइल वैकल्पिक, QR (share page), footer; JPG और PDF (pdf-lib)।
