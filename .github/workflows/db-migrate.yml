@@ -1,0 +1,45 @@
+# Applies the SQL files in supabase/migrations that the database has not seen yet (same bookkeeping table the Supabase
+# MCP/CLI use: supabase_migrations.schema_migrations, version = the leading digits of the file name).
+# Needs repository secret SUPABASE_DB_URL (Supabase → Project Settings → Database → Connection string → URI, session mode).
+# Migrations up to the version in supabase/APPLIED_THROUGH were applied through the Supabase MCP (which records its own
+# version numbers), so they are skipped; bump that file whenever something is applied outside this workflow.
+# Run by hand from the Actions tab ("Run workflow"); dry run lists what would be applied.
+name: db-migrate
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list pending migrations"
+        type: boolean
+        default: true
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install psql
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+      - name: Apply pending migrations
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DRY: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          test -n "$DB_URL" || { echo "SUPABASE_DB_URL secret missing"; exit 1; }
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -qc "create schema if not exists supabase_migrations; create table if not exists supabase_migrations.schema_migrations (version text primary key, statements text[], name text);"
+          applied=$(psql "$DB_URL" -At -c "select version from supabase_migrations.schema_migrations")
+          through=$(tr -d '[:space:]' < supabase/APPLIED_THROUGH)
+          pending=0
+          for f in $(ls supabase/migrations/*.sql | sort); do
+            base=$(basename "$f" .sql); ver=${base%%_*}; name=${base#*_}
+            if [ "$ver" \< "$through" ] || [ "$ver" = "$through" ]; then continue; fi
+            if echo "$applied" | grep -qx "$ver"; then continue; fi
+            pending=$((pending+1))
+            echo "PENDING: $base"
+            if [ "$DRY" = "true" ]; then continue; fi
+            echo "--- applying $base"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -qc "insert into supabase_migrations.schema_migrations (version, name) values ('$ver', '$name') on conflict do nothing"
+            echo "--- done $base"
+          done
+          echo "pending files: $pending (dry_run=$DRY)"

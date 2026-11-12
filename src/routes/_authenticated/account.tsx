@@ -51,6 +51,10 @@ function AccountPage() {
           <div className="surface-card h-fit p-6">
             <p className="text-sm text-muted-foreground">Signed in as</p>
             <p className="font-display text-lg font-semibold">{user?.email}</p>
+            <div className="mt-2 flex flex-wrap gap-2 text-sm">
+              <Button asChild size="sm" variant="outline"><Link to="/me/profile">मेरी प्रोफ़ाइल · My profile</Link></Button>
+              <Button asChild size="sm" variant="outline"><Link to="/community/chat">💬 समुदाय चैट</Link></Button>
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {roles.length ? (
                 roles.map((r) => (

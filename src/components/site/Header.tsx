@@ -1,6 +1,6 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, HeartHandshake, Menu, Phone, ShieldCheck } from "lucide-react";
+import { ChevronDown, HeartHandshake, Menu, MessageCircle, Phone, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useChatUnread } from "@/community/chat";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang, type TKey } from "@/core/i18n";
 import { moduleOn, NAV_MODULE } from "@/core/modules";
@@ -53,7 +54,9 @@ const moreNav: { key: TKey; to: string }[] = [
 
 export function Header() {
   const { data: org } = useSuspenseQuery(organizationQuery());
-  const { user, isStaff } = useAuth();
+  const { user, isStaff, orgs } = useAuth();
+  const chatOn = !!user && orgs.length > 0 && moduleOn(tenant.branding, "community");
+  const unread = useChatUnread(chatOn);
   const { t, lang, setLang, loc } = useLang();
   const tenant = useTenant();
   const orgName = loc(org, "organization_name") || (lang === "hi" && tenant.name_hi) || tenant.name;
@@ -145,6 +148,14 @@ export function Header() {
           {moduleOn(tenant.branding, "donate") ? <Button asChild variant="default" size="sm" className="hidden sm:inline-flex">
             <Link to="/donate">{t("donate")}</Link>
           </Button> : null}
+          {chatOn ? (
+            <Button asChild variant="ghost" size="icon" className="relative" title={lang === "hi" ? "समुदाय चैट" : "Community chat"}>
+              <Link to="/community/chat">
+                <MessageCircle className="size-5" />
+                {(unread.data ?? 0) > 0 ? <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">{unread.data}</span> : null}
+              </Link>
+            </Button>
+          ) : null}
           {user ? (
             <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
               <Link to={isStaff ? "/admin" : "/account"}>
@@ -190,6 +201,8 @@ export function Header() {
                     {t("donate")}
                   </Link>
                 </Button> : null}
+                {chatOn ? <Link to="/community/chat" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">💬 {lang === "hi" ? "समुदाय चैट" : "Community chat"}{(unread.data ?? 0) > 0 ? ` (${unread.data})` : ""}</Link> : null}
+                {user ? <Link to="/me/profile" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">{lang === "hi" ? "मेरी प्रोफ़ाइल" : "My profile"}</Link> : null}
                 <Button asChild variant="outline" className="mt-2">
                   <Link to={user ? (isStaff ? "/admin" : "/account") : "/auth"} onClick={() => setOpen(false)}>
                     {user ? (isStaff ? t("admin_panel") : t("my_account")) : "Sign in"}
