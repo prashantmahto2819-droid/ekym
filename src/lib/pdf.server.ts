@@ -1,6 +1,8 @@
 import { LineCapStyle, PDFDocument, StandardFonts, degrees, rgb, type PDFImage, type PDFPage, type PDFFont, type RGB } from "pdf-lib";
 import QRCode from "qrcode";
 
+import { toLatin } from "@/design-engine/script";
+
 /** Central server-side PDF engine (receipts, volunteer ID card and certificate).
  *  Standard PDF fonts cannot draw Devanagari, so every string passes through `safe()`: Hindi names are
  *  transliterated to Latin ("रमेश कुमार" → "Ramesh Kumar"), ₹ becomes "Rs." and anything else unprintable is dropped. */
@@ -31,58 +33,11 @@ export async function startDocument(): Promise<PdfDocContext> {
 }
 
 /* ---------------- text safety: Devanagari → Latin, WinAnsi only ---------------- */
-const CONS: Record<string, string> = {
-  "क": "k", "ख": "kh", "ग": "g", "घ": "gh", "ङ": "n", "च": "ch", "छ": "chh", "ज": "j", "झ": "jh", "ञ": "n",
-  "ट": "t", "ठ": "th", "ड": "d", "ढ": "dh", "ण": "n", "त": "t", "थ": "th", "द": "d", "ध": "dh", "न": "n",
-  "प": "p", "फ": "ph", "ब": "b", "भ": "bh", "म": "m", "य": "y", "र": "r", "ल": "l", "व": "v", "श": "sh",
-  "ष": "sh", "स": "s", "ह": "h", "ळ": "l",
-};
-const NUKTA: Record<string, string> = { "क": "q", "ख": "kh", "ग": "g", "ज": "z", "ड": "r", "ढ": "rh", "फ": "f" };
-const VOW: Record<string, string> = { "अ": "a", "आ": "a", "इ": "i", "ई": "i", "उ": "u", "ऊ": "u", "ऋ": "ri", "ए": "e", "ऐ": "ai", "ओ": "o", "औ": "au", "ऑ": "o" };
-const MAT: Record<string, string> = { "ा": "a", "ि": "i", "ी": "i", "ु": "u", "ू": "u", "ृ": "ri", "े": "e", "ै": "ai", "ो": "o", "ौ": "au", "ॉ": "o" };
-const DIGIT = "०१२३४५६७८९";
-
-function translitWord(w: string): string {
-  type Syl = { c: string; v: string | null; inherent: boolean };
-  const out: (Syl | string)[] = [];
-  const chars = [...w];
-  for (let i = 0; i < chars.length; i++) {
-    const ch = chars[i]!;
-    if (CONS[ch]) {
-      let c = CONS[ch]!;
-      if (chars[i + 1] === "़") { c = NUKTA[ch] ?? c; i++; }
-      const nx = chars[i + 1];
-      if (nx === "्") { out.push({ c, v: "", inherent: false }); i++; }
-      else if (nx && MAT[nx]) { out.push({ c, v: MAT[nx]!, inherent: false }); i++; }
-      else out.push({ c, v: "a", inherent: true });
-    } else if (VOW[ch]) out.push(VOW[ch]!);
-    else if (ch === "ं" || ch === "ँ") {
-      const next = chars[i + 1];
-      out.push(next && ["प", "फ", "ब", "भ", "म"].includes(next) ? "m" : "n");
-    } else if (ch === "ः") out.push("h");
-    else if (DIGIT.includes(ch)) out.push(String(DIGIT.indexOf(ch)));
-    else if (ch === "।") out.push(".");
-    else out.push(ch);
-  }
-  // schwa deletion: word-final inherent "a", and a medial one between a vowelled syllable and a following vowelled consonant
-  const syl = out.map((s) => (typeof s === "string" ? null : s));
-  for (let i = syl.length - 1; i >= 0; i--) {
-    const s = syl[i];
-    if (!s || !s.inherent) continue;
-    const isLast = i === syl.length - 1;
-    if (isLast && i > 0) { s.v = ""; continue; }
-    const prev = syl[i - 1], next = syl[i + 1];
-    if (i > 0 && prev && prev.v && next && next.v && !(syl[i + 2] === undefined && next.inherent)) s.v = "";
-  }
-  const txt = out.map((s) => (typeof s === "string" ? s : s.c + (s.v ?? ""))).join("");
-  return txt ? txt[0]!.toUpperCase() + txt.slice(1) : txt;
-}
-
 /** Make any string drawable with the standard (WinAnsi) fonts. */
 export function safe(s: string | null | undefined): string {
   if (!s) return "";
   let t = String(s).replace(/₹\s?/g, "Rs. ").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-");
-  if (/[ऀ-ॿ]/.test(t)) t = t.replace(/[ऀ-ॿ]+/g, (w) => translitWord(w));
+  t = toLatin(t);
   // keep printable Latin-1 plus a few WinAnsi extras
   return t.replace(/[^\x20-\x7e\xa0-\xff•…€]/g, "").replace(/\s{2,}/g, " ").trim();
 }

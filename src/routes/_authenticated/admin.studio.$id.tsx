@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tansta
 import { toast } from "sonner";
 
 import { StudioEditor } from "@/components/studio/StudioEditor";
-import { SAMPLE_DATA, orgMergeData } from "@/components/studio/merge-data";
+import { orgMergeData, sampleFor } from "@/components/studio/merge-data";
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/core/tenant-context";
 import { renderAll, type DesignDoc } from "@/design-engine";
@@ -31,7 +31,7 @@ function TemplateEditor() {
 
   const save = useMutation({
     mutationFn: async (design: DesignDoc) => {
-      const [c] = await renderAll(design, { ...orgMergeData(tenant, org), ...SAMPLE_DATA }, 0.5);
+      const [c] = await renderAll(design, { ...orgMergeData(tenant, org), ...sampleFor(design) }, 0.5);
       const thumbnail = c?.toDataURL("image/jpeg", 0.6) ?? null;
       const { error } = await supabase.from("docs_templates").update({ design: design as never, thumbnail } as never).eq("id", id);
       if (error) throw error;
@@ -56,7 +56,7 @@ function TemplateEditor() {
         </div>
         <Button asChild variant="ghost" size="sm"><Link to="/admin/studio">Close</Link></Button>
       </div>
-      <StudioEditor key={tpl.data.id} initial={tpl.data.design} data={{ ...orgMergeData(tenant, org), ...SAMPLE_DATA }} onSave={(d) => save.mutate(d)} saving={save.isPending} />
+      <StudioEditor key={tpl.data.id} initial={tpl.data.design} data={{ ...orgMergeData(tenant, org), ...sampleFor(tpl.data.design) }} onSave={(d) => save.mutate(d)} saving={save.isPending} />
     </div>
   );
 }

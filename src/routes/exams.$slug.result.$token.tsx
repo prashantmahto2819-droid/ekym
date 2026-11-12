@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { toDevanagari, toLatin } from "@/design-engine/script";
 import { useLang } from "@/core/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,6 +29,8 @@ function ResultPage() {
   }, [r?.cert_no, slug, token]);
   if (q.isSuccess && !r) return <div className="container-page section-y text-sm">{hi ? "परिणाम अभी उपलब्ध नहीं है या लिंक गलत है।" : "Result not available yet or invalid link."}</div>;
   if (!r) return null;
+  /** one script per certificate: Hindi → Devanagari, English → Latin letters */
+  const sc = (v: string | null | undefined) => (v ? (hi ? toDevanagari(v) : toLatin(v)) : "");
   const merit = r.result === "merit";
   return (
     <div className="container-page section-y mx-auto max-w-4xl space-y-4">
@@ -52,23 +55,23 @@ function ResultPage() {
           {(["left-5 top-5", "right-5 top-5 rotate-90", "right-5 bottom-5 rotate-180", "left-5 bottom-5 -rotate-90"] as const).map((pos) => <CornerArt key={pos} className={`pointer-events-none absolute size-10 md:size-16 ${pos}`} />)}
           <Mandala className="pointer-events-none absolute left-1/2 top-1/2 size-[70%] -translate-x-1/2 -translate-y-1/2 opacity-[0.07]" />
           <div className="relative flex h-full flex-col items-center px-8 pb-5 pt-5 md:px-16 md:pb-8 md:pt-9">
-            {r.org_logo ? <img src={r.org_logo} alt="" className="h-10 object-contain md:h-16" /> : <span className="grid size-10 place-items-center rounded-full bg-[#1b3a5c] text-lg font-bold text-white ring-4 ring-[#b8924a] md:size-16 md:text-3xl">{[...(r.org_name || "क")][0]}</span>}
-            <p className="mt-1 text-sm font-semibold text-[#1b3a5c] md:mt-2 md:text-2xl">{r.org_name}</p>
+            {r.org_logo ? <img src={r.org_logo} alt="" className="h-10 object-contain md:h-16" /> : <span className="grid size-10 place-items-center rounded-full bg-[#1b3a5c] text-lg font-bold text-white ring-4 ring-[#b8924a] md:size-16 md:text-3xl">{[...(sc(r.org_name) || "K")][0]}</span>}
+            <p className="mt-1 text-sm font-semibold text-[#1b3a5c] md:mt-2 md:text-2xl">{sc(r.org_name)}</p>
             <p className={`mt-1 text-2xl font-bold leading-tight text-[#b8924a] md:mt-3 md:text-5xl ${hi ? "" : "tracking-[0.2em]"}`}>{hi ? "प्रमाण-पत्र" : "CERTIFICATE"}</p>
             {hi ? <p className="mt-0.5 text-sm font-semibold text-[#1b3a5c] md:text-xl">{merit ? "मेरिट प्रमाण-पत्र" : "सहभागिता प्रमाण-पत्र"}</p>
               : <p className="mt-0.5 font-sans text-[9px] font-semibold uppercase tracking-[0.35em] text-[#1b3a5c] md:text-sm">{merit ? "of Merit" : "of Participation"}</p>}
             <Flourish className="mt-1 h-3 w-40 text-[#b8924a] md:mt-2 md:h-4 md:w-64" />
             <p className="mt-1 text-xs text-stone-600 md:mt-3 md:text-base">{hi ? "यह प्रमाणित किया जाता है कि" : "This is to certify that"}</p>
-            <p className="mt-0.5 border-b border-[#b8924a] px-6 pb-1 text-2xl font-bold text-stone-900 md:px-10 md:text-5xl">{(hi && r.student_name_hi) || r.student_name}</p>
-            <p className="mt-1 text-xs text-stone-600 md:text-base">{[r.class_level && `${hi ? "कक्षा" : "Class"} ${r.class_level}`, r.school, r.city].filter(Boolean).join(" · ")}</p>
+            <p className="mt-0.5 border-b border-[#b8924a] px-6 pb-1 text-2xl font-bold text-stone-900 md:px-10 md:text-5xl">{hi ? r.student_name_hi || sc(r.student_name) : sc(r.student_name)}</p>
+            <p className="mt-1 text-xs text-stone-600 md:text-base">{[r.class_level && `${hi ? "कक्षा" : "Class"} ${r.class_level}`, sc(r.school), sc(r.city)].filter(Boolean).join(" · ")}</p>
             <p className="mx-auto mt-1 max-w-2xl text-xs leading-relaxed text-stone-700 md:mt-3 md:text-lg">
-              {hi ? <>ने <b>{r.exam.title_hi || r.exam.title}</b>{r.category.name_hi || r.category.name ? <> ({r.category.name_hi || r.category.name})</> : null} में भाग लेकर <b>{r.percent}%</b> अंक प्राप्त किए{merit ? <> और <b>{r.rank === 1 ? "प्रथम" : r.rank === 2 ? "द्वितीय" : r.rank === 3 ? "तृतीय" : `${r.rank}वाँ`} स्थान</b> प्राप्त किया</> : null}।</>
-                : <>participated in <b>{r.exam.title}</b>{r.category.name ? <> ({r.category.name})</> : null} and scored <b>{r.percent}%</b>{merit ? <>, securing <b>rank {r.rank}</b></> : null}.</>}
+              {hi ? <>ने <b>{r.exam.title_hi || sc(r.exam.title)}</b>{r.category.name_hi || r.category.name ? <> ({r.category.name_hi || sc(r.category.name)})</> : null} में भाग लेकर <b>{r.percent}%</b> अंक प्राप्त किए{merit ? <> और <b>{r.rank === 1 ? "प्रथम" : r.rank === 2 ? "द्वितीय" : r.rank === 3 ? "तृतीय" : `${r.rank}वाँ`} स्थान</b> प्राप्त किया</> : null}।</>
+                : <>participated in <b>{sc(r.exam.title)}</b>{r.category.name ? <> ({sc(r.category.name)})</> : null} and scored <b>{r.percent}%</b>{merit ? <>, securing <b>rank {r.rank}</b></> : null}.</>}
             </p>
             <div className="mt-auto grid w-full grid-cols-3 items-end text-[9px] text-stone-600 md:text-sm">
               <div className="flex items-end gap-2 text-left">{qr ? <img src={qr} alt="" className="size-10 md:size-20" /> : null}<div><p>{hi ? "क्रमांक" : "No."}: <b>{r.cert_no}</b></p><p>{hi ? "दिनांक" : "Date"}: {r.cert_issued_at ? new Date(r.cert_issued_at).toLocaleDateString("en-IN") : ""}</p><p className="opacity-70">{hi ? "स्कैन कर सत्यापित करें" : "Scan to verify"}</p></div></div>
               <div className="flex justify-center"><Seal className="h-14 w-11 md:h-28 md:w-24" /></div>
-              <div className="text-right"><div className="mb-1 ml-auto h-6 w-24 border-b border-stone-500 md:h-10 md:w-44" /><p className="font-semibold text-[#1b3a5c]">{hi ? "अध्यक्ष / सचिव" : "President / Secretary"}</p><p className="opacity-70">{r.org_name}</p></div>
+              <div className="text-right"><div className="mb-1 ml-auto h-6 w-24 border-b border-stone-500 md:h-10 md:w-44" /><p className="font-semibold text-[#1b3a5c]">{hi ? "अध्यक्ष / सचिव" : "President / Secretary"}</p><p className="opacity-70">{sc(r.org_name)}</p></div>
             </div>
           </div>
         </div>

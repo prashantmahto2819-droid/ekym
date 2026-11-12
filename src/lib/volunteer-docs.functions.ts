@@ -155,7 +155,7 @@ export const volunteerDocumentData = createServerFn({ method: "POST" })
     }
     const { data: o } = await supabaseAdmin
       .from("organization_settings")
-      .select("organization_name,organization_name_hi,tagline,address,city,district,state,pincode,phone,email,website,logo")
+      .select("organization_name,organization_name_hi,tagline,tagline_hi,address,city,district,state,pincode,phone,email,website,logo")
       .eq("organization_id", v.organization_id)
       .maybeSingle();
     const s = (o ?? {}) as Record<string, string | null>;
@@ -167,6 +167,7 @@ export const volunteerDocumentData = createServerFn({ method: "POST" })
         name,
         name_hi: s["organization_name_hi"] || name,
         tagline: s["tagline"] ?? "",
+        tagline_hi: s["tagline_hi"] ?? "",
         address: [s["address"], s["city"], s["district"], s["state"], s["pincode"]].filter(Boolean).join(", "),
         phone: s["phone"] ?? "",
         email: s["email"] ?? "",

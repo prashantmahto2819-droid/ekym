@@ -111,6 +111,8 @@ export type DesignDoc = {
   pages: Page[];
   /** Declared merge fields with labels, for the form in the letter composer. */
   fields?: { key: string; label: string; label_hi?: string; sample?: string }[];
+  /** Document language: "hi" = everything in Hindi, "en" = everything in English (picks preview sample data). */
+  lang?: "hi" | "en";
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);

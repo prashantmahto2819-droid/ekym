@@ -1,3 +1,4 @@
+import { toDevanagari, toLatin } from "./script";
 // Merge fields: {{org.name}}, {{doc.ref_no}}, {{recipient.name}}, {{member.father}} …
 export type MergeData = Record<string, unknown>;
 
@@ -19,6 +20,8 @@ function format(v: unknown, fmt?: string): string {
   }
   if (fmt === "words" && !Number.isNaN(Number(v))) return amountInWords(Number(v));
   if (fmt === "words_hi" && !Number.isNaN(Number(v))) return amountInWordsHi(Number(v));
+  if (fmt === "hi") return toDevanagari(String(v));   // names/places in a Hindi document
+  if (fmt === "en") return toLatin(String(v));        // names/places in an English document
   return String(v);
 }
 

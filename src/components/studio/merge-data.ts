@@ -14,6 +14,7 @@ export function orgMergeData(tenant: Tenant, settings: OrgSettings): MergeData {
       // Hindi documents print name_hi; fall back to the main name so the heading is never blank
       name_hi: (s["organization_name_hi"] as string) || tenant.name_hi || (s["organization_name"] as string) || tenant.name,
       tagline: s["tagline"] ?? "",
+      tagline_hi: s["tagline_hi"] ?? "",
       address: addr,
       phone: s["phone"] ?? "",
       whatsapp: s["whatsapp"] ?? "",
@@ -86,3 +87,24 @@ export const SAMPLE_DATA: MergeData = {
 // recipient sample for शोकपत्र previews (father_line = "(पिता: …)" or empty)
 (SAMPLE_DATA["recipient"] as Record<string, unknown>)["father_line"] = "(पिता: श्री मोहन लाल)";
 (SAMPLE_DATA["recipient"] as Record<string, unknown>)["village"] = "कुसमुण्डा";
+
+/** Hindi preview data: a Hindi document is previewed with Hindi sample text, an English one with English. */
+export const SAMPLE_DATA_HI: MergeData = {
+  ...SAMPLE_DATA,
+  doc: { ref_no: "EKYM/L/0001", date: "2026-11-04", subject: "पत्र का विषय यहाँ लिखें", body: "यह नमूना पाठ है। लंबा होने पर यह अपने-आप अगली पंक्तियों और अगले पेज पर चला जाता है।\n\nसादर।", salutation: "आदरणीय महोदय / महोदया,", closing: "भवदीय,", title: "Donation Receipt", title_hi: "दान रसीद", certificate_type: "सम्मान पत्र", verify_url: "https://example.org/verify/SAMPLE" },
+  recipient: { name: "श्री रमेश कुमार", designation: "अध्यक्ष", organization: "कलचुरी समाज, रायपुर", address: "मेन रोड, रायपुर", father_line: "(पिता: श्री मोहन लाल)", village: "कुसमुण्डा" },
+  signatory: { name: "प्रशांत महतो", designation: "सचिव" },
+  receipt: { payer_name: "श्री रमेश कुमार", amount: 1100, purpose: "सामान्य दान", mode: "UPI", instrument: "TXN123456", payer_mobile: "98xxxxxx10", payer_address: "रायपुर", payer_pan: "", footer_note: "यह कंप्यूटर द्वारा बनी रसीद है।" },
+  member: { ...(SAMPLE_DATA["member"] as Record<string, unknown>), category: "आजीवन सदस्य", village: "खरोरा", city: "रायपुर", father_name: "श्री मोहन कुमार" },
+};
+(SAMPLE_DATA["doc"] as Record<string, unknown>)["title_hi"] = "दान रसीद";
+Object.assign(SAMPLE_DATA["event"] as Record<string, unknown>, { title: "Annual Get-together", venue: "Community Hall, Raipur", date: "15 December 2026", time: "10:00 AM", message: "You and your family are cordially invited.", organizer: "Organising Committee" });
+(SAMPLE_DATA["guest"] as Record<string, unknown>)["name"] = "Shri Ramesh Kumar";
+SAMPLE_DATA_HI["event"] = { title_hi: "वार्षिक स्नेह मिलन", date: "15 दिसम्बर 2026", time: "सुबह 10 बजे", venue_hi: "सामुदायिक भवन, रायपुर", message: "आप सपरिवार सादर आमंत्रित हैं।", organizer: "आयोजन समिति", contact: "98xxxxxx10" };
+SAMPLE_DATA_HI["guest"] = { name: "श्री रमेश कुमार", group: "कुसमुण्डा", rsvp_url: "https://example.org/rsvp/abc" };
+
+/** Sample data matching a design's language (older designs without `lang`: Hindi if they contain Devanagari text). */
+export function sampleFor(design: { lang?: "hi" | "en"; pages?: { layers: unknown[] }[]; master?: unknown[] } | null | undefined): MergeData {
+  const lang = design?.lang ?? (/[\u0900-\u097f]/.test(JSON.stringify(design?.pages ?? [])) ? "hi" : "en");
+  return lang === "hi" ? SAMPLE_DATA_HI : SAMPLE_DATA;
+}
