@@ -1837,6 +1837,74 @@ export type Database = {
         }
         Relationships: []
       }
+      cm_stories: {
+        Row: {
+          bg: string | null
+          caption: string | null
+          created_at: string
+          expires_at: string
+          file_deleted: boolean
+          id: string
+          organization_id: string
+          path: string
+          user_id: string
+          views: number
+          visibility: string
+        }
+        Insert: {
+          bg?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          file_deleted?: boolean
+          id?: string
+          organization_id: string
+          path: string
+          user_id: string
+          views?: number
+          visibility?: string
+        }
+        Update: {
+          bg?: string | null
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          file_deleted?: boolean
+          id?: string
+          organization_id?: string
+          path?: string
+          user_id?: string
+          views?: number
+          visibility?: string
+        }
+        Relationships: []
+      }
+      cm_story_views: {
+        Row: {
+          story_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          story_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          story_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "cm_stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cm_user_profiles: {
         Row: {
           anniversary: string | null
@@ -9028,6 +9096,36 @@ export type Database = {
           sort_order: number
         }[]
       }
+      k1_stories: { Args: { p_org: string }; Returns: Json }
+      k1_stories_expired: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: string
+          path: string
+        }[]
+      }
+      k1_story_add: {
+        Args: {
+          p_bg?: string
+          p_caption?: string
+          p_org: string
+          p_path: string
+          p_visibility?: string
+        }
+        Returns: string
+      }
+      k1_story_delete: { Args: { p_story: string }; Returns: undefined }
+      k1_story_purge: { Args: { p_ids: string[] }; Returns: number }
+      k1_story_view: { Args: { p_story: string }; Returns: undefined }
+      k1_story_viewers: {
+        Args: { p_story: string }
+        Returns: {
+          name: string
+          photo_url: string
+          user_id: string
+          viewed_at: string
+        }[]
+      }
       k1_submit_document: {
         Args: { p_id: string }
         Returns: {
@@ -9525,6 +9623,7 @@ export type Database = {
         }[]
       }
       shok_user_org: { Args: never; Returns: string }
+      stories_cleanup_tick: { Args: never; Returns: undefined }
       submit_letter: { Args: { p_letter_id: string }; Returns: Json }
       suggest_member: {
         Args: {

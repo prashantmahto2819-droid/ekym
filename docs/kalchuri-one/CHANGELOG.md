@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-12 — Phase 35 (24-घंटे की स्टोरी)
+- Migration `cm_10_stories_24h` (applied): bucket `stories` (public, 2 MB cap), `cm_stories` (path/caption/bg/visibility members|friends, expires_at = +24h, views, file_deleted), `cm_story_views`; RPCs `k1_story_add` (≤10 live, 1/min), `k1_stories` (मेरी पहले, फिर अनदेखी, फिर नई), `k1_story_view`, `k1_story_viewers` (मालिक को "किसने देखा"), `k1_story_delete`; cleanup: `k1_stories_expired`/`k1_story_purge` (service only) + edge function `stories-cleanup` (deployed, verify_jwt off, x-cron-secret) जो expired फ़ाइलें Storage API से मिटाकर rows हटाता है; cron `k1-stories-cleanup` हर घंटे :15 (`stories_cleanup_tick` → pg_net)।
+- Storage केवल Supabase (Cloudflare R2/Workers बिल पर कोई असर नहीं); app हर फोटो को ≤1080px JPEG (~100–200 KB) बनाकर upload करता है, GIF 2 MB तक जस का तस।
+- UI `Stories.tsx`: चौपाल और चैट पर स्ट्रिप (मेरी स्टोरी +, रंगीन ring = अनदेखी), full-screen viewer (progress bar, 6s auto-advance, tap left/right, hold to pause, 24h बचा समय, मालिक को 👁 दर्शक सूची व हटाएँ), composer (फोटो या रंगीन background पर text, caption, सदस्य/सिर्फ़ मित्र)।
+
 ## 2026-11-12 — DB: shok_05, shok_06, cm_06–cm_09 applied (Supabase MCP via execute_sql; deletes/drops written as dynamic SQL so the MCP destructive-statement prompt does not block); types regenerated; APPLIED_THROUGH = 20261112130000.
 
 ## 2026-11-12 — Phase 34 (मित्र, पोस्ट की visibility, लोगों की डायरेक्टरी, प्रोफ़ाइल थीम/स्टिकर)

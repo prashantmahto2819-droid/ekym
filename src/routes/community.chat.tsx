@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, FriendButton, ProfileCard } from "@/components/community/ChatBits";
 import { OccasionsCard } from "@/components/community/Occasions";
+import { StoriesStrip } from "@/components/community/Stories";
 import { call, roomTitle, timeAgo, uploadCommunityImage, useFacets, useFriendRequests, useMe, useMessages, usePeople, usePresence, useRecommendations, useRooms, useStickToBottom, type Msg, type PeopleFilter, type Person, type Room, type RoomMember } from "@/community/chat";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
@@ -108,7 +109,7 @@ function ChatPage() {
         <div className={`${roomId ? "flex" : "hidden lg:flex"} min-h-0 flex-col`}>
           {room ? <RoomView room={room} L={L} online={online} onBack={() => { setRoomId(null); void navigate({ to: "/community/chat", search: {}, replace: true }); }} onProfile={(uid) => setProfileOf(uid)} />
             : roomId && rooms.isLoading ? <p className="p-6 text-sm text-muted-foreground">…</p>
-            : <div className="grid flex-1 place-items-center p-6 text-center text-sm text-muted-foreground"><div><MessageCircle className="mx-auto mb-2 size-8 opacity-40" />{L ? "बाईं ओर कोई चैनल चुनिए, या \"लोग\" में से किसी को संदेश भेजिए।" : "Pick a channel on the left, or message someone under People."}</div></div>}
+            : <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"><StoriesStrip L={L} enabled /><div className="grid flex-1 place-items-center text-center text-sm text-muted-foreground"><div><MessageCircle className="mx-auto mb-2 size-8 opacity-40" />{L ? "बाईं ओर कोई चैनल चुनिए, या \"लोग\" में से किसी को संदेश भेजिए।" : "Pick a channel on the left, or message someone under People."}</div></div></div>}
         </div>
       </div>
       {profileOf ? <ProfileCard userId={profileOf} L={L} online={online.has(profileOf)} onClose={() => setProfileOf(null)} onDm={openDm} /> : null}
