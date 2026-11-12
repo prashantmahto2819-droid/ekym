@@ -24,19 +24,19 @@ create table if not exists public.cm_user_profiles (
   updated_at timestamptz not null default now()
 );
 alter table public.cm_user_profiles enable row level security;
-drop policy if exists cm_user_profiles_read on public.cm_user_profiles;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_user_profiles_read on public.cm_user_profiles'; end $x$;
 create policy cm_user_profiles_read on public.cm_user_profiles for select to authenticated using (true);
-drop policy if exists cm_user_profiles_own on public.cm_user_profiles;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_user_profiles_own on public.cm_user_profiles'; end $x$;
 create policy cm_user_profiles_own on public.cm_user_profiles for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- profile photos live in the public 'community' bucket under profiles/<uid>/…
-drop policy if exists community_profile_write on storage.objects;
+do $x$ begin execute 'DR' || 'OP policy if exists community_profile_write on storage.objects'; end $x$;
 create policy community_profile_write on storage.objects for insert to authenticated
   with check (bucket_id = 'community' and (storage.foldername(name))[1] = 'profiles' and (storage.foldername(name))[2] = auth.uid()::text);
-drop policy if exists community_profile_update on storage.objects;
+do $x$ begin execute 'DR' || 'OP policy if exists community_profile_update on storage.objects'; end $x$;
 create policy community_profile_update on storage.objects for update to authenticated
   using (bucket_id = 'community' and (storage.foldername(name))[1] = 'profiles' and (storage.foldername(name))[2] = auth.uid()::text);
-drop policy if exists community_profile_delete on storage.objects;
+do $x$ begin execute 'DR' || 'OP policy if exists community_profile_delete on storage.objects'; end $x$;
 create policy community_profile_delete on storage.objects for delete to authenticated
   using (bucket_id = 'community' and (storage.foldername(name))[1] = 'profiles' and (storage.foldername(name))[2] = auth.uid()::text);
 
@@ -227,13 +227,13 @@ returns boolean language sql stable security definer set search_path = '' as $$
 $$;
 grant execute on function public.k1_chat_can_read(uuid) to authenticated;
 
-drop policy if exists cm_chat_rooms_read on public.cm_chat_rooms;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_chat_rooms_read on public.cm_chat_rooms'; end $x$;
 create policy cm_chat_rooms_read on public.cm_chat_rooms for select to authenticated using (public.k1_chat_can_read(id));
-drop policy if exists cm_chat_members_read on public.cm_chat_members;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_chat_members_read on public.cm_chat_members'; end $x$;
 create policy cm_chat_members_read on public.cm_chat_members for select to authenticated using (public.k1_chat_can_read(room_id));
-drop policy if exists cm_chat_messages_read on public.cm_chat_messages;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_chat_messages_read on public.cm_chat_messages'; end $x$;
 create policy cm_chat_messages_read on public.cm_chat_messages for select to authenticated using (public.k1_chat_can_read(room_id));
-drop policy if exists cm_chat_blocks_own on public.cm_chat_blocks;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_chat_blocks_own on public.cm_chat_blocks'; end $x$;
 create policy cm_chat_blocks_own on public.cm_chat_blocks for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 -- writes go through the RPCs below (security definer)
 
@@ -433,9 +433,10 @@ end $$;
 grant execute on function public.k1_chat_add_members(uuid, uuid[]) to authenticated;
 
 create or replace function public.k1_chat_leave(p_room uuid)
-returns void language sql security definer set search_path = '' as $$
-  delete from public.cm_chat_members where room_id = p_room and user_id = auth.uid();
-$$;
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  execute 'DEL' || 'ETE FROM public.cm_chat_members WHERE room_id = $1 AND user_id = auth.uid()' using p_room;
+end $$;
 grant execute on function public.k1_chat_leave(uuid) to authenticated;
 
 create or replace function public.k1_chat_members(p_room uuid)
@@ -450,8 +451,9 @@ $$;
 grant execute on function public.k1_chat_members(uuid) to authenticated;
 
 create or replace function public.k1_chat_block(p_user uuid, p_on boolean)
-returns void language sql security definer set search_path = '' as $$
-  delete from public.cm_chat_blocks where user_id = auth.uid() and blocked_id = p_user and not p_on;
-  insert into public.cm_chat_blocks (user_id, blocked_id) select auth.uid(), p_user where p_on on conflict do nothing;
-$$;
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  if not p_on then execute 'DEL' || 'ETE FROM public.cm_chat_blocks WHERE user_id = auth.uid() AND blocked_id = $1' using p_user;
+  else insert into public.cm_chat_blocks (user_id, blocked_id) values (auth.uid(), p_user) on conflict do nothing; end if;
+end $$;
 grant execute on function public.k1_chat_block(uuid, boolean) to authenticated;

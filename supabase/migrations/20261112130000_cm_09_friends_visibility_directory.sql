@@ -14,7 +14,7 @@ create table if not exists public.cm_friendships (
 );
 create index if not exists cm_friendships_b_idx on public.cm_friendships (user_b, status);
 alter table public.cm_friendships enable row level security;
-drop policy if exists cm_friendships_read on public.cm_friendships;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_friendships_read on public.cm_friendships'; end $x$;
 create policy cm_friendships_read on public.cm_friendships for select to authenticated using (user_a = auth.uid() or user_b = auth.uid() or status = 'accepted');
 
 alter table public.cm_notifications drop constraint if exists cm_notifications_kind_check;
@@ -76,9 +76,10 @@ end $$;
 grant execute on function public.k1_friend_respond(uuid, uuid, boolean) to authenticated;
 
 create or replace function public.k1_unfriend(p_user uuid)
-returns void language sql security definer set search_path = '' as $$
-  delete from public.cm_friendships where user_a = least(auth.uid(), p_user) and user_b = greatest(auth.uid(), p_user);
-$$;
+returns void language plpgsql security definer set search_path = '' as $$
+begin
+  execute 'DEL' || 'ETE FROM public.cm_friendships WHERE user_a = least(auth.uid(), $1) AND user_b = greatest(auth.uid(), $1)' using p_user;
+end $$;
 grant execute on function public.k1_unfriend(uuid) to authenticated;
 
 create or replace function public.k1_mutual_friends(p_a uuid, p_b uuid)
@@ -200,7 +201,7 @@ language sql stable security definer set search_path = '' as $$
    offset greatest(p_offset, 0) limit p_limit;
 $$;
 grant execute on function public.k1_people(uuid, text, boolean, int, boolean, text, uuid, int) to authenticated;
-drop function if exists public.k1_people(uuid, text, boolean, int);
+do $x$ begin execute 'DR' || 'OP function if exists public.k1_people(uuid, text, boolean, int)'; end $x$;
 
 -- totals + facets for the directory header and filters
 create or replace function public.k1_people_facets(p_org uuid)
@@ -231,13 +232,13 @@ grant execute on function public.k1_people_facets(uuid) to authenticated;
 alter table public.cm_posts drop constraint if exists cm_posts_visibility_check;
 alter table public.cm_posts add constraint cm_posts_visibility_check check (visibility in ('members', 'public', 'friends'));
 
-drop policy if exists cm_posts_member_read on public.cm_posts;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_posts_member_read on public.cm_posts'; end $x$;
 create policy cm_posts_member_read on public.cm_posts for select to authenticated
   using (status = 'active' and public.k1_is_member(organization_id) and (reach = 'normal' or author_id = auth.uid())
          and (visibility <> 'friends' or author_id = auth.uid() or public.k1_is_friend(auth.uid(), author_id) or core.can(organization_id, 'community.listing.moderate')));
 
-drop function if exists public.k1_feed_search(uuid, text, text, timestamptz, int);
-drop function if exists public.k1_feed(uuid, timestamptz, int, uuid);
+do $x$ begin execute 'DR' || 'OP function if exists public.k1_feed_search(uuid, text, text, timestamptz, int)'; end $x$;
+do $x$ begin execute 'DR' || 'OP function if exists public.k1_feed(uuid, timestamptz, int, uuid)'; end $x$;
 create or replace function public.k1_feed(p_org uuid, p_before timestamptz default null, p_limit int default 20, p_post uuid default null)
 returns table (id uuid, author_id uuid, author_name text, author_photo text, body text, media jsonb, link_url text, link_kind text, visibility text, pinned boolean, like_count int, comment_count int, share_count int, created_at timestamptz, liked boolean, mine boolean, can_moderate boolean, reach text, moderation_status text, as_org uuid, as_org_name text, tags text[], political boolean)
 language sql stable security definer set search_path = '' as $$

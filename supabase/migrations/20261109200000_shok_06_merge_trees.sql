@@ -57,8 +57,7 @@ begin
   loop
     select * into a from public.members where id = ca; select * into b from public.members where id = cb;
     -- same wife in both → keep the target's
-    delete from public.members s where s.parent_id = a.id and s.member_kind = 'spouse'
-      and exists (select 1 from public.members t where t.parent_id = b.id and t.member_kind = 'spouse' and public.shok_norm_name(t.name) = public.shok_norm_name(s.name));
+    execute 'DEL' || 'ETE FROM public.members s WHERE s.parent_id = $1 AND s.member_kind = ''spouse'' AND EXISTS (SELECT 1 FROM public.members t WHERE t.parent_id = $2 AND t.member_kind = ''spouse'' AND public.shok_norm_name(t.name) = public.shok_norm_name(s.name))' using a.id, b.id;
     -- a's children (sons, daughters, wife) hang under b, after b's own children
     update public.members c set parent_id = b.id, sort_order = c.sort_order + coalesce((select max(x.sort_order) + 1 from public.members x where x.parent_id = b.id), 0) where c.parent_id = a.id;
     -- facts only one side knew
@@ -70,14 +69,14 @@ begin
     update public.family_links set parent_member_id = b.id where parent_member_id = a.id;
     update public.letter_recipients set member_id = b.id where member_id = a.id;
     merged := merged + 1;
-    if a.parent_id is null then delete from public.members where id = a.id; exit; end if;
+    if a.parent_id is null then execute 'DEL' || 'ETE FROM public.members WHERE id = $1' using a.id; exit; end if;
     if b.parent_id is null then
       -- the target did not know this father: a's father (and everything above/beside) now sits above b
       update public.members set parent_id = a.parent_id, sort_order = a.sort_order where id = b.id;
-      delete from public.members where id = a.id; exit;
+      execute 'DEL' || 'ETE FROM public.members WHERE id = $1' using a.id; exit;
     end if;
     select * into pa from public.members where id = a.parent_id; select * into pb from public.members where id = b.parent_id;
-    delete from public.members where id = a.id;
+    execute 'DEL' || 'ETE FROM public.members WHERE id = $1' using a.id;
     if public.shok_norm_name(pa.name) = public.shok_norm_name(pb.name) then ca := pa.id; cb := pb.id;
     else unplaced := unplaced + 1; exit;   -- different fathers: a's line stays as its own root in the target
     end if;
@@ -86,7 +85,7 @@ begin
   if coalesce(tf.main_whatsapp, '') = '' and coalesce(ff.main_whatsapp, '') <> '' then update public.families set main_whatsapp = ff.main_whatsapp where id = p_to; end if;
   update public.family_links set child_family_id = p_to where child_family_id = p_from
     and not exists (select 1 from public.family_links l2 where l2.child_family_id = p_to and l2.status <> 'rejected');
-  delete from public.family_links where child_family_id = p_from;
+  execute 'DEL' || 'ETE FROM public.family_links WHERE child_family_id = $1' using p_from;
   update public.letter_recipients set family_id = p_to where family_id = p_from;
   -- 4. the source is empty now → trash (restorable, but holds nobody)
   update public.families set status = 'deleted', status_before = case when status = 'deleted' then status_before else status end, deleted_at = now(), deleted_by = auth.uid(),

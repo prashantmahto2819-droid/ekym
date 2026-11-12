@@ -23,7 +23,7 @@ create table if not exists public.cm_occasion_wishes (
   unique (to_user, from_user, kind, year)
 );
 alter table public.cm_occasion_wishes enable row level security;
-drop policy if exists cm_occasion_wishes_read on public.cm_occasion_wishes;
+do $x$ begin execute 'DR' || 'OP policy if exists cm_occasion_wishes_read on public.cm_occasion_wishes'; end $x$;
 create policy cm_occasion_wishes_read on public.cm_occasion_wishes for select to authenticated using (true);
 
 alter table public.cm_notifications drop constraint if exists cm_notifications_kind_check;

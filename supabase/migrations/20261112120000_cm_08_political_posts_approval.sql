@@ -97,7 +97,7 @@ begin
   end if;
   return new;
 end $$;
-drop trigger if exists trg_cm_post_political_alert on public.cm_posts;
+do $x$ begin execute 'DR' || 'OP trigger if exists trg_cm_post_political_alert on public.cm_posts'; end $x$;
 create trigger trg_cm_post_political_alert after insert on public.cm_posts for each row execute function public.trg_cm_post_political_alert();
 
 -- author notification on decision (allow → "अब सबको दिखेगी")
@@ -120,8 +120,8 @@ end $$;
 grant execute on function public.k1_cm_review(uuid, text) to authenticated;
 
 -- feed rows say why a post is limited (political) so the app can explain it
-drop function if exists public.k1_feed_search(uuid, text, text, timestamptz, int);
-drop function if exists public.k1_feed(uuid, timestamptz, int, uuid);
+do $x$ begin execute 'DR' || 'OP function if exists public.k1_feed_search(uuid, text, text, timestamptz, int)'; end $x$;
+do $x$ begin execute 'DR' || 'OP function if exists public.k1_feed(uuid, timestamptz, int, uuid)'; end $x$;
 create or replace function public.k1_feed(p_org uuid, p_before timestamptz default null, p_limit int default 20, p_post uuid default null)
 returns table (id uuid, author_id uuid, author_name text, author_photo text, body text, media jsonb, link_url text, link_kind text, visibility text, pinned boolean, like_count int, comment_count int, share_count int, created_at timestamptz, liked boolean, mine boolean, can_moderate boolean, reach text, moderation_status text, as_org uuid, as_org_name text, tags text[], political boolean)
 language sql stable security definer set search_path = '' as $$

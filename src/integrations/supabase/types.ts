@@ -1006,6 +1006,191 @@ export type Database = {
           },
         ]
       }
+      cm_chat_blocks: {
+        Row: {
+          blocked_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cm_chat_members: {
+        Row: {
+          joined_at: string
+          last_read_at: string
+          muted: boolean
+          role: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          last_read_at?: string
+          muted?: boolean
+          role?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          last_read_at?: string
+          muted?: boolean
+          role?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_chat_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "cm_chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_chat_messages: {
+        Row: {
+          body: string | null
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          edited_at: string | null
+          id: string
+          media: Json
+          reply_to: string | null
+          room_id: string
+          sender_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          media?: Json
+          reply_to?: string | null
+          room_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          id?: string
+          media?: Json
+          reply_to?: string | null
+          room_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cm_chat_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "cm_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cm_chat_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "cm_chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cm_chat_rooms: {
+        Row: {
+          archived: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          dm_key: string | null
+          id: string
+          is_private: boolean
+          kind: string
+          last_message_at: string | null
+          name: string
+          name_hi: string | null
+          organization_id: string
+          sort_order: number
+        }
+        Insert: {
+          archived?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dm_key?: string | null
+          id?: string
+          is_private?: boolean
+          kind?: string
+          last_message_at?: string | null
+          name: string
+          name_hi?: string | null
+          organization_id: string
+          sort_order?: number
+        }
+        Update: {
+          archived?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          dm_key?: string | null
+          id?: string
+          is_private?: boolean
+          kind?: string
+          last_message_at?: string | null
+          name?: string
+          name_hi?: string | null
+          organization_id?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      cm_friendships: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          requested_by: string
+          status: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          requested_by: string
+          status?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          requested_by?: string
+          status?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       cm_listings: {
         Row: {
           address: string | null
@@ -1302,6 +1487,63 @@ export type Database = {
           },
         ]
       }
+      cm_occasion_log: {
+        Row: {
+          created_at: string
+          kind: string
+          organization_id: string | null
+          post_id: string | null
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          kind: string
+          organization_id?: string | null
+          post_id?: string | null
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          kind?: string
+          organization_id?: string | null
+          post_id?: string | null
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      cm_occasion_wishes: {
+        Row: {
+          created_at: string
+          from_user: string
+          id: string
+          kind: string
+          message: string | null
+          to_user: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          from_user: string
+          id?: string
+          kind: string
+          message?: string | null
+          to_user: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          from_user?: string
+          id?: string
+          kind?: string
+          message?: string | null
+          to_user?: string
+          year?: number
+        }
+        Relationships: []
+      }
       cm_polls: {
         Row: {
           anonymous: boolean
@@ -1562,7 +1804,10 @@ export type Database = {
           auto_limit: boolean
           keywords: string[]
           notify_moderators: boolean
+          occasion_greetings: boolean
+          occasion_posts: boolean
           organization_id: string
+          political_hold: boolean
           threshold: number
           updated_at: string
         }
@@ -1571,7 +1816,10 @@ export type Database = {
           auto_limit?: boolean
           keywords?: string[]
           notify_moderators?: boolean
+          occasion_greetings?: boolean
+          occasion_posts?: boolean
           organization_id: string
+          political_hold?: boolean
           threshold?: number
           updated_at?: string
         }
@@ -1580,9 +1828,90 @@ export type Database = {
           auto_limit?: boolean
           keywords?: string[]
           notify_moderators?: boolean
+          occasion_greetings?: boolean
+          occasion_posts?: boolean
           organization_id?: string
+          political_hold?: boolean
           threshold?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cm_user_profiles: {
+        Row: {
+          anniversary: string | null
+          bio: string | null
+          birthday: string | null
+          cover_url: string | null
+          created_at: string
+          display_name: string | null
+          district: string | null
+          dm_from: string
+          interests: string[]
+          last_seen_at: string | null
+          links: Json
+          occupation: string | null
+          photo_url: string | null
+          show_anniversary: boolean
+          show_birth_year: boolean
+          show_birthday: boolean
+          show_email: boolean
+          show_phone: boolean
+          state: string | null
+          theme: Json
+          updated_at: string
+          user_id: string
+          village: string | null
+        }
+        Insert: {
+          anniversary?: string | null
+          bio?: string | null
+          birthday?: string | null
+          cover_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          district?: string | null
+          dm_from?: string
+          interests?: string[]
+          last_seen_at?: string | null
+          links?: Json
+          occupation?: string | null
+          photo_url?: string | null
+          show_anniversary?: boolean
+          show_birth_year?: boolean
+          show_birthday?: boolean
+          show_email?: boolean
+          show_phone?: boolean
+          state?: string | null
+          theme?: Json
+          updated_at?: string
+          user_id: string
+          village?: string | null
+        }
+        Update: {
+          anniversary?: string | null
+          bio?: string | null
+          birthday?: string | null
+          cover_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          district?: string | null
+          dm_from?: string
+          interests?: string[]
+          last_seen_at?: string | null
+          links?: Json
+          occupation?: string | null
+          photo_url?: string | null
+          show_anniversary?: boolean
+          show_birth_year?: boolean
+          show_birthday?: boolean
+          show_email?: boolean
+          show_phone?: boolean
+          state?: string | null
+          theme?: Json
+          updated_at?: string
+          user_id?: string
+          village?: string | null
         }
         Relationships: []
       }
@@ -6473,6 +6802,66 @@ export type Database = {
           },
         ]
       }
+      shok_phone_welcomes: {
+        Row: {
+          added_by: string | null
+          attempts: number
+          created_at: string
+          error: string | null
+          family_id: string | null
+          id: string
+          kind: string
+          member_id: string | null
+          person_name: string | null
+          phone: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          added_by?: string | null
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          family_id?: string | null
+          id?: string
+          kind?: string
+          member_id?: string | null
+          person_name?: string | null
+          phone: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          added_by?: string | null
+          attempts?: number
+          created_at?: string
+          error?: string | null
+          family_id?: string | null
+          id?: string
+          kind?: string
+          member_id?: string | null
+          person_name?: string | null
+          phone?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shok_phone_welcomes_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shok_phone_welcomes_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_profiles: {
         Row: {
           address: string | null
@@ -7546,6 +7935,103 @@ export type Database = {
         }[]
       }
       k1_channel_reminders: { Args: never; Returns: number }
+      k1_chat_add_members: {
+        Args: { p_members: string[]; p_room: string }
+        Returns: undefined
+      }
+      k1_chat_block: {
+        Args: { p_on: boolean; p_user: string }
+        Returns: undefined
+      }
+      k1_chat_can_read: { Args: { p_room: string }; Returns: boolean }
+      k1_chat_create_room: {
+        Args: {
+          p_category?: string
+          p_description?: string
+          p_kind: string
+          p_members?: string[]
+          p_name: string
+          p_name_hi?: string
+          p_org: string
+          p_private?: boolean
+        }
+        Returns: string
+      }
+      k1_chat_delete: { Args: { p_message: string }; Returns: undefined }
+      k1_chat_ensure_defaults: { Args: { p_org: string }; Returns: undefined }
+      k1_chat_leave: { Args: { p_room: string }; Returns: undefined }
+      k1_chat_members: {
+        Args: { p_room: string }
+        Returns: {
+          last_seen_at: string
+          name: string
+          online: boolean
+          photo_url: string
+          role: string
+          user_id: string
+        }[]
+      }
+      k1_chat_messages: {
+        Args: { p_before?: string; p_limit?: number; p_room: string }
+        Returns: {
+          body: string
+          created_at: string
+          deleted: boolean
+          edited_at: string
+          id: string
+          media: Json
+          mine: boolean
+          reply_name: string
+          reply_text: string
+          reply_to: string
+          sender_id: string
+          sender_name: string
+          sender_photo: string
+        }[]
+      }
+      k1_chat_open_dm: {
+        Args: { p_org: string; p_user: string }
+        Returns: string
+      }
+      k1_chat_read: { Args: { p_room: string }; Returns: undefined }
+      k1_chat_room_update: {
+        Args: { p: Json; p_room: string }
+        Returns: undefined
+      }
+      k1_chat_rooms: {
+        Args: { p_org: string }
+        Returns: {
+          category: string
+          description: string
+          id: string
+          is_private: boolean
+          joined: boolean
+          kind: string
+          last_message_at: string
+          last_text: string
+          member_count: number
+          name: string
+          name_hi: string
+          org_name: string
+          organization_id: string
+          other_name: string
+          other_online: boolean
+          other_photo: string
+          other_user: string
+          sort_order: number
+          unread: number
+        }[]
+      }
+      k1_chat_send: {
+        Args: {
+          p_body: string
+          p_media?: Json
+          p_reply?: string
+          p_room: string
+        }
+        Returns: string
+      }
+      k1_chat_unread: { Args: never; Returns: number }
       k1_claim_memberships: { Args: never; Returns: number }
       k1_cm_actor_name: {
         Args: { p_org: string; p_user: string }
@@ -7618,6 +8104,8 @@ export type Database = {
           organization_id: string
         }[]
       }
+      k1_cm_political_keywords: { Args: never; Returns: string[] }
+      k1_cm_political_score: { Args: { p_text: string }; Returns: Json }
       k1_cm_promo_score: {
         Args: { p_link?: string; p_org: string; p_text: string }
         Returns: Json
@@ -7891,6 +8379,7 @@ export type Database = {
           mine: boolean
           moderation_status: string
           pinned: boolean
+          political: boolean
           reach: string
           share_count: number
           tags: string[]
@@ -7924,6 +8413,7 @@ export type Database = {
           mine: boolean
           moderation_status: string
           pinned: boolean
+          political: boolean
           reach: string
           share_count: number
           tags: string[]
@@ -7942,6 +8432,41 @@ export type Database = {
           village: string
         }[]
       }
+      k1_friend_counts: { Args: never; Returns: Json }
+      k1_friend_request: {
+        Args: { p_org: string; p_user: string }
+        Returns: string
+      }
+      k1_friend_requests: {
+        Args: never
+        Returns: {
+          direction: string
+          mutual: number
+          name: string
+          org_names: string
+          photo_url: string
+          since: string
+          user_id: string
+        }[]
+      }
+      k1_friend_respond: {
+        Args: { p_accept: boolean; p_org: string; p_user: string }
+        Returns: undefined
+      }
+      k1_friend_status: { Args: { p_user: string }; Returns: string }
+      k1_friends: {
+        Args: { p_limit?: number; p_q?: string; p_user?: string }
+        Returns: {
+          last_seen_at: string
+          name: string
+          online: boolean
+          org_names: string
+          photo_url: string
+          since: string
+          user_id: string
+          village: string
+        }[]
+      }
       k1_has_own_channel: {
         Args: { p_kind: string; p_org: string }
         Returns: boolean
@@ -7949,6 +8474,7 @@ export type Database = {
       k1_health: { Args: never; Returns: Json }
       k1_in_family: { Args: { p_family: string }; Returns: boolean }
       k1_is_applicant: { Args: { p_org: string }; Returns: boolean }
+      k1_is_friend: { Args: { p_a: string; p_b: string }; Returns: boolean }
       k1_is_member: { Args: { p_org: string }; Returns: boolean }
       k1_is_platform_admin: { Args: never; Returns: boolean }
       k1_issue_articles: { Args: { p_issue: string }; Returns: Json }
@@ -8093,6 +8619,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      k1_mutual_friends: { Args: { p_a: string; p_b: string }; Returns: number }
       k1_my_family: { Args: never; Returns: Json }
       k1_my_orgs: {
         Args: never
@@ -8151,6 +8678,23 @@ export type Database = {
         }
         Returns: number
       }
+      k1_occasions: {
+        Args: { p_days?: number; p_org: string }
+        Returns: {
+          age: number
+          days_until: number
+          kind: string
+          name: string
+          on_date: string
+          online: boolean
+          org_names: string
+          photo_url: string
+          user_id: string
+          wished: boolean
+          wishes: number
+        }[]
+      }
+      k1_occasions_daily: { Args: never; Returns: number }
       k1_org_by_slug: {
         Args: { p_slug: string }
         Returns: {
@@ -8280,6 +8824,45 @@ export type Database = {
           village: string
         }[]
       }
+      k1_people: {
+        Args: {
+          p_city?: string
+          p_filter_org?: string
+          p_friends?: boolean
+          p_limit?: number
+          p_offset?: number
+          p_online?: boolean
+          p_org: string
+          p_q?: string
+        }
+        Returns: {
+          district: string
+          friend_status: string
+          last_seen_at: string
+          name: string
+          online: boolean
+          org_names: string
+          photo_url: string
+          total: number
+          user_id: string
+          village: string
+        }[]
+      }
+      k1_people_facets: { Args: { p_org: string }; Returns: Json }
+      k1_people_recommend: {
+        Args: { p_limit?: number; p_org: string }
+        Returns: {
+          mutual: number
+          name: string
+          online: boolean
+          org_names: string
+          photo_url: string
+          score: number
+          user_id: string
+          village: string
+          why: string
+        }[]
+      }
       k1_pick_channel: {
         Args: { p_kind: string; p_org: string }
         Returns: string
@@ -8361,6 +8944,20 @@ export type Database = {
         Returns: undefined
       }
       k1_priority_org: { Args: { p_org: string }; Returns: boolean }
+      k1_profile: { Args: { p_user: string }; Returns: Json }
+      k1_profile_occasions: { Args: { p_user: string }; Returns: Json }
+      k1_profile_save: { Args: { p: Json }; Returns: undefined }
+      k1_profile_save_occasions: {
+        Args: {
+          p_anniversary: string
+          p_birthday: string
+          p_show_anniversary: boolean
+          p_show_birth_year: boolean
+          p_show_birthday: boolean
+        }
+        Returns: undefined
+      }
+      k1_profile_social: { Args: { p_user: string }; Returns: Json }
       k1_rate_guard: {
         Args: {
           p_col: string
@@ -8470,6 +9067,9 @@ export type Database = {
         }
       }
       k1_toggle_like: { Args: { p_post: string }; Returns: boolean }
+      k1_touch_presence: { Args: never; Returns: undefined }
+      k1_unfriend: { Args: { p_user: string }; Returns: undefined }
+      k1_user_birthday: { Args: { p_user: string }; Returns: string }
       k1_user_contact: {
         Args: { p_user: string }
         Returns: {
@@ -8477,6 +9077,12 @@ export type Database = {
           full_name: string
           phone: string
         }[]
+      }
+      k1_user_name: { Args: { p_user: string }; Returns: string }
+      k1_user_photo: { Args: { p_user: string }; Returns: string }
+      k1_user_posts_json: {
+        Args: { p_limit?: number; p_org: string; p_user: string }
+        Returns: Json
       }
       k1_verify_document: {
         Args: { p_code: string }
@@ -8498,6 +9104,27 @@ export type Database = {
       k1_vote: {
         Args: { p_choices: string[]; p_poll: string }
         Returns: undefined
+      }
+      k1_wish: {
+        Args: {
+          p_kind: string
+          p_message?: string
+          p_org: string
+          p_user: string
+        }
+        Returns: undefined
+      }
+      k1_wishes_for: {
+        Args: { p_user: string; p_year?: number }
+        Returns: {
+          created_at: string
+          from_name: string
+          from_photo: string
+          from_user: string
+          kind: string
+          message: string
+          year: number
+        }[]
       }
       letter_recipients_review: {
         Args: { p_letter_id: string }
@@ -8548,6 +9175,24 @@ export type Database = {
           p_to_node: string
         }
         Returns: number
+      }
+      merge_trees: {
+        Args: {
+          p_from: string
+          p_from_node: string
+          p_to: string
+          p_to_node: string
+        }
+        Returns: Json
+      }
+      merge_trees_preview: {
+        Args: {
+          p_from: string
+          p_from_node: string
+          p_to: string
+          p_to_node: string
+        }
+        Returns: Json
       }
       merge_villages: { Args: { p_from: string; p_to: string }; Returns: Json }
       move_member: {
@@ -8802,6 +9447,16 @@ export type Database = {
           village_name: string
         }[]
       }
+      shok_enqueue_phone_welcome: {
+        Args: {
+          p_family: string
+          p_kind: string
+          p_member: string
+          p_name: string
+          p_phone: string
+        }
+        Returns: undefined
+      }
       shok_match_hint_count: { Args: never; Returns: number }
       shok_match_hints: {
         Args: { p_limit?: number }
@@ -8821,9 +9476,30 @@ export type Database = {
           score: number
         }[]
       }
+      shok_merge_leftovers: {
+        Args: never
+        Returns: {
+          admin_note: string
+          deleted_at: string
+          family_id: string
+          family_name: string
+          from_name: string
+          from_node: string
+          members: number
+          names: string
+          to_family_id: string
+          to_family_name: string
+          to_name: string
+          to_node: string
+          village_name: string
+        }[]
+      }
       shok_norm_name: { Args: { t: string }; Returns: string }
+      shok_phone_welcome_kick: { Args: never; Returns: number }
+      shok_phone_welcome_stats: { Args: never; Returns: Json }
       shok_reroute_recipient: { Args: { p_recipient: string }; Returns: Json }
       shok_sees_org: { Args: { p_org: string }; Returns: boolean }
+      shok_send_phone_welcomes: { Args: never; Returns: number }
       shok_send_whatsapp: {
         Args: { p_phone: string; p_text: string }
         Returns: boolean
