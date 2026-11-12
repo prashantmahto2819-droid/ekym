@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageField } from "@/components/admin/ImageField";
 import { MarkupEditor } from "@/components/admin/MarkupEditor";
+import { tx } from "@/components/admin/adminText";
+import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -130,6 +132,8 @@ export function CrudPage({
   rowClass?: (row: any) => string;
 }) {
   const qc = useQueryClient();
+  const { lang } = useLang();
+  const L = lang === "hi";
   const tenant = useTenant();
   const [editing, setEditing] = useState<any | null>(null);
   const [open, setOpen] = useState(false);
@@ -177,12 +181,12 @@ export function CrudPage({
       }
     },
     onSuccess: () => {
-      toast.success("Saved");
+      toast.success(L ? "सहेज लिया" : "Saved");
       setOpen(false);
       setEditing(null);
       qc.invalidateQueries({ queryKey: ["admin", table] });
     },
-    onError: (e) => toast.error(errText(e, "Could not save")),
+    onError: (e) => toast.error(errText(e, L ? "सहेज नहीं सके" : "Could not save")),
   });
 
   const remove = useMutation({
@@ -194,10 +198,10 @@ export function CrudPage({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Deleted");
+      toast.success(L ? "हटा दिया" : "Deleted");
       qc.invalidateQueries({ queryKey: ["admin", table] });
     },
-    onError: (e) => toast.error(errText(e, "Could not delete")),
+    onError: (e) => toast.error(errText(e, L ? "हटा नहीं सके" : "Could not delete")),
   });
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -229,8 +233,8 @@ export function CrudPage({
     <div>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold">{title}</h1>
-          {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+          <h1 className="font-display text-2xl font-semibold">{tx(title, L)}</h1>
+          {description ? <p className="mt-1 text-sm text-muted-foreground">{tx(description, L)}</p> : null}
         </div>
         <Button
           onClick={() => {
@@ -238,18 +242,44 @@ export function CrudPage({
             setOpen(true);
           }}
         >
-          <Plus className="size-4" /> New
+          <Plus className="size-4" /> {L ? "नया जोड़ें" : "Add new"}
         </Button>
       </div>
       {toolbar ? <div className="mb-4">{toolbar}</div> : null}
 
-      <div className="surface-card overflow-x-auto">
+      {/* phones: one card per record */}
+      <div className="space-y-2 md:hidden">
+        {list.isLoading ? <p className="surface-card p-4 text-sm text-muted-foreground">{L ? "लोड हो रहा है…" : "Loading…"}</p> : null}
+        {list.isSuccess && !list.data?.length ? <p className="surface-card p-4 text-sm text-muted-foreground">{L ? "अभी यहाँ कुछ नहीं है।" : "Nothing here yet."}</p> : null}
+        {(list.data ?? []).map((row: any) => (
+          <div key={row.id} className={`surface-card p-3 text-sm ${rowClass?.(row) ?? ""}`}>
+            <div className={onRowClick ? "cursor-pointer" : ""} onClick={onRowClick ? () => onRowClick(row) : undefined}>
+              <div className="font-medium">{columns[0] ? (columns[0].render ? columns[0].render(row) : String(row[columns[0].key] ?? "—")) : null}</div>
+              <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+                {columns.slice(1).map((c) => (
+                  <Fragment key={c.key}>
+                    <dt className="text-muted-foreground">{tx(c.label, L)}</dt>
+                    <dd className="min-w-0 break-words">{c.render ? c.render(row) : String(row[c.key] ?? "—")}</dd>
+                  </Fragment>
+                ))}
+              </dl>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center justify-end gap-1 border-t border-border pt-2">
+              {extraActions ? extraActions(row) : null}
+              <Button size="sm" variant="outline" onClick={() => { setEditing(row); setOpen(true); }}><Pencil className="size-4" /> {L ? "बदलें" : "Edit"}</Button>
+              <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "यह रिकॉर्ड हटाएँ?" : "Delete this record?")) remove.mutate(row.id); }} aria-label={L ? "हटाएँ" : "Delete"}><Trash2 className="size-4 text-destructive" /></Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="surface-card hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead className="bg-secondary/70 text-left">
             <tr>
               {columns.map((c) => (
                 <th key={c.key} className="whitespace-nowrap px-4 py-3 font-semibold">
-                  {c.label}
+                  {tx(c.label, L)}
                 </th>
               ))}
               <th className="px-4 py-3" />
@@ -259,7 +289,7 @@ export function CrudPage({
             {list.isLoading ? (
               <tr>
                 <td className="px-4 py-6 text-muted-foreground" colSpan={columns.length + 1}>
-                  Loading…
+                  {L ? "लोड हो रहा है…" : "Loading…"}
                 </td>
               </tr>
             ) : list.data?.length ? (
@@ -279,7 +309,7 @@ export function CrudPage({
                         setEditing(row);
                         setOpen(true);
                       }}
-                      aria-label="Edit"
+                      aria-label={L ? "बदलें" : "Edit"}
                     >
                       <Pencil className="size-4" />
                     </Button>
@@ -287,9 +317,9 @@ export function CrudPage({
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        if (confirm("Delete this record?")) remove.mutate(row.id);
+                        if (confirm(L ? "यह रिकॉर्ड हटाएँ?" : "Delete this record?")) remove.mutate(row.id);
                       }}
-                      aria-label="Delete"
+                      aria-label={L ? "हटाएँ" : "Delete"}
                     >
                       <Trash2 className="size-4 text-destructive" />
                     </Button>
@@ -299,13 +329,13 @@ export function CrudPage({
             ) : (
               <tr>
                 <td className="px-4 py-6 text-muted-foreground" colSpan={columns.length + 1}>
-                  Nothing here yet.
+                  {L ? "अभी यहाँ कुछ नहीं है।" : "Nothing here yet."}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
-        {(list.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button type="button" variant="outline" size="sm" onClick={() => setLimit((n) => n + 200)} disabled={list.isFetching}>और दिखाएँ · Show more ({list.data?.length})</Button></div> : null}
+        {(list.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button type="button" variant="outline" size="sm" onClick={() => setLimit((n) => n + 200)} disabled={list.isFetching}>{L ? "और दिखाएँ" : "Show more"} ({list.data?.length})</Button></div> : null}
       </div>
 
       <Dialog
@@ -318,7 +348,7 @@ export function CrudPage({
         <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit" : "New"} — {title}
+              {editing ? (L ? "बदलें" : "Edit") : (L ? "नया" : "New")} — {tx(title, L)}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
@@ -334,15 +364,15 @@ export function CrudPage({
                     className={`flex items-center gap-3 text-sm ${f.full ? "sm:col-span-2" : ""}`}
                   >
                     <Checkbox name={f.key} defaultChecked={value ?? true} />
-                    <span>{f.label}</span>
+                    <span>{tx(f.label, L)}</span>
                   </label>
                 );
               }
               return (
                 <Field
                   key={f.key}
-                  label={f.label}
-                  hint={f.hint}
+                  label={tx(f.label, L)}
+                  hint={f.hint ? tx(f.hint, L) : f.hint}
                   required={f.required}
                   className={f.full ? "sm:col-span-2" : undefined}
                 >
@@ -364,7 +394,7 @@ export function CrudPage({
                       {!f.required ? <option value="">—</option> : null}
                       {options.map((o) => (
                         <option key={optValue(o)} value={optValue(o)}>
-                          {optLabel(o)}
+                          {tx(optLabel(o), L)}
                         </option>
                       ))}
                     </select>
@@ -387,7 +417,7 @@ export function CrudPage({
             })}
             <DialogFooter className="sm:col-span-2">
               <Button type="submit" disabled={save.isPending}>
-                {save.isPending ? "Saving…" : "Save"}
+                {save.isPending ? (L ? "सहेज रहे हैं…" : "Saving…") : (L ? "सहेजें" : "Save")}
               </Button>
             </DialogFooter>
           </form>
