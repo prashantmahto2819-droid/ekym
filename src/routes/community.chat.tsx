@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, ProfileCard } from "@/components/community/ChatBits";
+import { OccasionsCard } from "@/components/community/Occasions";
 import { call, roomTitle, timeAgo, uploadCommunityImage, useMe, useMessages, usePeople, usePresence, useRooms, useStickToBottom, type Msg, type Person, type Room, type RoomMember } from "@/community/chat";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
@@ -77,6 +78,7 @@ function ChatPage() {
       </div>
       {pane === "rooms" ? (
         <div className="min-h-0 flex-1 overflow-y-auto p-2 text-sm">
+          <OccasionsCard L={L} enabled compact onProfile={(uid) => setProfileOf(uid)} />
           {cats.map((cat) => (
             <div key={cat} className="mb-3">
               <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{cat}</p>

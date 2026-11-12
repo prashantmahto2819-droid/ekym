@@ -152,7 +152,7 @@ function FeedModeration({ org }: { org: string }) {
   );
 }
 
-type Flag = { id: string; author_name: string; body: string | null; link_url: string | null; media: { path: string }[]; moderation: { heuristic?: { score: number; hits: string[] }; ai?: { promotional: boolean; confidence: number; category: string; reason: string; model: string }; appeal?: { at: string; note: string } }; moderation_status: string; reach: string; created_at: string };
+type Flag = { id: string; author_name: string; body: string | null; link_url: string | null; media: { path: string }[]; moderation: { reason?: string; political?: { score: number; hits: string[] }; heuristic?: { score: number; hits: string[] }; ai?: { promotional: boolean; confidence: number; category: string; reason: string; model: string }; appeal?: { at: string; note: string } }; moderation_status: string; reach: string; created_at: string };
 function Flagged({ org }: { org: string }) {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["cm_flagged", org], queryFn: async () => (await rpc("k1_cm_flagged", { p_org: org })) as Flag[] });
@@ -161,16 +161,16 @@ function Flagged({ org }: { org: string }) {
     try { await rpc("k1_cm_review", { p_post: id, p_action: action }); qc.invalidateQueries({ queryKey: ["cm_flagged", org] }); qc.invalidateQueries({ queryKey: ["feed"] }); } catch (e) { toast.error((e as Error).message); }
   }
   return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50/40 p-3 dark:border-amber-800 dark:bg-amber-950/20"><p className="font-medium">Promotional posts — limited reach ({q.data?.length ?? 0})</p>
+    <div className="rounded-lg border border-amber-300 bg-amber-50/40 p-3 dark:border-amber-800 dark:bg-amber-950/20"><p className="font-medium">Held / limited posts — promotional & political ({q.data?.length ?? 0})</p><p className="text-xs text-muted-foreground">🗳️ Political posts are held automatically (keywords + AI) and need your approval; "Allow" shows them to everyone, "Remove" takes them down.</p>
       <ul className="mt-2 divide-y divide-border">{(q.data ?? []).map((p) => {
         const ai = p.moderation?.ai, h = p.moderation?.heuristic;
         return <li key={p.id} className="flex flex-wrap items-start justify-between gap-2 py-2">
           <div className="min-w-0 flex-1">
-            <p><b>{p.author_name}</b> <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleString("en-IN")}</span> <a className="ml-1 text-xs underline" href={`/community/${p.id}`} target="_blank" rel="noreferrer">view</a></p>
+            <p>{p.moderation?.reason === "political" ? <span className="mr-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-semibold text-rose-800 dark:bg-rose-900/40 dark:text-rose-200">🗳️ POLITICAL — approval needed</span> : null}<b>{p.author_name}</b> <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleString("en-IN")}</span> <a className="ml-1 text-xs underline" href={`/community/${p.id}`} target="_blank" rel="noreferrer">view</a></p>
             <p className="line-clamp-2">{p.body ?? p.link_url ?? "(photo)"}</p>
             {p.media?.length ? <div className="mt-1 flex gap-1">{p.media.slice(0, 4).map((m, i) => <img key={i} src={supabase.storage.from("community").getPublicUrl(m.path).data.publicUrl} alt="" className="h-12 w-12 rounded object-cover" />)}</div> : null}
             {p.moderation?.appeal ? <p className="mt-1 rounded bg-amber-100 px-2 py-1 text-xs dark:bg-amber-900/40">🙋 {new Date(p.moderation.appeal.at).toLocaleString("en-IN")} — author asks for review{p.moderation.appeal.note ? `: ${p.moderation.appeal.note}` : ""}</p> : null}
-            <p className="text-xs text-muted-foreground">{ai?.reason ? `AI (${ai.category}, ${Math.round(ai.confidence * 100)}%): ${ai.reason}` : ai?.model ? `AI: ${ai.model}` : "AI: pending"}{h?.hits?.length ? ` · keywords: ${h.hits.join(", ")} (score ${h.score})` : ""}</p>
+            <p className="text-xs text-muted-foreground">{ai?.reason ? `AI (${ai.category}, ${Math.round(ai.confidence * 100)}%): ${ai.reason}` : ai?.model ? `AI: ${ai.model}` : "AI: pending"}{p.moderation?.political?.hits?.length ? ` · political words: ${p.moderation.political.hits.join(", ")}` : ""}{h?.hits?.length ? ` · keywords: ${h.hits.join(", ")} (score ${h.score})` : ""}</p>
           </div>
           <span className="flex gap-1"><Button size="sm" onClick={() => review(p.id, "allow")}>Allow (full reach)</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => review(p.id, "remove")}>Remove</Button></span>
         </li>; })}{q.isSuccess && !q.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul>
@@ -178,7 +178,7 @@ function Flagged({ org }: { org: string }) {
   );
 }
 
-type CmSettings = { organization_id: string; auto_limit: boolean; threshold: number; ai_min_confidence: number; keywords: string[]; notify_moderators: boolean };
+type CmSettings = { organization_id: string; auto_limit: boolean; threshold: number; ai_min_confidence: number; keywords: string[]; notify_moderators: boolean; political_hold?: boolean; occasion_posts?: boolean; occasion_greetings?: boolean };
 function ModerationSettings({ org }: { org: string }) {
   const q = useQuery({ queryKey: ["cm_settings", org], queryFn: async () => { const { data } = await supabase.from("cm_settings").select("*").eq("organization_id", org).maybeSingle(); return (data as unknown as CmSettings | null) ?? null; } });
   const [s, setS] = useState<CmSettings | null>(null);
@@ -191,6 +191,9 @@ function ModerationSettings({ org }: { org: string }) {
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.auto_limit} onChange={(e) => setS({ ...s, auto_limit: e.target.checked })} /> Limit reach automatically (off = only flag for review)</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.notify_moderators} onChange={(e) => setS({ ...s, notify_moderators: e.target.checked })} /> WhatsApp alert to moderators</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={s.political_hold ?? true} onChange={(e) => setS({ ...s, political_hold: e.target.checked })} /> 🗳️ Hold political posts for approval (limited reach until an admin allows)</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={s.occasion_posts ?? true} onChange={(e) => setS({ ...s, occasion_posts: e.target.checked })} /> 🎂 Post birthdays / anniversaries on the wall as the organization</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={s.occasion_greetings ?? true} onChange={(e) => setS({ ...s, occasion_greetings: e.target.checked })} /> 💐 Send birthday / anniversary greetings (WhatsApp / email)</label>
         <label className="block"><span className="text-xs text-muted-foreground">Keyword score to flag (phone number = 2, % off = 2, each keyword = 1)</span><Input type="number" value={s.threshold} onChange={(e) => setS({ ...s, threshold: Number(e.target.value) })} /></label>
         <label className="block"><span className="text-xs text-muted-foreground">AI confidence needed (0–1)</span><Input type="number" step="0.05" min="0" max="1" value={s.ai_min_confidence} onChange={(e) => setS({ ...s, ai_min_confidence: Number(e.target.value) })} /></label>
         <label className="block sm:col-span-2"><span className="text-xs text-muted-foreground">Keywords (comma separated; empty = built-in Hindi + English list)</span><Textarea rows={3} value={s.keywords.join(", ")} onChange={(e) => setS({ ...s, keywords: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} /></label>

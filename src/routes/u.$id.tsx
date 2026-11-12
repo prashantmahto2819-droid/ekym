@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar, ProfileCard } from "@/components/community/ChatBits";
+import { WishesWall } from "@/components/community/Occasions";
 import { PostCard, type Post } from "@/components/site/Feed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ function ProfilePage() {
   const [card, setCard] = useState(false);
   const posts = useQuery({ queryKey: ["user_posts", tenant.organization_id, id], enabled: !!user, queryFn: () => call<Post[]>("k1_user_posts_json", { p_org: tenant.organization_id, p_user: id, p_limit: 20 }) });
   const d = p.data;
+  const occ = useQuery({ queryKey: ["profile_occasions", id], enabled: !!user, queryFn: () => call<{ birthday: string | null; anniversary: string | null }>("k1_profile_occasions", { p_user: id }).catch(() => ({ birthday: null, anniversary: null })) });
   async function dm() { try { const rid = await call<string>("k1_chat_open_dm", { p_org: tenant.organization_id, p_user: id }); void navigate({ to: "/community/chat", search: { room: rid } }); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } }
   if (!loading && !user) return <section className="container-page py-10 text-center text-sm"><p>{L ? "प्रोफ़ाइल देखने के लिए साइन इन कीजिए।" : "Sign in to view member profiles."}</p><Button asChild className="mt-3"><Link to="/auth">{L ? "साइन इन" : "Sign in"}</Link></Button></section>;
   return (
@@ -66,7 +68,8 @@ function ProfilePage() {
                 {d.roles.length ? <div><p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{L ? "जिम्मेदारियाँ" : "Roles"}</p><ul className="space-y-1">{d.roles.map((r, i) => <li key={i}>{L ? (r.role || r.role_en) : r.role_en} <span className="text-muted-foreground">· {L ? (r.org || r.org_en) : r.org_en}</span></li>)}</ul></div> : null}
                 {d.orgs.some((o) => o.family_id) ? <Button asChild size="sm" variant="outline"><Link to="/admin/families/$id" params={{ id: d.orgs.find((o) => o.family_id)!.family_id! }}>{L ? "वंश वृक्ष देखें" : "Family tree"}</Link></Button> : null}
               </aside>
-              <main>
+              <main className="space-y-4">
+                <WishesWall userId={id} name={d.name} L={L} mine={d.mine} birthday={occ.data?.birthday ?? null} anniversary={occ.data?.anniversary ?? null} />
                 <h2 className="mb-2 font-display text-lg font-semibold">{L ? "पोस्ट" : "Posts"} <span className="text-sm font-normal text-muted-foreground">({d.posts})</span></h2>
                 <div className="space-y-3">
                   {(posts.data ?? []).map((x) => <PostCard key={x.id} p={x} L={L} signedIn={!!user} onChange={() => void posts.refetch()} />)}

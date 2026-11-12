@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { Avatar } from "@/components/community/ChatBits";
@@ -28,6 +29,10 @@ function EditProfile() {
   const [f, setF] = useState<Form | null>(null);
   const [busy, setBusy] = useState(false);
   const coverRef = useRef<HTMLInputElement>(null); const photoRef = useRef<HTMLInputElement>(null);
+  type Occ = { birthday: string | null; anniversary: string | null; show_birthday: boolean; show_birth_year: boolean; show_anniversary: boolean };
+  const occQ = useQuery({ queryKey: ["profile_occasions", user?.id], enabled: !!user, queryFn: () => call<Occ>("k1_profile_occasions", { p_user: user!.id }).catch(() => null) });
+  const [occ, setOcc] = useState<Occ | null>(null);
+  useEffect(() => { if (occQ.data && !occ) setOcc(occQ.data); }, [occQ.data, occ]);
   useEffect(() => {
     const d: Profile | null = p.data ?? null;
     if (d && !f) setF({ display_name: d.mine ? (d.name === "Member" ? "" : d.name) : "", bio: d.bio ?? "", photo_url: d.photo_url ?? "", cover_url: d.cover_url ?? "", village: d.village ?? "", district: d.district ?? "", state: d.state ?? "", occupation: d.occupation ?? "", interests: d.interests.join(", "), links: { facebook: d.links["facebook"] ?? "", instagram: d.links["instagram"] ?? "", youtube: d.links["youtube"] ?? "", website: d.links["website"] ?? "" }, show_phone: d.show_phone, show_email: d.show_email, dm_from: d.dm_from });
@@ -45,6 +50,8 @@ function EditProfile() {
     setBusy(true);
     try {
       await call("k1_profile_save", { p: { ...f, interests: f.interests.split(",").map((x) => x.trim()).filter(Boolean) } });
+      if (occ) await call("k1_profile_save_occasions", { p_birthday: occ.birthday || null, p_anniversary: occ.anniversary || null, p_show_birthday: occ.show_birthday, p_show_birth_year: occ.show_birth_year, p_show_anniversary: occ.show_anniversary }).catch(() => undefined);
+      await qc.invalidateQueries({ queryKey: ["profile_occasions"] }); await qc.invalidateQueries({ queryKey: ["occasions"] });
       await qc.invalidateQueries({ queryKey: ["profile"] }); await qc.invalidateQueries({ queryKey: ["feed"] });
       toast.success(L ? "प्रोफ़ाइल सहेज ली।" : "Saved");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
@@ -74,6 +81,19 @@ function EditProfile() {
             <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "राज्य" : "State"}</span><Input value={f.state} onChange={(e) => set("state", e.target.value)} /></label>
             <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "रुचियाँ (कॉमा से अलग)" : "Interests (comma separated)"}</span><Input value={f.interests} onChange={(e) => set("interests", e.target.value)} placeholder={L ? "समाज सेवा, संगीत, खेती…" : "Social work, music, farming…"} /></label>
             {(["facebook", "instagram", "youtube", "website"] as const).map((k) => <label key={k} className="text-sm"><span className="mb-1 block text-xs capitalize text-muted-foreground">{k}</span><Input value={f.links[k] ?? ""} onChange={(e) => set("links", { ...f.links, [k]: e.target.value })} placeholder="https://…" /></label>)}
+          </div>
+          <div className="mt-4 rounded-lg border border-amber-300/60 bg-amber-50/50 p-3 text-sm dark:bg-amber-950/20">
+            <p className="mb-2 font-semibold">🎉 {L ? "जन्मदिन और विवाह वर्षगाँठ" : "Birthday & anniversary"}</p>
+            <p className="mb-2 text-xs text-muted-foreground">{L ? "इस दिन समाज के लोग आपको शुभकामना दे सकेंगे, संगठन की ओर से बधाई आएगी और चौपाल पर पोस्ट बनेगी।" : "On the day, members can wish you, the organization greets you and a post appears on the wall."}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label><span className="mb-1 block text-xs text-muted-foreground">🎂 {L ? "जन्मतिथि" : "Birthday"}</span><Input type="date" value={occ?.birthday ?? ""} onChange={(e) => setOcc({ ...(occ ?? { birthday: null, anniversary: null, show_birthday: true, show_birth_year: false, show_anniversary: true }), birthday: e.target.value || null })} /></label>
+              <label><span className="mb-1 block text-xs text-muted-foreground">💐 {L ? "विवाह वर्षगाँठ" : "Anniversary"}</span><Input type="date" value={occ?.anniversary ?? ""} onChange={(e) => setOcc({ ...(occ ?? { birthday: null, anniversary: null, show_birthday: true, show_birth_year: false, show_anniversary: true }), anniversary: e.target.value || null })} /></label>
+            </div>
+            {occ ? <div className="mt-2 space-y-1 text-xs">
+              <label className="flex items-center gap-2"><input type="checkbox" checked={occ.show_birthday} onChange={(e) => setOcc({ ...occ, show_birthday: e.target.checked })} /> {L ? "जन्मदिन सबको दिखे (दिन-महीना)" : "Show birthday (day & month)"}</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={occ.show_birth_year} onChange={(e) => setOcc({ ...occ, show_birth_year: e.target.checked })} /> {L ? "उम्र / जन्म-वर्ष भी दिखे" : "Also show birth year / age"}</label>
+              <label className="flex items-center gap-2"><input type="checkbox" checked={occ.show_anniversary} onChange={(e) => setOcc({ ...occ, show_anniversary: e.target.checked })} /> {L ? "वर्षगाँठ सबको दिखे" : "Show anniversary"}</label>
+            </div> : null}
           </div>
           <div className="mt-4 rounded-lg border border-border p-3 text-sm">
             <p className="mb-2 font-semibold">{L ? "गोपनीयता" : "Privacy"}</p>
