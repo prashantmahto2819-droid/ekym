@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useTenant } from "@/core/tenant-context";
-import { fromUploadedBackground, STARTER_TEMPLATES, cleanDoc, type DesignDoc } from "@/design-engine";
+import { fromUploadedBackground, STARTER_TEMPLATES, cleanDoc, type DesignDoc, type Lang } from "@/design-engine";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { publicUrl, uploadPhoto } from "@/lib/images";
@@ -40,16 +40,16 @@ function StudioIndex() {
   });
 
   const create = useMutation({
-    mutationFn: async (starter: (typeof STARTER_TEMPLATES)[number]) => {
+    mutationFn: async ({ starter, lang }: { starter: (typeof STARTER_TEMPLATES)[number]; lang: Lang }) => {
       const design = starter.make({
         name: org?.organization_name ?? tenant.name,
         name_hi: org?.organization_name_hi ?? tenant.name_hi,
         tagline: org?.tagline, address: [org?.address, org?.city].filter(Boolean).join(", "),
         phone: org?.phone, email: org?.email, website: org?.website, logo: org?.logo,
-      });
+      }, lang);
       const { data, error } = await supabase
         .from("docs_templates")
-        .insert({ organization_id: tenant.organization_id, kind: starter.kind, name: starter.name, name_hi: starter.name_hi, design: cleanDoc(design) as never } as never)
+        .insert({ organization_id: tenant.organization_id, kind: starter.kind, name: `${starter.name}${lang === "en" ? " (English)" : ""}`, name_hi: `${starter.name_hi}${lang === "hi" ? " (हिंदी)" : " (English)"}`, design: cleanDoc(design) as never } as never)
         .select("id")
         .single();
       if (error) throw error;
@@ -101,7 +101,7 @@ function StudioIndex() {
   });
   /** Replace a saved template's design with the latest built-in design of the same kind (old one kept as an archived copy). */
   const refresh = useMutation({
-    mutationFn: async (t: TemplateRow) => {
+    mutationFn: async ({ t, lang }: { t: TemplateRow; lang: Lang }) => {
       const starter = STARTER_TEMPLATES.find((s) => s.kind === t.kind);
       if (!starter) throw new Error("इस प्रकार का नया डिज़ाइन उपलब्ध नहीं है");
       const { data: full, error: e1 } = await supabase.from("docs_templates").select("design").eq("id", t.id).single();
@@ -109,7 +109,7 @@ function StudioIndex() {
       await supabase.from("docs_templates").insert({ organization_id: tenant.organization_id, kind: t.kind, name: `${t.name} (पुराना)`, name_hi: t.name_hi, status: "archived", design: (full as { design: DesignDoc }).design as never } as never);
       const old = (full as { design: DesignDoc }).design;
       const accent = (old.master.find((l) => l.type === "rect" && "fill" in l && l.fill) as { fill?: string } | undefined)?.fill;
-      const design = starter.make({ name: org?.organization_name ?? tenant.name, name_hi: org?.organization_name_hi ?? tenant.name_hi, logo: org?.logo, ...(accent && /^#[0-9a-f]{6}$/i.test(accent) ? { color: accent } : {}) });
+      const design = starter.make({ name: org?.organization_name ?? tenant.name, name_hi: org?.organization_name_hi ?? tenant.name_hi, logo: org?.logo, ...(accent && /^#[0-9a-f]{6}$/i.test(accent) ? { color: accent } : {}) }, lang);
       const { error } = await supabase.from("docs_templates").update({ design: cleanDoc(design) as never, thumbnail: null } as never).eq("id", t.id);
       if (error) throw error;
     },
@@ -136,11 +136,11 @@ function StudioIndex() {
       {canEdit ? (
         <div className="surface-card flex flex-wrap items-center gap-2 p-3 text-sm">
           <span className="text-muted-foreground">Create from starter:</span>
-          {STARTER_TEMPLATES.map((s) => (
-            <Button key={s.kind} size="sm" variant="outline" disabled={create.isPending} onClick={() => create.mutate(s)}>
-              {s.name} · {s.name_hi}
+          {STARTER_TEMPLATES.flatMap((s) => s.langs.map((lg) => (
+            <Button key={`${s.kind}-${lg}`} size="sm" variant="outline" disabled={create.isPending} onClick={() => create.mutate({ starter: s, lang: lg })}>
+              {lg === "hi" ? `${s.name_hi} · हिंदी` : `${s.name} · English`}
             </Button>
-          ))}
+          )))}
         </div>
       ) : null}
       {canEdit ? (
@@ -169,7 +169,9 @@ function StudioIndex() {
                 <div className="flex flex-wrap gap-1">
                   {t.organization_id && canEdit ? <Button asChild size="sm"><Link to="/admin/studio/$id" params={{ id: t.id }}>Edit</Link></Button> : null}
                   <Button size="sm" variant="outline" onClick={() => duplicate.mutate(t)} disabled={!canEdit}>Duplicate</Button>
-                  {t.organization_id && canEdit && STARTER_TEMPLATES.some((s) => s.kind === t.kind) ? <Button size="sm" variant="secondary" disabled={refresh.isPending} onClick={() => { if (confirm("इस टेम्पलेट पर नया डिज़ाइन लगाएँ? आपके किए बदलाव हट जाएँगे (पुराना डिज़ाइन संग्रह में रहेगा)।")) refresh.mutate(t); }}>✨ नया डिज़ाइन लगाएँ</Button> : null}
+                  {t.organization_id && canEdit ? (STARTER_TEMPLATES.find((s) => s.kind === t.kind)?.langs ?? []).map((lg) => (
+                    <Button key={lg} size="sm" variant="secondary" disabled={refresh.isPending} onClick={() => { if (confirm(`इस टेम्पलेट पर नया ${lg === "hi" ? "हिंदी" : "English"} डिज़ाइन लगाएँ? आपके किए बदलाव हट जाएँगे (पुराना डिज़ाइन संग्रह में रहेगा)।`)) refresh.mutate({ t, lang: lg }); }}>✨ {lg === "hi" ? "नया डिज़ाइन (हिंदी)" : "New design (English)"}</Button>
+                  )) : null}
                   {t.organization_id && canEdit ? <Button size="sm" variant="ghost" onClick={() => setDefault.mutate(t)} disabled={t.is_default}>Set default</Button> : null}
                   {t.organization_id && canEdit ? <Button size="sm" variant="ghost" onClick={() => { if (confirm("Archive this template?")) archive.mutate(t); }}>Archive</Button> : null}
                 </div>

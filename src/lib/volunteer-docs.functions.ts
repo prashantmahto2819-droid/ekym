@@ -126,3 +126,64 @@ export const verifyVolunteerReference = createServerFn({ method: "GET" })
       since: v.created_at,
     };
   });
+
+/** Data for rendering the volunteer ID card / certificate in the browser (design engine — Hindi renders correctly there). */
+export const volunteerDocumentData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { tenantId } = await import("@/core/tenant.server");
+    const { data: allowed } = await context.supabase.rpc("k1_can", { p_org: await tenantId(), p_perm: "community.volunteer.manage" });
+    if (allowed !== true) throw new Error("Not allowed");
+
+    const { data: row, error } = await supabaseAdmin
+      .from("volunteer_applications")
+      .select("id,application_id,name,designation,city,state,mobile,photo,status,organization_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Volunteer not found");
+    const v = row as unknown as VolunteerRow & { organization_id: string };
+    if (v.status !== "approved") throw new Error("पहले इस स्वयंसेवक को मंज़ूरी दें · Approve this volunteer before issuing documents");
+
+    let photo = "";
+    if (v.photo?.startsWith("http")) photo = v.photo;
+    else if (v.photo) {
+      const { data: su } = await supabaseAdmin.storage.from(PHOTO_BUCKET).createSignedUrl(v.photo, 60 * 30);
+      photo = su?.signedUrl ?? "";
+    }
+    const { data: o } = await supabaseAdmin
+      .from("organization_settings")
+      .select("organization_name,organization_name_hi,tagline,address,city,district,state,pincode,phone,email,website,logo")
+      .eq("organization_id", v.organization_id)
+      .maybeSingle();
+    const s = (o ?? {}) as Record<string, string | null>;
+    const name = s["organization_name"] || "Kalchuri One";
+    const reference = v.application_id ?? v.id.slice(0, 8).toUpperCase();
+    return {
+      reference,
+      org: {
+        name,
+        name_hi: s["organization_name_hi"] || name,
+        tagline: s["tagline"] ?? "",
+        address: [s["address"], s["city"], s["district"], s["state"], s["pincode"]].filter(Boolean).join(", "),
+        phone: s["phone"] ?? "",
+        email: s["email"] ?? "",
+        website: s["website"] ?? "",
+        logo: s["logo"] ?? "",
+      },
+      volunteer: {
+        name: v.name,
+        ref: reference,
+        designation: v.designation ?? "",
+        place: [v.city, v.state].filter(Boolean).join(", "),
+        mobile: v.mobile ?? "",
+        blood_group: "",
+        issued_on: new Date().toISOString().slice(0, 10),
+        valid_until: "",
+        photo,
+      },
+      doc: { verify_url: `${siteUrl()}/verify/volunteer/${reference}` },
+    };
+  });

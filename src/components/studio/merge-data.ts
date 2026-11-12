@@ -11,7 +11,8 @@ export function orgMergeData(tenant: Tenant, settings: OrgSettings): MergeData {
   return {
     org: {
       name: (s["organization_name"] as string) || tenant.name,
-      name_hi: (s["organization_name_hi"] as string) || tenant.name_hi || "",
+      // Hindi documents print name_hi; fall back to the main name so the heading is never blank
+      name_hi: (s["organization_name_hi"] as string) || tenant.name_hi || (s["organization_name"] as string) || tenant.name,
       tagline: s["tagline"] ?? "",
       address: addr,
       phone: s["phone"] ?? "",

@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { ReviewPage } from "@/components/admin/ReviewPage";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
-import { volunteerDocument } from "@/lib/volunteer-docs.functions";
+import { download as download_, toPdfBytes, volunteerCertificateTemplate, volunteerIdTemplate, type Lang, type MergeData } from "@/design-engine";
+import { volunteerDocumentData } from "@/lib/volunteer-docs.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/volunteers")({
   component: VolunteersAdmin,
@@ -14,17 +15,15 @@ export const Route = createFileRoute("/_authenticated/admin/volunteers")({
 function DocumentButtons({ row }: { row: any }) {
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function download(kind: "id-card" | "certificate") {
-    setBusy(kind);
+  /** Renders in the browser with the design engine, so Hindi names and labels print correctly. */
+  async function download(kind: "id-card" | "certificate", lang: Lang) {
+    setBusy(`${kind}-${lang}`);
     try {
-      const { fileName, base64 } = await volunteerDocument({ data: { id: row.id, kind } });
-      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(url);
+      const d = await volunteerDocumentData({ data: { id: row.id } });
+      const brand = { name: d.org.name, name_hi: d.org.name_hi, logo: d.org.logo };
+      const design = kind === "id-card" ? volunteerIdTemplate(brand, lang) : volunteerCertificateTemplate(brand, lang);
+      const bytes = await toPdfBytes(design, d as unknown as MergeData, { dpi: kind === "id-card" ? 400 : 200 });
+      download_(new Blob([bytes as BlobPart], { type: "application/pdf" }), `${kind === "id-card" ? "volunteer-id" : "volunteer-certificate"}-${d.reference.replace(/[^\w-]+/g, "-")}-${lang}.pdf`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create that document");
     } finally {
@@ -32,19 +31,17 @@ function DocumentButtons({ row }: { row: any }) {
     }
   }
 
+  const btn = (kind: "id-card" | "certificate", lang: Lang, label: string) => (
+    <Button size="sm" variant="secondary" disabled={busy !== null} onClick={() => void download(kind, lang)}>
+      {busy === `${kind}-${lang}` ? "…" : label}
+    </Button>
+  );
   return (
     <div className="flex flex-wrap gap-1">
-      <Button size="sm" variant="secondary" disabled={busy !== null} onClick={() => void download("id-card")}>
-        {busy === "id-card" ? "Preparing…" : "ID card"}
-      </Button>
-      <Button
-        size="sm"
-        variant="secondary"
-        disabled={busy !== null}
-        onClick={() => void download("certificate")}
-      >
-        {busy === "certificate" ? "Preparing…" : "Certificate"}
-      </Button>
+      {btn("id-card", "hi", "पहचान पत्र (हिंदी)")}
+      {btn("id-card", "en", "ID card (English)")}
+      {btn("certificate", "hi", "प्रमाण-पत्र (हिंदी)")}
+      {btn("certificate", "en", "Certificate (English)")}
     </div>
   );
 }

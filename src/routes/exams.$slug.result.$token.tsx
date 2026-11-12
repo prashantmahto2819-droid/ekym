@@ -54,8 +54,9 @@ function ResultPage() {
           <div className="relative flex h-full flex-col items-center px-8 pb-5 pt-5 md:px-16 md:pb-8 md:pt-9">
             {r.org_logo ? <img src={r.org_logo} alt="" className="h-10 object-contain md:h-16" /> : <span className="grid size-10 place-items-center rounded-full bg-[#1b3a5c] text-lg font-bold text-white ring-4 ring-[#b8924a] md:size-16 md:text-3xl">{[...(r.org_name || "क")][0]}</span>}
             <p className="mt-1 text-sm font-semibold text-[#1b3a5c] md:mt-2 md:text-2xl">{r.org_name}</p>
-            <p className="mt-1 text-2xl font-bold leading-tight text-[#b8924a] md:mt-3 md:text-5xl">प्रमाण-पत्र</p>
-            <p className="mt-0.5 font-sans text-[9px] font-semibold uppercase tracking-[0.35em] text-[#1b3a5c] md:text-sm">{hi ? <span className="tracking-normal">{merit ? "मेरिट प्रमाण-पत्र" : "सहभागिता प्रमाण-पत्र"} · </span> : null}{merit ? "Certificate of Merit" : "Certificate of Participation"}</p>
+            <p className={`mt-1 text-2xl font-bold leading-tight text-[#b8924a] md:mt-3 md:text-5xl ${hi ? "" : "tracking-[0.2em]"}`}>{hi ? "प्रमाण-पत्र" : "CERTIFICATE"}</p>
+            {hi ? <p className="mt-0.5 text-sm font-semibold text-[#1b3a5c] md:text-xl">{merit ? "मेरिट प्रमाण-पत्र" : "सहभागिता प्रमाण-पत्र"}</p>
+              : <p className="mt-0.5 font-sans text-[9px] font-semibold uppercase tracking-[0.35em] text-[#1b3a5c] md:text-sm">{merit ? "of Merit" : "of Participation"}</p>}
             <Flourish className="mt-1 h-3 w-40 text-[#b8924a] md:mt-2 md:h-4 md:w-64" />
             <p className="mt-1 text-xs text-stone-600 md:mt-3 md:text-base">{hi ? "यह प्रमाणित किया जाता है कि" : "This is to certify that"}</p>
             <p className="mt-0.5 border-b border-[#b8924a] px-6 pb-1 text-2xl font-bold text-stone-900 md:px-10 md:text-5xl">{(hi && r.student_name_hi) || r.student_name}</p>
