@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
+import { useConsent } from "@/components/community/ConsentGate";
 import { supabase } from "@/integrations/supabase/client";
 
 export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean };
@@ -97,8 +98,10 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
     setBody((b) => b.replace(/@([^\s@]{1,30})$/, `@${m.full_name} `));
     setMentions((x) => (x.some((y) => y.user_id === m.user_id) ? x : [...x, m]));
   }
+  const consent = useConsent();
   async function post() {
     if (!body.trim() && !link.trim() && !files.length) return;
+    if (!consent.accepted) { consent.ensure(() => void post()); return; }
     setBusy(true);
     try {
       const uid = (await supabase.auth.getUser()).data.user!.id;

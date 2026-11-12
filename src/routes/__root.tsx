@@ -18,6 +18,7 @@ import { organizationQuery } from "@/lib/queries";
 import { getBoot } from "@/core/tenant.functions";
 import type { getOrganization } from "@/lib/public.functions";
 import { TenantProvider } from "@/core/tenant-context";
+import { ConsentProvider } from "@/components/community/ConsentGate";
 import { LangProvider, type Lang } from "@/core/i18n";
 import type { Tenant } from "@/core/tenant.server";
 import { themeCss, type Branding } from "@/core/theme";
@@ -170,6 +171,7 @@ function RootComponent() {
       <TenantProvider tenant={tenant}>
         <LangProvider initial={lang}>
           <AuthWatcher queryClient={queryClient} />
+          <ConsentProvider>
           <div className="flex min-h-screen flex-col">
             {chromeless ? null : <Header />}
             {chromeless ? null : <AdSlot slot="header" className="container-page my-2" />}
@@ -181,6 +183,7 @@ function RootComponent() {
             {chromeless ? null : <Footer />}
             {chromeless ? null : <ConsentBanner />}
           </div>
+          </ConsentProvider>
           <Toaster richColors position="top-center" />
         </LangProvider>
       </TenantProvider>

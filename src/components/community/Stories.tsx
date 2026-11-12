@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { call, timeAgo, useMe } from "@/community/chat";
+import { useConsent } from "@/components/community/ConsentGate";
 import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,6 +30,7 @@ export function StoriesStrip({ L, enabled }: { L: boolean; enabled: boolean }) {
   const { me } = useMe();
   const [open, setOpen] = useState<number | null>(null);
   const [compose, setCompose] = useState(false);
+  const consent = useConsent();
   if (!enabled) return null;
   const groups = q.data ?? [];
   const mine = groups.find((g) => g.mine);
@@ -36,7 +38,7 @@ export function StoriesStrip({ L, enabled }: { L: boolean; enabled: boolean }) {
     <section className="rounded-xl border border-border bg-card p-3">
       <div className="flex items-center justify-between"><p className="font-display text-sm font-semibold">📸 {L ? "स्टोरी" : "Stories"} <span className="font-normal text-muted-foreground">· {L ? "24 घंटे में अपने आप हट जाती है" : "disappears after 24 hours"}</span></p></div>
       <div className="mt-2 flex gap-3 overflow-x-auto pb-1">
-        <button type="button" onClick={() => setCompose(true)} className="flex w-16 shrink-0 flex-col items-center gap-1 text-center">
+        <button type="button" onClick={() => consent.ensure(() => setCompose(true))} className="flex w-16 shrink-0 flex-col items-center gap-1 text-center">
           <span className="relative"><Avatar url={me?.photo} name={me?.name ?? "+"} size={14} /><span className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-card bg-primary text-primary-foreground"><Plus className="size-3" /></span></span>
           <span className="w-full truncate text-[11px]">{L ? "मेरी स्टोरी" : "Your story"}</span>
         </button>

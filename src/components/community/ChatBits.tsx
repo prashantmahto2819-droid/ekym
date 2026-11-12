@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useConsent } from "@/components/community/ConsentGate";
 import { call, timeAgo, useFriendActions, useProfile, type FriendStatus } from "@/community/chat";
 import { useQuery } from "@tanstack/react-query";
 
@@ -58,6 +59,7 @@ export function ProfileCard({ userId, L, online, onClose, onDm }: { userId: stri
 /** Friend request / accept / friends state button. */
 export function FriendButton({ userId, status, L, size = "sm", onChanged }: { userId: string; status: FriendStatus | undefined; L: boolean; size?: "sm" | "default"; onChanged?: (s: FriendStatus) => void }) {
   const acts = useFriendActions();
+  const consent = useConsent();
   const [busy, setBusy] = useState(false);
   const [st, setSt] = useState<FriendStatus>(status ?? "none");
   useEffect(() => { setSt(status ?? "none"); }, [status]);
@@ -65,7 +67,7 @@ export function FriendButton({ userId, status, L, size = "sm", onChanged }: { us
   if (st === "friends") return <Button size={size} variant="outline" disabled={busy} onClick={() => { if (confirm(L ? "मित्र सूची से हटाएँ?" : "Remove friend?")) void run(() => acts.unfriend(userId), "none", L ? "हटाया।" : "Removed"); }}>✓ {L ? "मित्र" : "Friends"}</Button>;
   if (st === "pending_out") return <Button size={size} variant="ghost" disabled={busy} onClick={() => void run(() => acts.unfriend(userId), "none", L ? "अनुरोध वापस लिया।" : "Request withdrawn")}>⏳ {L ? "अनुरोध भेजा" : "Requested"}</Button>;
   if (st === "pending_in") return <span className="flex gap-1"><Button size={size} disabled={busy} onClick={() => void run(() => acts.respond(userId, true), "friends", L ? "अब आप मित्र हैं 🤝" : "You are friends now 🤝")}>{L ? "स्वीकारें" : "Accept"}</Button><Button size={size} variant="ghost" disabled={busy} onClick={() => void run(() => acts.respond(userId, false), "none", L ? "अस्वीकार किया।" : "Declined")}>{L ? "नहीं" : "Decline"}</Button></span>;
-  return <Button size={size} variant="outline" disabled={busy} onClick={() => void run(() => acts.request(userId), "pending_out", L ? "मित्रता अनुरोध भेजा।" : "Friend request sent")}>{L ? "+ मित्र बनाएँ" : "+ Add friend"}</Button>;
+  return <Button size={size} variant="outline" disabled={busy} onClick={() => consent.ensure(() => run(() => acts.request(userId), "pending_out", L ? "मित्रता अनुरोध भेजा।" : "Friend request sent"))}>{L ? "+ मित्र बनाएँ" : "+ Add friend"}</Button>;
 }
 
 export function useProfileSocial(userId: string | null) {

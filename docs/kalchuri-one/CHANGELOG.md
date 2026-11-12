@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-12 — Phase 36 (समुदाय सहमति + शर्तें)
+- Terms (`/terms`) में नया खंड "सामुदायिक सुविधाएँ: चैट, प्रोफ़ाइल, स्टोरी, मित्र" (सामग्री का कॉपीराइट उपयोगकर्ता का, सीमित licence, वही डालें जिसका अधिकार हो, पहुँच/गोपनीयता विकल्प, स्टोरी 24h, ऑनलाइन स्थिति, राजनीतिक/प्रचार सामग्री की मंज़ूरी, ब्लॉक/रिपोर्ट); Privacy policy में समुदाय-डेटा खंड (हिंदी+English)।
+- Migration `cm_11_community_consent` (applied): `cm_user_profiles.terms_accepted_at/terms_version`, RPC `k1_accept_terms(version)`, `k1_terms_status()`.
+- `ConsentGate.tsx` (root में `ConsentProvider`): पहली बार पोस्ट / स्टोरी / चैट संदेश / प्रोफ़ाइल सहेजना / मित्र अनुरोध करने पर 5-बिंदु सारांश + checkbox + "मैं सहमत हूँ" → दर्ज (version `community-2026-11`); संस्करण बदलने पर दोबारा सहमति।
+
 ## 2026-11-12 — Phase 35 (24-घंटे की स्टोरी)
 - Migration `cm_10_stories_24h` (applied): bucket `stories` (public, 2 MB cap), `cm_stories` (path/caption/bg/visibility members|friends, expires_at = +24h, views, file_deleted), `cm_story_views`; RPCs `k1_story_add` (≤10 live, 1/min), `k1_stories` (मेरी पहले, फिर अनदेखी, फिर नई), `k1_story_view`, `k1_story_viewers` (मालिक को "किसने देखा"), `k1_story_delete`; cleanup: `k1_stories_expired`/`k1_story_purge` (service only) + edge function `stories-cleanup` (deployed, verify_jwt off, x-cron-secret) जो expired फ़ाइलें Storage API से मिटाकर rows हटाता है; cron `k1-stories-cleanup` हर घंटे :15 (`stories_cleanup_tick` → pg_net)।
 - Storage केवल Supabase (Cloudflare R2/Workers बिल पर कोई असर नहीं); app हर फोटो को ≤1080px JPEG (~100–200 KB) बनाकर upload करता है, GIF 2 MB तक जस का तस।

@@ -17,6 +17,7 @@ import { StoriesStrip } from "@/components/community/Stories";
 import { call, roomTitle, timeAgo, uploadCommunityImage, useFacets, useFriendRequests, useMe, useMessages, usePeople, usePresence, useRecommendations, useRooms, useStickToBottom, type Msg, type PeopleFilter, type Person, type Room, type RoomMember } from "@/community/chat";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
+import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/community/chat")({
@@ -206,10 +207,12 @@ function RoomView({ room, L, online, onBack, onProfile }: { room: Room; L: boole
   const [text, setText] = useState(""); const [files, setFiles] = useState<File[]>([]); const [reply, setReply] = useState<Msg | null>(null); const [busy, setBusy] = useState(false); const [showMembers, setShowMembers] = useState(false);
   const { ref, onScroll } = useStickToBottom(msgs.data?.length);
   const fileRef = useRef<HTMLInputElement>(null);
+  const consent = useConsent();
   useEffect(() => { void call("k1_chat_read", { p_room: room.id }).then(() => qc.invalidateQueries({ queryKey: ["chat_rooms"] })).catch(() => undefined); }, [room.id, msgs.data?.length, qc]);
   const members = useQuery({ queryKey: ["chat_members", room.id], enabled: showMembers, queryFn: () => call<RoomMember[]>("k1_chat_members", { p_room: room.id }) });
   async function send() {
     if (!text.trim() && !files.length) return;
+    if (!consent.accepted) { consent.ensure(() => void send()); return; }
     setBusy(true);
     try {
       const media: { type: string; url: string }[] = [];

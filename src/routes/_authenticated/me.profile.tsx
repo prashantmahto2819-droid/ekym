@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { call, uploadCommunityImage, useProfile, type Profile } from "@/community/chat";
 import { useLang } from "@/core/i18n";
+import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/me/profile")({
@@ -51,8 +52,10 @@ function EditProfile() {
     }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
   }
+  const consent = useConsent();
   async function save() {
     if (!f) return;
+    if (!consent.accepted) { consent.ensure(() => void save()); return; }
     setBusy(true);
     try {
       await call("k1_profile_save", { p: { ...f, interests: f.interests.split(",").map((x) => x.trim()).filter(Boolean) } });
