@@ -146,7 +146,7 @@ function PeoplePane({ L, online, onOpen, onDm }: { L: boolean; online: Set<strin
   const total = rows[0]?.total ?? rows.length;
   const incoming = (reqs.data ?? []).filter((r) => r.direction === "in");
   const fc = facets.data;
-  const Tab = ({ id, label, n }: { id: typeof tab; label: string; n?: number }) => <button type="button" onClick={() => setTab(id)} className={`rounded-full px-2.5 py-1 text-xs ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/70"}`}>{label}{n ? <span className="ml-1 rounded-full bg-background/30 px-1.5">{n}</span> : null}</button>;
+  const Tab = ({ id, label, n }: { id: typeof tab; label: string; n?: number | undefined }) => <button type="button" onClick={() => setTab(id)} className={`rounded-full px-2.5 py-1 text-xs ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-secondary/70"}`}>{label}{n ? <span className="ml-1 rounded-full bg-background/30 px-1.5">{n}</span> : null}</button>;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="space-y-2 border-b border-border p-2">

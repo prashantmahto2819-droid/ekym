@@ -22,7 +22,7 @@ export const presetOf = (t: Theme | undefined | null) => PRESETS.find((p) => p.i
 export const isGif = (url: string | null | undefined) => !!url && /\.gif($|\?)/i.test(url);
 
 /** Cover strip with background (image/GIF or gradient) and stickers; `editable` lets the parent place/remove stickers. */
-export function Cover({ url, theme, height, onPlace, onRemove, children }: { url: string | null | undefined; theme: Theme; height: string; onPlace?: (x: number, y: number) => void; onRemove?: (i: number) => void; children?: React.ReactNode }) {
+export function Cover({ url, theme, height, onPlace, onRemove, children }: { url: string | null | undefined; theme: Theme; height: string; onPlace?: ((x: number, y: number) => void) | undefined; onRemove?: ((i: number) => void) | undefined; children?: React.ReactNode }) {
   const p = presetOf(theme);
   return (
     <div className={`relative ${height} bg-gradient-to-r ${p.cover} bg-cover bg-center select-none`} style={url ? { backgroundImage: `url(${url})` } : undefined}
