@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { call, timeAgo, useProfile } from "@/community/chat";
 
-export const Avatar = ({ url, name, size = 9, online }: { url: string | null | undefined; name: string; size?: number; online?: boolean }) => (
+export const Avatar = ({ url, name, size = 9, online }: { url: string | null | undefined; name: string; size?: number | undefined; online?: boolean | undefined }) => (
   <span className="relative inline-grid shrink-0 place-items-center rounded-full bg-primary/10 font-display font-semibold text-primary" style={{ width: size * 4, height: size * 4, fontSize: size * 1.6 }}>
     <span className="grid size-full place-items-center overflow-hidden rounded-full">{url ? <img src={url} alt="" className="size-full object-cover" /> : name.slice(0, 1)}</span>
     {online ? <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-background bg-emerald-500" /> : null}

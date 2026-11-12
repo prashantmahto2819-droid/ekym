@@ -55,10 +55,10 @@ const moreNav: { key: TKey; to: string }[] = [
 export function Header() {
   const { data: org } = useSuspenseQuery(organizationQuery());
   const { user, isStaff, orgs } = useAuth();
-  const chatOn = !!user && orgs.length > 0 && moduleOn(tenant.branding, "community");
-  const unread = useChatUnread(chatOn);
   const { t, lang, setLang, loc } = useLang();
   const tenant = useTenant();
+  const chatOn = !!user && orgs.length > 0 && moduleOn(tenant.branding, "community");
+  const unread = useChatUnread(chatOn);
   const orgName = loc(org, "organization_name") || (lang === "hi" && tenant.name_hi) || tenant.name;
   const [open, setOpen] = useState(false);
   const menus = useQuery(menusQuery());
