@@ -12,14 +12,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { signedUrls } from "@/lib/images";
 
 import { DEFAULT_OPTS, FONTS, renderCard, SIZES, TEMPLATES, toJpg, toPdf, type CardData, type CardOpts, type FieldKey } from "./biodataCard";
+import { readExtra } from "./extraFields";
 
-type Mine = { id: string; display_name: string; gender: string; birth_year: number; height_cm: number | null; education: string | null; profession: string | null; income_range: string | null; city: string | null; district: string | null; gotra: string | null; native_place: string | null; created_for: string | null; interests: string | null; about: string | null; expectations: string | null; special_note: string | null; contact_phone: string | null; photo_path: string | null; photos: string[] | null; card: Partial<CardOpts> | null; share_token: string | null; share_mode: "off" | "members" | "link"; share_image: string | null; share_views: number; verified_at: string | null; status: string; org: string | null };
+type Mine = { id: string; display_name: string; gender: string; birth_year: number; height_cm: number | null; education: string | null; profession: string | null; income_range: string | null; city: string | null; district: string | null; gotra: string | null; native_place: string | null; created_for: string | null; interests: string | null; about: string | null; expectations: string | null; special_note: string | null; contact_phone: string | null; photo_path: string | null; photos: string[] | null; card: Partial<CardOpts> | null; share_token: string | null; share_mode: "off" | "members" | "link"; share_image: string | null; share_views: number; verified_at: string | null; status: string; org: string | null; extra_fields: unknown };
 const rpc = async <T,>(fn: string, args: Record<string, unknown>): Promise<T> => { const { data, error } = await supabase.rpc(fn as never, args as never); if (error) throw new Error(error.message); return data as T; };
 
 const FIELD_LABELS: [FieldKey, string, string][] = [
   ["age", "आयु", "Age"], ["height", "कद", "Height"], ["education", "शिक्षा", "Education"], ["profession", "व्यवसाय", "Profession"], ["income", "आय", "Income"],
   ["city", "निवास", "City"], ["gotra", "गोत्र", "Gotra"], ["native", "मूल ग्राम", "Native place"], ["created_for", "किसके लिए", "Profile for"],
-  ["interests", "रुचियाँ", "Interests"], ["about", "परिचय", "About"], ["expectations", "अपेक्षाएँ", "Expectations"], ["special_note", "विशेष", "Note"],
+  ["interests", "रुचियाँ", "Interests"], ["about", "परिचय", "About"], ["expectations", "अपेक्षाएँ", "Expectations"], ["special_note", "विशेष", "Note"], ["extra", "और जानकारी (बिंदुवार)", "More details"],
 ];
 const ACCENTS = ["", "#d4a64a", "#be123c", "#c2410c", "#15803d", "#1d4ed8", "#7c3aed", "#0f766e"];
 
@@ -48,7 +49,7 @@ export function CardDesigner({ profileId, L, onClose }: { profileId: string; L: 
   const data: CardData | null = p ? {
     name: p.display_name, gender: p.gender, birth_year: p.birth_year, height_cm: p.height_cm, education: p.education, profession: p.profession, income_range: p.income_range,
     city: p.city, district: p.district, gotra: p.gotra, native_place: p.native_place, created_for: p.created_for, interests: p.interests, about: p.about, expectations: p.expectations,
-    special_note: p.special_note, contact_phone: p.contact_phone, org: p.org, photos: paths.map((x) => urls.data?.[x] ?? "").filter(Boolean), qrUrl: shareUrl,
+    special_note: p.special_note, contact_phone: p.contact_phone, org: p.org, photos: paths.map((x) => urls.data?.[x] ?? "").filter(Boolean), qrUrl: shareUrl, extra: readExtra(p.extra_fields),
   } : null;
 
   // re-render the preview (debounced)
@@ -121,7 +122,7 @@ export function CardDesigner({ profileId, L, onClose }: { profileId: string; L: 
               {o.showContact ? <p className="rounded bg-amber-50 px-2 py-1 text-[11px] text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{L ? "ध्यान दें: कार्ड जिसके पास भी पहुँचेगा, वह नंबर देख लेगा।" : "Anyone who gets the card will see the number."}</p> : null}
               <section>
                 <p className="mb-1 font-semibold">{L ? "कार्ड पर क्या दिखे" : "Fields on the card"}</p>
-                <div className="grid grid-cols-2 gap-1 text-xs">{FIELD_LABELS.map(([k, hi, en]) => <label key={k} className="flex items-center gap-1"><input type="checkbox" checked={!!o.fields[k]} onChange={(e) => set("fields", { ...o.fields, [k]: e.target.checked })} /> {L ? hi : en}</label>)}</div>
+                <p className="mb-1 text-[11px] text-muted-foreground">{L ? "बहुत जानकारी हो तो \"मोबाइल / WhatsApp (लंबा)\" आकार चुनें — छोटे आकार में जो न समाए वह अपने-आप छूट जाता है।" : "With many details choose the tall phone size — what does not fit a smaller size is left out automatically."}</p><div className="grid grid-cols-2 gap-1 text-xs">{FIELD_LABELS.map(([k, hi, en]) => <label key={k} className="flex items-center gap-1"><input type="checkbox" checked={!!o.fields[k]} onChange={(e) => set("fields", { ...o.fields, [k]: e.target.checked })} /> {L ? hi : en}</label>)}</div>
               </section>
               <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "नीचे की पंक्ति (वैकल्पिक)" : "Footer line (optional)"}</span><Input value={o.footerNote ?? ""} onChange={(e) => set("footerNote", e.target.value)} placeholder="Kalchuri One · kalchuri.org" /></label>
               <Button variant="outline" size="sm" onClick={() => void saveDesign()}>{L ? "यह डिज़ाइन सहेजें" : "Save this design"}</Button>

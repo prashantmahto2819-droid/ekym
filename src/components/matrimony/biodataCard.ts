@@ -9,7 +9,9 @@ import QRCode from "qrcode";
 
 import { toDevanagari, toLatin } from "@/design-engine/script";
 
-export type FieldKey = "age" | "height" | "education" | "profession" | "income" | "city" | "gotra" | "native" | "created_for" | "interests" | "about" | "expectations" | "special_note";
+import { EXTRA_GROUPS, points, type ExtraField } from "./extraFields";
+
+export type FieldKey = "age" | "height" | "education" | "profession" | "income" | "city" | "gotra" | "native" | "created_for" | "interests" | "about" | "expectations" | "special_note" | "extra";
 export type FontKey = "rozha" | "tiro" | "yatra" | "kalam" | "notoserif" | "mukta";
 export type CardOpts = {
   template: string; accent?: string | undefined; lang: "hi" | "en"; headline?: string | undefined; invocation: boolean;
@@ -20,10 +22,10 @@ export type CardData = {
   name: string; gender: string; birth_year: number; height_cm: number | null; education: string | null; profession: string | null; income_range: string | null;
   city: string | null; district: string | null; gotra: string | null; native_place: string | null; created_for: string | null; interests: string | null;
   about: string | null; expectations: string | null; special_note: string | null; contact_phone: string | null; org: string | null;
-  photos: string[]; qrUrl: string | null;
+  photos: string[]; qrUrl: string | null; extra?: ExtraField[] | undefined;
 };
 
-export const DEFAULT_FIELDS: Record<FieldKey, boolean> = { age: true, height: true, education: true, profession: true, income: false, city: true, gotra: true, native: true, created_for: false, interests: true, about: true, expectations: true, special_note: false };
+export const DEFAULT_FIELDS: Record<FieldKey, boolean> = { age: true, height: true, education: true, profession: true, income: false, city: true, gotra: true, native: true, created_for: false, interests: true, about: true, expectations: true, special_note: false, extra: true };
 export const DEFAULT_OPTS: CardOpts = { template: "royal", lang: "hi", invocation: true, photoShape: "circle", fields: DEFAULT_FIELDS, extraPhotos: true, showContact: false, size: "story", font: "rozha" };
 
 type Tpl = {
@@ -327,6 +329,8 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
   if (F.created_for && d.created_for) cells.push({ k: L.created_for, v: d.created_for });
   if (F.interests && d.interests) cells.push({ k: L.interests, v: d.interests });
   if (o.showContact && d.contact_phone) cells.push({ k: L.contact, v: `+${d.contact_phone.replace(/\D/g, "")}` });
+  const panels: [string, Cell[]][] = [[L.details, cells]];
+  if (F.extra) for (const g of EXTRA_GROUPS) { const r = (d.extra ?? []).filter((x) => x.g === g.id); if (r.length) panels.push([hi ? g.hi : g.en, r.map((x) => ({ k: x.k, v: x.v }))]); }
   const paras: [string, string][] = [];
   if (F.about && d.about) paras.push([L.about, d.about]);
   if (F.expectations && d.expectations) paras.push([L.expectations, d.expectations]);
@@ -341,7 +345,7 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
     const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, "#fff1c4"); g.addColorStop(0.45, t.nameInk); g.addColorStop(1, mix(accent, "#000000", 0.15)); return g;
   };
 
-  function build(s: number, paraMax: number, withExtra: boolean): Block[] {
+  function build(s: number, paraMax: number, withExtra: boolean, nPanels = 99): Block[] {
     const B: Block[] = [];
     // invocation
     if (o.invocation) {
@@ -400,13 +404,13 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
       });
     } });
     // details panel: two columns, a value that needs more than two lines takes the full width
-    if (cells.length) {
+    for (const [ptitle, pcells] of panels.slice(0, nPanels)) if (pcells.length) {
       const pad = 34 * s, gap = 28 * s, colW = (CW - 2 * pad - gap) / 2, lfs = 25 * s, vfs = 33 * s, vlh = vfs * 1.32, headH = 58 * s;
       ctx.font = `600 ${vfs}px ${BODY}`;
       type Row = { cells: { c: Cell; lines: string[]; full: boolean }[]; h: number };
       const rows: Row[] = []; let pend: { c: Cell; lines: string[]; full: boolean } | null = null;
       const flush = () => { if (pend) { rows.push({ cells: [pend], h: lfs * 1.3 + pend.lines.length * vlh + 20 * s }); pend = null; } };
-      for (const cl of cells) {
+      for (const cl of pcells) {
         const half = wrap(ctx, cl.v, colW);
         if (half.length <= 2) {
           const item = { c: cl, lines: half, full: false };
@@ -415,15 +419,15 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
       }
       flush();
       const bodyH = rows.reduce((a, r) => a + r.h, 0);
-      B.push({ key: "details", h: headH + bodyH + 18 * s, draw: (y) => {
+      B.push({ key: `details-${ptitle}`, h: headH + bodyH + 18 * s, draw: (y) => {
         const ph = headH + bodyH + 18 * s;
         ctx.save(); ctx.shadowColor = t.dark ? "rgba(0,0,0,0.35)" : "rgba(120,70,30,0.12)"; ctx.shadowBlur = 24 * s; ctx.shadowOffsetY = 6 * s;
         rr(ctx, left, y, CW, ph, 26 * s); ctx.fillStyle = t.panel; ctx.fill(); ctx.restore();
         rr(ctx, left, y, CW, ph, 26 * s); ctx.strokeStyle = t.panelLine; ctx.lineWidth = 2; ctx.stroke();
         // header strip
         ctx.save(); rr(ctx, left, y, CW, ph, 26 * s); ctx.clip(); ctx.fillStyle = rgba(accent.startsWith("#") ? accent : "#888888", t.dark ? 0.22 : 0.1); ctx.fillRect(left, y, CW, headH); ctx.restore();
-        ctx.textAlign = "center"; ctx.fillStyle = t.dark ? t.nameInk : accent; ctx.font = `700 ${27 * s}px ${BODY}`; ctx.fillText(L.details, VW / 2, y + headH / 2 + 27 * s * 0.36);
-        const tw = ctx.measureText(L.details).width; ctx.fillStyle = accent;
+        ctx.textAlign = "center"; ctx.fillStyle = t.dark ? t.nameInk : accent; ctx.font = `700 ${27 * s}px ${BODY}`; ctx.fillText(ptitle, VW / 2, y + headH / 2 + 27 * s * 0.36);
+        const tw = ctx.measureText(ptitle).width; ctx.fillStyle = accent;
         for (const side of [-1, 1]) { const x = VW / 2 + side * (tw / 2 + 22 * s); ctx.beginPath(); ctx.moveTo(x, y + headH / 2 - 6 * s); ctx.lineTo(x + 6 * s, y + headH / 2); ctx.lineTo(x, y + headH / 2 + 6 * s); ctx.lineTo(x - 6 * s, y + headH / 2); ctx.closePath(); ctx.fill(); }
         let ry = y + headH + 4 * s;
         rows.forEach((r, ri) => {
@@ -439,16 +443,32 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
         });
       } });
     }
-    // paragraphs
+    // paragraphs (point-wise text becomes a bullet list)
     if (paraMax > 0) for (const [label, text] of paras) {
       const fs = 31 * s, lh = fs * 1.48, tfs = 29 * s, w = CW - 40 * s;
-      ctx.font = `400 ${fs}px ${BODY}`; const lines = clip(ctx, wrap(ctx, text, w), paraMax, w);
+      ctx.font = `400 ${fs}px ${BODY}`;
+      const pts = points(text);
+      type Ln = { t: string; bullet: boolean };
+      let lines: Ln[];
+      if (pts) {
+        lines = [];
+        for (const pt of pts) wrap(ctx, pt, w - 44 * s).forEach((t2, j) => lines.push({ t: t2, bullet: j === 0 }));
+        if (lines.length > paraMax + 2) { lines = lines.slice(0, paraMax + 2); lines[lines.length - 1]!.t += " …"; }
+      } else lines = clip(ctx, wrap(ctx, text, w), paraMax, w).map((t2) => ({ t: t2, bullet: false }));
+      const bw = pts ? Math.min(w, Math.max(...lines.map((l) => ctx.measureText(l.t).width)) + 44 * s) : 0;
       B.push({ key: `p-${label}`, h: tfs * 1.6 + lines.length * lh, draw: (y) => {
         ctx.textAlign = "center"; ctx.fillStyle = t.dark ? t.nameInk : accent; ctx.font = `700 ${tfs}px ${BODY}`; ctx.fillText(label, VW / 2, y + tfs);
         const tw = ctx.measureText(label).width; ctx.strokeStyle = accent; ctx.lineWidth = 1.5;
         for (const side of [-1, 1]) { ctx.beginPath(); ctx.moveTo(VW / 2 + side * (tw / 2 + 14 * s), y + tfs * 0.65); ctx.lineTo(VW / 2 + side * (tw / 2 + 90 * s), y + tfs * 0.65); ctx.stroke(); ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(VW / 2 + side * (tw / 2 + 96 * s), y + tfs * 0.65, 3.5 * s, 0, Math.PI * 2); ctx.fill(); }
-        ctx.fillStyle = t.ink; ctx.font = `400 ${fs}px ${BODY}`;
-        lines.forEach((ln, j) => ctx.fillText(ln, VW / 2, y + tfs * 1.6 + fs + j * lh));
+        ctx.font = `400 ${fs}px ${BODY}`;
+        const x0 = VW / 2 - bw / 2;
+        lines.forEach((ln, j) => {
+          const by = y + tfs * 1.6 + fs + j * lh;
+          if (pts) {
+            if (ln.bullet) { ctx.fillStyle = accent; ctx.beginPath(); ctx.moveTo(x0 + 10 * s, by - fs * 0.42); ctx.lineTo(x0 + 18 * s, by - fs * 0.3); ctx.lineTo(x0 + 10 * s, by - fs * 0.18); ctx.lineTo(x0 + 2 * s, by - fs * 0.3); ctx.closePath(); ctx.fill(); }
+            ctx.textAlign = "left"; ctx.fillStyle = t.ink; ctx.fillText(ln.t, x0 + 44 * s, by);
+          } else { ctx.textAlign = "center"; ctx.fillStyle = t.ink; ctx.fillText(ln.t, VW / 2, by); }
+        });
       } });
     }
     // extra photos
@@ -492,17 +512,17 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
   const avail = (s: number) => bottom - top - footer(s).h - 24 * s;
   const minGap = (s: number) => 22 * s;
   let chosen: { s: number; B: Block[] } | null = null;
-  outer: for (const [paraMax, extra] of [[6, true], [4, true], [3, true], [2, true], [2, false], [0, false]] as const) {
-    for (let s = 1.25; s >= 0.66; s -= 0.02) {
-      const B = build(s, paraMax, extra); const tot = B.reduce((a, b) => a + b.h, 0) + minGap(s) * (B.length - 1);
+  outer: for (const [paraMax, extra, np] of [[6, true, 99], [4, true, 99], [3, true, 99], [2, false, 99], [0, false, 99], [0, false, 2], [0, false, 1]] as const) {
+    for (let s = 1.25; s >= 0.62; s -= 0.02) {
+      const B = build(s, paraMax, extra, np); const tot = B.reduce((a, b) => a + b.h, 0) + minGap(s) * (B.length - 1);
       if (tot <= avail(s)) { chosen = { s, B }; break outer; }
     }
   }
-  if (!chosen) { const s = 0.66; chosen = { s, B: build(s, 0, false) }; }
+  if (!chosen) { const s = 0.62; chosen = { s, B: build(s, 0, false, 1) }; }
   const { s, B } = chosen;
   const tot = B.reduce((a, b) => a + b.h, 0);
   const free = avail(s) - tot;
-  const gap = Math.min(free / Math.max(1, B.length - 1), 70 * s);
+  const gap = Math.max(minGap(s), Math.min(free / Math.max(1, B.length - 1), 70 * s));
   let y = top + Math.max(0, (free - gap * (B.length - 1)) / 2) * 0.6;
 
   // decorations under the text
