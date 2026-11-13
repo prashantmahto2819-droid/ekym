@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { submitBookDonation, type BookDonationInput } from "@/lib/forms.functions";
 import { libraryQuery } from "@/lib/queries";
+import { useFt } from "@/core/formText";
 
 export const Route = createFileRoute("/library")({
   loader: ({ context }) => context.queryClient.ensureQueryData(libraryQuery()),
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/library")({
 });
 
 function LibraryPage() {
+  const t = useFt();
   const { data } = useSuspenseQuery(libraryQuery());
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<string>("");
@@ -44,8 +46,8 @@ function LibraryPage() {
   return (
     <>
       <PageHeader
-        title="Community library"
-        description="A free reading room and lending library for students in our area."
+        title={t("Community library")}
+        description={t("A free reading room and lending library for students in our area.")}
         crumbs={[{ label: "Library" }]}
       />
 
@@ -53,15 +55,15 @@ function LibraryPage() {
         <div className="container-page">
           <SectionHeading
             eyebrow={`${data.books.length} titles`}
-            title="Browse the catalogue"
+            title={t("Browse the catalogue")}
             subtitle="Search by title, author, subject or language. Come to the library to borrow."
           />
           <div className="mb-6 flex flex-col gap-3">
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search books"
-              aria-label="Search books"
+              placeholder={t("Search books")}
+              aria-label={t("Search books")}
               className="max-w-md"
             />
             <div className="flex flex-wrap gap-2">
@@ -72,7 +74,7 @@ function LibraryPage() {
                   !category ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-secondary"
                 }`}
               >
-                All
+                {t("All")}
               </button>
               {data.categories.map((c: any) => (
                 <button
@@ -112,7 +114,7 @@ function LibraryPage() {
                       variant={b.available_quantity > 0 ? "secondary" : "outline"}
                       className="mt-2"
                     >
-                      {b.available_quantity > 0 ? `${b.available_quantity} available` : "On loan"}
+                      {b.available_quantity > 0 ? t("{n} available").replace("{n}", String(b.available_quantity)) : t("On loan")}
                     </Badge>
                   </div>
                 </article>
@@ -120,7 +122,7 @@ function LibraryPage() {
             </div>
           ) : (
             <p className="text-muted-foreground">
-              No books match this search yet. Our catalogue is growing every week.
+              {t("No books match this search yet. Our catalogue is growing every week.")}
             </p>
           )}
         </div>
@@ -130,7 +132,7 @@ function LibraryPage() {
         <div className="container-page max-w-3xl">
           <SectionHeading
             eyebrow="Book donation"
-            title="Donate books to the library"
+            title={t("Donate books to the library")}
             subtitle="Textbooks, competitive exam guides, children's books and general reading are all welcome."
           />
           <BookDonationForm />
@@ -141,6 +143,7 @@ function LibraryPage() {
 }
 
 function BookDonationForm() {
+  const t = useFt();
   const [sent, setSent] = useState(false);
   const [pickup, setPickup] = useState(false);
   const form = useForm<BookDonationInput>();
@@ -156,7 +159,7 @@ function BookDonationForm() {
     try {
       await submitBookDonation({ data: { ...values, pickup_required: pickup } });
       setSent(true);
-      toast.success("Thank you. We will contact you about collection.");
+      toast.success(t("Thank you. We will contact you about collection."));
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Could not submit your offer";
       setFormError(msg);
@@ -167,47 +170,47 @@ function BookDonationForm() {
   if (sent) {
     return (
       <FormSuccess
-        title="Book donation received"
-        text="Our library team will contact you to arrange collection or a drop-off point."
+        title={t("Book donation received")}
+        text={t("Our library team will contact you to arrange collection or a drop-off point.")}
       />
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="surface-card grid gap-4 p-6 sm:grid-cols-2">
-      <Field label="Your name" required error={errors.donor_name?.message}>
+      <Field label={t("Your name")} required error={errors.donor_name?.message}>
         <Input {...register("donor_name", { required: "Please enter your name" })} />
       </Field>
-      <Field label="Mobile" required error={errors.mobile?.message}>
+      <Field label={t("Mobile")} required error={errors.mobile?.message}>
         <Input type="tel" {...register("mobile", { required: "Mobile number is required" })} />
       </Field>
-      <Field label="WhatsApp" error={errors.whatsapp?.message}>
+      <Field label={t("WhatsApp")} error={errors.whatsapp?.message}>
         <Input type="tel" {...register("whatsapp")} />
       </Field>
-      <Field label="Email" error={errors.email?.message}>
+      <Field label={t("Email")} error={errors.email?.message}>
         <Input type="email" {...register("email")} />
       </Field>
-      <Field label="Approximate number of books" error={errors.book_count?.message}>
+      <Field label={t("Approximate number of books")} error={errors.book_count?.message}>
         <Input type="number" {...register("book_count")} />
       </Field>
-      <Field label="Condition" hint="new, good, usable" error={errors.condition?.message}>
+      <Field label={t("Condition")} hint={t("new, good, usable")} error={errors.condition?.message}>
         <Input {...register("condition")} />
       </Field>
       <LocationFields form={form} />
-      <Field label="Pincode" error={errors.pincode?.message}>
-        <Input {...register("pincode")} />
+      <Field label={t("Pincode")} error={errors.pincode?.message}>
+        <Input inputMode="numeric" maxLength={6} {...register("pincode")} />
       </Field>
-      <Field label="Address" className="sm:col-span-2" error={errors.address?.message}>
+      <Field label={t("Address")} className="sm:col-span-2" error={errors.address?.message}>
         <Textarea rows={2} {...register("address")} />
       </Field>
-      <Field label="Preferred date" error={errors.preferred_date?.message}>
+      <Field label={t("Preferred date")} error={errors.preferred_date?.message}>
         <Input type="date" {...register("preferred_date")} />
       </Field>
       <label className="flex items-center gap-3 self-end text-sm">
         <Checkbox checked={pickup} onCheckedChange={(v) => setPickup(v === true)} />
-        <span className="text-muted-foreground">I need pickup from my address</span>
+        <span className="text-muted-foreground">{t("I need pickup from my address")}</span>
       </label>
-      <Field label="What kind of books?" className="sm:col-span-2" error={errors.description?.message}>
+      <Field label={t("What kind of books?")} className="sm:col-span-2" error={errors.description?.message}>
         <Textarea rows={3} {...register("description")} />
       </Field>
       <div className="sm:col-span-2">
@@ -217,7 +220,7 @@ function BookDonationForm() {
       </div>
       <div className="sm:col-span-2">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting…" : "Submit book donation"}
+          {isSubmitting ? t("Submitting…") : t("Submit book donation")}
         </Button>
       </div>
     </form>

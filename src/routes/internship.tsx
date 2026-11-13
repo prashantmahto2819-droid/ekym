@@ -143,7 +143,12 @@ function InternshipPage() {
                 <Input type="date" {...register("dob")} />
               </Field>
               <Field label="Gender" error={errors.gender?.message}>
-                <Input {...register("gender")} />
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {...register("gender")}>
+                  <option value="">{hi ? "— चुनें —" : "— choose —"}</option>
+                  <option value="male">{hi ? "पुरुष" : "Male"}</option>
+                  <option value="female">{hi ? "महिला" : "Female"}</option>
+                  <option value="other">{hi ? "अन्य" : "Other"}</option>
+                </select>
               </Field>
               <Field label="College / University" error={errors.college?.message}>
                 <Input {...register("college")} />

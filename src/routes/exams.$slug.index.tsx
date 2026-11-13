@@ -1,7 +1,7 @@
 // Exam detail: rules, dates, categories, registration (child-safe), leaderboard when results are out.
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { RichText } from "@/components/site/Blocks";
@@ -10,14 +10,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { placeName } from "@/core/formText";
 import { useLang } from "@/core/i18n";
 import { pageMeta } from "@/core/seo";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { CHHATTISGARH_DISTRICTS } from "@/lib/locations";
 import { dt, STATUS_HI, useExamList, useMyRegs } from "./exams.index";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const SEL = "h-9 w-full rounded-md border border-input bg-background px-2 text-sm";
+const CLASSES: [string, string, string][] = [
+  ...Array.from({ length: 12 }, (_, i) => [String(i + 1), `कक्षा ${i + 1}`, `Class ${i + 1}`] as [string, string, string]),
+  ["UG", "स्नातक (कॉलेज)", "Graduation"], ["PG", "स्नातकोत्तर", "Post-graduation"], ["Other", "अन्य", "Other"],
+];
+
+/** Label above a form control; "*" for required fields. */
+function Lbl({ t, req, children }: { t: string; req?: boolean; children: ReactNode }) {
+  return <label className="block text-xs font-medium text-muted-foreground"><span className="mb-0.5 block">{t}{req ? <span className="text-destructive"> *</span> : null}</span>{children}</label>;
+}
 
 export const Route = createFileRoute("/exams/$slug/")({
   head: ({ matches, params }) => pageMeta(matches, { en: `Exam ${params.slug}`, hi: `परीक्षा ${params.slug}` }),
@@ -51,6 +63,8 @@ function ExamPage() {
   async function register() {
     if (!e) return;
     if (cats.data?.length && !f.category) { toast.error(hi ? "श्रेणी / कक्षा चुनें" : "Choose a category"); return; }
+    if (f.student.trim().length < 2) { toast.error(hi ? "विद्यार्थी का नाम लिखें" : "Enter the student's name"); return; }
+    if (!f.dob) { toast.error(hi ? "जन्म तिथि चुनें" : "Choose the date of birth"); return; }
     if (!f.blood) { toast.error(hi ? "रक्त समूह चुनें (पता न हो तो \"पता नहीं\")" : "Choose the blood group (or \"Don't know\")"); return; }
     setBusy(true);
     try {
@@ -101,34 +115,40 @@ function ExamPage() {
               : (
                 <div className="surface-card space-y-2 p-4 text-sm">
                   <p className="font-semibold">{hi ? "विद्यार्थी का पंजीयन" : "Student registration"}</p>
-                  {cats.data?.length ? <select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f.category} onChange={(ev) => setF({ ...f, category: ev.target.value })}><option value="">{hi ? "— श्रेणी / कक्षा —" : "— category —"}</option>{cats.data.map((c) => <option key={c.id} value={c.id}>{(hi && c.name_hi) || c.name}</option>)}</select> : null}
-                  <Input placeholder={hi ? "विद्यार्थी का नाम (English)" : "Student name (English)"} value={f.student} onChange={(ev) => setF({ ...f, student: ev.target.value })} />
-                  <Input placeholder="नाम (हिंदी)" value={f.student_hi} onChange={(ev) => setF({ ...f, student_hi: ev.target.value })} />
-                  <label className="block text-xs text-muted-foreground">{hi ? "जन्म तिथि" : "Date of birth"}<Input type="date" value={f.dob} onChange={(ev) => setF({ ...f, dob: ev.target.value })} /></label>
+                  <p className="text-xs text-muted-foreground">{hi ? "* वाले खाने ज़रूरी हैं।" : "Fields marked * are required."}</p>
+                  {cats.data?.length ? <Lbl t={hi ? "श्रेणी / कक्षा वर्ग" : "Category"} req><select className={SEL} value={f.category} onChange={(ev) => setF({ ...f, category: ev.target.value })}><option value="">{hi ? "— चुनें —" : "— choose —"}</option>{cats.data.map((c) => <option key={c.id} value={c.id}>{(hi && c.name_hi) || c.name}</option>)}</select></Lbl> : null}
+                  <Lbl t={hi ? "विद्यार्थी का नाम (अंग्रेज़ी में)" : "Student name (in English)"} req><Input value={f.student} autoComplete="name" onChange={(ev) => setF({ ...f, student: ev.target.value })} placeholder="Rahul Kumar" /></Lbl>
+                  <Lbl t={hi ? "विद्यार्थी का नाम (हिंदी में)" : "Student name (in Hindi)"}><Input value={f.student_hi} onChange={(ev) => setF({ ...f, student_hi: ev.target.value })} placeholder="राहुल कुमार" /></Lbl>
                   <div className="grid grid-cols-2 gap-2">
-                    <select className="h-9 rounded-md border border-input bg-background px-2" value={f.gender} onChange={(ev) => setF({ ...f, gender: ev.target.value })}><option value="">{hi ? "लिंग" : "Gender"}</option><option value="male">{hi ? "छात्र" : "Male"}</option><option value="female">{hi ? "छात्रा" : "Female"}</option></select>
-                    <Input placeholder={hi ? "कक्षा" : "Class"} value={f.class_level} onChange={(ev) => setF({ ...f, class_level: ev.target.value })} />
+                    <Lbl t={hi ? "जन्म तिथि" : "Date of birth"} req><Input type="date" value={f.dob} max={new Date().toISOString().slice(0, 10)} onChange={(ev) => setF({ ...f, dob: ev.target.value })} /></Lbl>
+                    <Lbl t={hi ? "लिंग" : "Gender"}><select className={SEL} value={f.gender} onChange={(ev) => setF({ ...f, gender: ev.target.value })}><option value="">{hi ? "— चुनें —" : "— choose —"}</option><option value="male">{hi ? "छात्र" : "Male"}</option><option value="female">{hi ? "छात्रा" : "Female"}</option><option value="other">{hi ? "अन्य" : "Other"}</option></select></Lbl>
                   </div>
-                  <label className="block text-xs text-muted-foreground">{hi ? "रक्त समूह (ज़रूरी)" : "Blood group (required)"}
-                    <select required className={`mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm text-foreground ${f.blood ? "border-input" : "border-amber-500"}`} value={f.blood} onChange={(ev) => setF({ ...f, blood: ev.target.value })}>
-                      <option value="">{hi ? "— रक्त समूह चुनें —" : "— choose blood group —"}</option>
-                      {BLOOD_GROUPS.map((b) => <option key={b} value={b}>{b}</option>)}
-                      <option value="unknown">{hi ? "पता नहीं" : "Don't know"}</option>
-                    </select>
-                  </label>
-                  <Input placeholder={hi ? "स्कूल / कॉलेज" : "School / college"} value={f.school} onChange={(ev) => setF({ ...f, school: ev.target.value })} />
-                  <div className="grid grid-cols-2 gap-2"><Input placeholder={hi ? "शहर / गाँव" : "City"} value={f.city} onChange={(ev) => setF({ ...f, city: ev.target.value })} /><Input placeholder={hi ? "ज़िला" : "District"} value={f.district} onChange={(ev) => setF({ ...f, district: ev.target.value })} /></div>
-                  {orgs.data?.length ? <select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f.org} onChange={(ev) => setF({ ...f, org: ev.target.value })}><option value="">{hi ? "— किस समाज/संस्था से —" : "— organization —"}</option>{orgs.data.map((o) => <option key={o.id} value={o.id}>{(hi && o.name_hi) || o.name}</option>)}</select> : null}
                   <div className="grid grid-cols-2 gap-2">
-                    <select className="h-9 rounded-md border border-input bg-background px-2" value={f.lang} onChange={(ev) => setF({ ...f, lang: ev.target.value })}>{e.languages.map((l) => <option key={l} value={l}>{l === "hi" ? "हिंदी" : "English"}</option>)}</select>
-                    <Input placeholder={hi ? "मोबाइल" : "Mobile"} value={f.mobile} onChange={(ev) => setF({ ...f, mobile: ev.target.value })} />
+                    <Lbl t={hi ? "कक्षा" : "Class"}><select className={SEL} value={f.class_level} onChange={(ev) => setF({ ...f, class_level: ev.target.value })}><option value="">{hi ? "— चुनें —" : "— choose —"}</option>{CLASSES.map(([v, h2, en]) => <option key={v} value={v}>{hi ? h2 : en}</option>)}</select></Lbl>
+                    <Lbl t={hi ? "रक्त समूह" : "Blood group"} req>
+                      <select className={`${SEL} ${f.blood ? "" : "border-amber-500"}`} value={f.blood} onChange={(ev) => setF({ ...f, blood: ev.target.value })}>
+                        <option value="">{hi ? "— चुनें —" : "— choose —"}</option>
+                        {BLOOD_GROUPS.map((b) => <option key={b} value={b}>{b}</option>)}
+                        <option value="unknown">{hi ? "पता नहीं" : "Don't know"}</option>
+                      </select>
+                    </Lbl>
+                  </div>
+                  <Lbl t={hi ? "स्कूल / कॉलेज का नाम" : "School / college"}><Input value={f.school} onChange={(ev) => setF({ ...f, school: ev.target.value })} /></Lbl>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Lbl t={hi ? "शहर / गाँव" : "City / village"}><Input value={f.city} onChange={(ev) => setF({ ...f, city: ev.target.value })} /></Lbl>
+                    <Lbl t={hi ? "ज़िला" : "District"}><Input value={f.district} list="ex-districts" onChange={(ev) => setF({ ...f, district: ev.target.value })} /><datalist id="ex-districts">{CHHATTISGARH_DISTRICTS.map((d) => <option key={d} value={placeName(d, hi)} />)}</datalist></Lbl>
+                  </div>
+                  {orgs.data?.length ? <Lbl t={hi ? "किस समाज / संस्था से" : "Organization"}><select className={SEL} value={f.org} onChange={(ev) => setF({ ...f, org: ev.target.value })}><option value="">{hi ? "— चुनें —" : "— choose —"}</option>{orgs.data.map((o) => <option key={o.id} value={o.id}>{(hi && o.name_hi) || o.name}</option>)}</select></Lbl> : null}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Lbl t={hi ? "परीक्षा की भाषा" : "Exam language"}><select className={SEL} value={f.lang} onChange={(ev) => setF({ ...f, lang: ev.target.value })}>{e.languages.map((l) => <option key={l} value={l}>{l === "hi" ? "हिंदी" : "English"}</option>)}</select></Lbl>
+                    <Lbl t={hi ? "मोबाइल (WhatsApp)" : "Mobile (WhatsApp)"}><Input type="tel" inputMode="numeric" maxLength={13} autoComplete="tel" value={f.mobile} onChange={(ev) => setF({ ...f, mobile: ev.target.value })} placeholder="98XXXXXXXX" /></Lbl>
                   </div>
                   {minor ? (
-                    <div className="rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900">
+                    <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
                       <p className="text-xs font-semibold">{hi ? "18 वर्ष से कम — अभिभावक की जानकारी ज़रूरी" : "Under 18 — parent/guardian details required"}</p>
-                      <Input className="mt-1" placeholder={hi ? "अभिभावक का नाम" : "Parent / guardian name"} value={f.parent_name} onChange={(ev) => setF({ ...f, parent_name: ev.target.value })} />
-                      <Input className="mt-1" placeholder={hi ? "अभिभावक का मोबाइल (WhatsApp)" : "Parent mobile (WhatsApp)"} value={f.parent_mobile} onChange={(ev) => setF({ ...f, parent_mobile: ev.target.value })} />
-                      <label className="mt-2 flex items-start gap-2 text-xs"><Checkbox checked={f.consent} onCheckedChange={(v) => setF({ ...f, consent: v === true })} /> <span>{hi ? "मैं अभिभावक हूँ और इस विद्यार्थी के पंजीयन, परीक्षा और परिणाम (नाम, स्कूल, कक्षा मेरिट सूची में) प्रकाशित होने की सहमति देता/देती हूँ। विद्यार्थी की जानकारी केवल परीक्षा के लिए रखी जाएगी।" : "I am the parent/guardian and consent to this student's registration, exam and publication of results (name, school, class in the merit list). Data is kept only for the exam."}</span></label>
+                      <Lbl t={hi ? "अभिभावक का नाम" : "Parent / guardian name"} req><Input value={f.parent_name} onChange={(ev) => setF({ ...f, parent_name: ev.target.value })} /></Lbl>
+                      <Lbl t={hi ? "अभिभावक का मोबाइल (WhatsApp)" : "Parent mobile (WhatsApp)"} req><Input type="tel" inputMode="numeric" maxLength={13} value={f.parent_mobile} onChange={(ev) => setF({ ...f, parent_mobile: ev.target.value })} placeholder="98XXXXXXXX" /></Lbl>
+                      <label className="flex items-start gap-2 text-xs"><Checkbox checked={f.consent} onCheckedChange={(v) => setF({ ...f, consent: v === true })} /> <span>{hi ? "मैं अभिभावक हूँ और इस विद्यार्थी के पंजीयन, परीक्षा और परिणाम (नाम, स्कूल, कक्षा मेरिट सूची में) प्रकाशित होने की सहमति देता/देती हूँ। विद्यार्थी की जानकारी केवल परीक्षा के लिए रखी जाएगी।" : "I am the parent/guardian and consent to this student's registration, exam and publication of results (name, school, class in the merit list). Data is kept only for the exam."}</span></label>
                     </div>
                   ) : null}
                   <div className="flex gap-2"><Button onClick={register} disabled={busy}>{hi ? "पंजीयन करें" : "Register"}</Button><Button variant="ghost" onClick={() => setOpen(false)}>{hi ? "रद्द" : "Cancel"}</Button></div>

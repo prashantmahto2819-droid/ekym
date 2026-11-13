@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { call, uploadCommunityImage, useProfile, type Profile } from "@/community/chat";
+import { placeName } from "@/core/formText";
 import { useLang } from "@/core/i18n";
+import { CHHATTISGARH, CHHATTISGARH_DISTRICTS, INDIAN_STATES } from "@/lib/locations";
 import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -93,8 +95,8 @@ function EditProfile() {
             <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपने बारे में" : "About you"}</span><Textarea value={f.bio} onChange={(e) => set("bio", e.target.value)} rows={3} maxLength={1000} placeholder={L ? "परिचय, रुचियाँ, समाज के लिए क्या करते हैं…" : "Introduction, interests, what you do for the community…"} /></label>
             <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "कार्य / व्यवसाय" : "Work"}</span><Input value={f.occupation} onChange={(e) => set("occupation", e.target.value)} /></label>
             <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "गाँव / शहर" : "Village / city"}</span><Input value={f.village} onChange={(e) => set("village", e.target.value)} /></label>
-            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "ज़िला" : "District"}</span><Input value={f.district} onChange={(e) => set("district", e.target.value)} /></label>
-            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "राज्य" : "State"}</span><Input value={f.state} onChange={(e) => set("state", e.target.value)} /></label>
+            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "ज़िला" : "District"}</span><Input value={f.district} list="me-districts" onChange={(e) => set("district", e.target.value)} /><datalist id="me-districts">{(f.state === CHHATTISGARH || !f.state ? CHHATTISGARH_DISTRICTS : []).map((d) => <option key={d} value={placeName(d, L)} />)}</datalist></label>
+            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "राज्य" : "State"}</span><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={f.state} onChange={(e) => set("state", e.target.value)}><option value="">{L ? "— राज्य चुनें —" : "— choose state —"}</option>{f.state && !(INDIAN_STATES as readonly string[]).includes(f.state) ? <option value={f.state}>{f.state}</option> : null}{INDIAN_STATES.map((st) => <option key={st} value={st}>{placeName(st, L)}</option>)}</select></label>
             <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "रुचियाँ (कॉमा से अलग)" : "Interests (comma separated)"}</span><Input value={f.interests} onChange={(e) => set("interests", e.target.value)} placeholder={L ? "समाज सेवा, संगीत, खेती…" : "Social work, music, farming…"} /></label>
             {(["facebook", "instagram", "youtube", "website"] as const).map((k) => <label key={k} className="text-sm"><span className="mb-1 block text-xs capitalize text-muted-foreground">{k}</span><Input value={f.links[k] ?? ""} onChange={(e) => set("links", { ...f.links, [k]: e.target.value })} placeholder="https://…" /></label>)}
           </div>

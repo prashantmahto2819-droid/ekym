@@ -30,6 +30,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { embedUrl, formatCurrency, formatDate, telHref, whatsappHref } from "@/lib/format";
+import { useFt } from "@/core/formText";
 
 /* ------------------------------ HERO ------------------------------ */
 
@@ -285,6 +286,8 @@ export function BloodRequirementSection({
 }
 
 export function BloodRequirementCard({ requirement: r }: { requirement: any }) {
+  const t = useFt();
+  const hi = useLang().lang === "hi";
   const urgencyTone =
     r.urgency === "critical"
       ? "bg-blood text-blood-foreground"
@@ -297,10 +300,10 @@ export function BloodRequirementCard({ requirement: r }: { requirement: any }) {
         <span className="bg-blood-soft text-blood flex size-12 items-center justify-center rounded-lg font-display text-base font-bold">
           {r.blood_group}
         </span>
-        <Badge className={urgencyTone}>{r.urgency}</Badge>
+        <Badge className={urgencyTone}>{t(r.urgency)}</Badge>
       </div>
       <h3 className="mt-4 font-display text-base font-semibold">
-        {r.units_required} unit{r.units_required > 1 ? "s" : ""} · {r.component}
+        {hi ? `${r.units_required} यूनिट` : `${r.units_required} unit${r.units_required > 1 ? "s" : ""}`} · {t(r.component)}
       </h3>
       <p className="mt-1 text-sm text-muted-foreground">{r.hospital}</p>
       <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
@@ -308,13 +311,13 @@ export function BloodRequirementCard({ requirement: r }: { requirement: any }) {
         {[r.city, r.district, r.state].filter(Boolean).join(", ")}
       </p>
       {r.required_date ? (
-        <p className="mt-1 text-xs text-muted-foreground">Needed by {formatDate(r.required_date)}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{hi ? "कब तक: " : "Needed by "}{formatDate(r.required_date)}</p>
       ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
         {r.requester_mobile ? (
           <Button asChild size="sm" variant="outline">
             <a href={telHref(r.requester_mobile)}>
-              <Phone className="size-4" /> Call
+              <Phone className="size-4" /> {hi ? "फ़ोन करें" : "Call"}
             </a>
           </Button>
         ) : null}

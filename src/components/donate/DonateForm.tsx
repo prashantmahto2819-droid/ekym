@@ -16,6 +16,7 @@ import {
   type StartDonationInput,
 } from "@/lib/donations.functions";
 import { formatCurrency } from "@/lib/format";
+import { useFt } from "@/core/formText";
 
 const TYPES: { value: string; label: string }[] = [
   { value: "general", label: "General donation" },
@@ -85,6 +86,7 @@ export function DonateForm({
   orgName?: string;
   compact?: boolean;
 }) {
+  const t = useFt();
   const [busy, setBusy] = useState(false);
   const [paid, setPaid] = useState<Paid | null>(null);
   const [anonymous, setAnonymous] = useState(false);
@@ -145,7 +147,7 @@ export function DonateForm({
           try {
             const result = await verifyDonationPayment({ data: response });
             if (result.status !== "PAID") {
-              toast.error("Payment was not successful. Please try again.");
+              toast.error(t("Payment was not successful. Please try again."));
               setBusy(false);
               return;
             }
@@ -156,7 +158,7 @@ export function DonateForm({
               receiptUrl: result.receiptUrl,
               verificationCode: result.verificationCode,
             });
-            toast.success("Thank you. Your receipt is ready.");
+            toast.success(t("Thank you. Your receipt is ready."));
           } catch (e) {
             toast.error(
               e instanceof Error
@@ -185,10 +187,10 @@ export function DonateForm({
         </h3>
         <dl className="mt-3 space-y-1 text-sm text-muted-foreground">
           <div>
-            Donation ID: <span className="font-medium text-foreground">{paid.donationId}</span>
+            {t("Donation ID:")} <span className="font-medium text-foreground">{paid.donationId}</span>
           </div>
           <div>
-            Receipt No: <span className="font-medium text-foreground">{paid.receiptNumber}</span>
+            {t("Receipt No:")} <span className="font-medium text-foreground">{paid.receiptNumber}</span>
           </div>
         </dl>
         <div className="mt-5 flex flex-wrap gap-2">
@@ -201,7 +203,7 @@ export function DonateForm({
           ) : null}
           <Button asChild variant="outline">
             <Link to="/verify/receipt/$code" params={{ code: paid.verificationCode }}>
-              Verify receipt
+              {t("Verify receipt")}
             </Link>
           </Button>
         </div>
@@ -212,7 +214,7 @@ export function DonateForm({
   return (
     <form onSubmit={onSubmit} className="surface-card grid gap-4 p-6 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <p className="mb-2 text-sm font-medium">Choose an amount</p>
+        <p className="mb-2 text-sm font-medium">{t("Choose an amount")}</p>
         <div className="flex flex-wrap gap-2">
           {suggested.map((a) => (
             <button
@@ -231,7 +233,7 @@ export function DonateForm({
         </div>
       </div>
 
-      <Field label="Amount (INR)" required error={errors.amount?.message}>
+      <Field label={t("Amount (INR)")} required error={errors.amount?.message}>
         <Input
           type="number"
           min={1}
@@ -241,46 +243,46 @@ export function DonateForm({
       </Field>
 
       {campaignSlug ? null : (
-        <Field label="Donation for" error={errors.donation_type?.message}>
+        <Field label={t("Donation for")} error={errors.donation_type?.message}>
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             {...register("donation_type")}
           >
-            {TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {TYPES.map((ty) => (
+              <option key={ty.value} value={ty.value}>
+                {t(ty.label)}
               </option>
             ))}
           </select>
         </Field>
       )}
 
-      <Field label="Your name" required error={errors.donor_name?.message}>
+      <Field label={t("Your name")} required error={errors.donor_name?.message}>
         <Input {...register("donor_name", { required: "Please enter your name" })} />
       </Field>
-      <Field label="Mobile" required error={errors.donor_mobile?.message}>
+      <Field label={t("Mobile")} required error={errors.donor_mobile?.message}>
         <Input type="tel" {...register("donor_mobile", { required: "Mobile number is required" })} />
       </Field>
-      <Field label="Email" hint="Receipt is also shown on screen" error={errors.donor_email?.message}>
+      <Field label={t("Email")} hint={t("Receipt is also shown on screen")} error={errors.donor_email?.message}>
         <Input type="email" {...register("donor_email")} />
       </Field>
-      <Field label="WhatsApp" error={errors.donor_whatsapp?.message}>
+      <Field label={t("WhatsApp")} error={errors.donor_whatsapp?.message}>
         <Input type="tel" {...register("donor_whatsapp")} />
       </Field>
-      <Field label="PAN" hint="Needed for tax exemption receipts" error={errors.pan?.message}>
+      <Field label={t("PAN")} hint={t("Needed for tax exemption receipts")} error={errors.pan?.message}>
         <Input {...register("pan")} />
       </Field>
 
       {compact ? null : (
         <>
           <LocationFields form={form} includeDistrict={false} />
-          <Field label="Pincode" error={errors.pincode?.message}>
-            <Input {...register("pincode")} />
+          <Field label={t("Pincode")} error={errors.pincode?.message}>
+            <Input inputMode="numeric" maxLength={6} {...register("pincode")} />
           </Field>
-          <Field label="Address" className="sm:col-span-2" error={errors.address?.message}>
+          <Field label={t("Address")} className="sm:col-span-2" error={errors.address?.message}>
             <Textarea rows={2} {...register("address")} />
           </Field>
-          <Field label="Message (optional)" className="sm:col-span-2">
+          <Field label={t("Message (optional)")} className="sm:col-span-2">
             <Textarea rows={2} {...register("message")} />
           </Field>
         </>
@@ -288,7 +290,7 @@ export function DonateForm({
 
       <label className="flex items-center gap-3 text-sm sm:col-span-2">
         <Checkbox checked={anonymous} onCheckedChange={(v) => setAnonymous(v === true)} />
-        <span className="text-muted-foreground">Do not show my name publicly</span>
+        <span className="text-muted-foreground">{t("Do not show my name publicly")}</span>
       </label>
 
       <div className="sm:col-span-2">

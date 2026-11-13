@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { donationStatus } from "@/lib/donations.functions";
 import { formatCurrency, formatDateTime } from "@/lib/format";
+import { useFt } from "@/core/formText";
 
 export const Route = createFileRoute("/donation-status")({
   head: ({ matches }) => pageMeta(matches, { en: "Donation status", hi: "दान की स्थिति" }, { en: "Look up a donation by its ID and download the receipt.", hi: "दान ID से दान खोजें और रसीद डाउनलोड करें।" }, [{ name: "robots", content: "noindex" }]),
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/donation-status")({
 });
 
 function DonationStatusPage() {
+  const t = useFt();
   const [id, setId] = useState("");
   const lookup = useServerFn(donationStatus);
   const m = useMutation({
@@ -27,8 +29,8 @@ function DonationStatusPage() {
   return (
     <>
       <PageHeader
-        title="Donation status"
-        description="Enter the donation ID you received to see the payment status and download your receipt."
+        title={t("Donation status")}
+        description={t("Enter the donation ID you received to see the payment status and download your receipt.")}
         crumbs={[{ label: "Donation status" }]}
       />
       <section className="section-y">
@@ -40,7 +42,7 @@ function DonationStatusPage() {
               if (id.trim()) m.mutate(id.trim());
             }}
           >
-            <Field label="Donation ID" className="flex-1" required>
+            <Field label={t("Donation ID")} className="flex-1" required>
               <Input
                 placeholder="DON-2026-000123"
                 value={id}
@@ -59,29 +61,29 @@ function DonationStatusPage() {
                   {formatCurrency(m.data.amount)} — {m.data.status}
                 </p>
                 <dl className="mt-4 grid gap-2 text-sm">
-                  <Row label="Donation ID" value={m.data.donationId} />
-                  <Row label="Donor" value={m.data.donorName} />
-                  <Row label="Purpose" value={m.data.purpose ?? "Donation"} />
-                  <Row label="Paid at" value={formatDateTime(m.data.paidAt) || "—"} />
-                  <Row label="Receipt number" value={m.data.receiptNumber ?? "—"} />
+                  <Row label={t("Donation ID")} value={m.data.donationId} />
+                  <Row label={t("Donor")} value={m.data.donorName} />
+                  <Row label={t("Purpose")} value={m.data.purpose ?? "Donation"} />
+                  <Row label={t("Paid at")} value={formatDateTime(m.data.paidAt) || "—"} />
+                  <Row label={t("Receipt number")} value={m.data.receiptNumber ?? "—"} />
                 </dl>
                 {m.data.receiptUrl ? (
                   <Button asChild className="mt-5">
                     <a href={m.data.receiptUrl} target="_blank" rel="noreferrer">
-                      <Download className="size-4" /> Download receipt
+                      <Download className="size-4" /> {t("Download receipt")}
                     </a>
                   </Button>
                 ) : null}
               </div>
             ) : (
               <p className="mt-6 text-sm text-muted-foreground">
-                No donation found with that ID. Please check and try again.
+                {t("No donation found with that ID. Please check and try again.")}
               </p>
             )
           ) : null}
           {m.isError ? (
             <p className="mt-6 text-sm text-destructive">
-              {m.error instanceof Error ? m.error.message : "Something went wrong"}
+              {m.error instanceof Error ? m.error.message : t("Something went wrong")}
             </p>
           ) : null}
         </div>

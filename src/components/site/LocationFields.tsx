@@ -3,6 +3,8 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { Field } from "@/components/site/Field";
 import { Input } from "@/components/ui/input";
+import { placeName, useFt } from "@/core/formText";
+import { useLang } from "@/core/i18n";
 import { CHHATTISGARH, INDIAN_STATES, districtsForState } from "@/lib/locations";
 
 const selectClass =
@@ -25,6 +27,8 @@ export function LocationFields({
   required?: boolean;
 }) {
   const { register, setValue, formState, getValues } = form;
+  const t = useFt();
+  const hi = useLang().lang === "hi";
   const [state, setState] = useState<string>(() => (getValues("state") as string) ?? "");
   const districts = districtsForState(state);
   const stateReg = register("state", required ? { required: "Please select your state" } : {});
@@ -43,10 +47,10 @@ export function LocationFields({
             setValue("district", "");
           }}
         >
-          <option value="">Select state</option>
+          <option value="">{t("Select state")}</option>
           {INDIAN_STATES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {placeName(s, hi)}
             </option>
           ))}
         </select>
@@ -64,10 +68,10 @@ export function LocationFields({
               className={selectClass}
               {...register("district", required ? { required: "Please select your district" } : {})}
             >
-              <option value="">Select district</option>
+              <option value="">{t("Select district")}</option>
               {districts.map((d) => (
                 <option key={d} value={d}>
-                  {d}
+                  {placeName(d, hi)}
                 </option>
               ))}
             </select>

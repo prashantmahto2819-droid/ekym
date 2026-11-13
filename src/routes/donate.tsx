@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { submitMaterialDonation, type MaterialDonationInput } from "@/lib/forms.functions";
 import { organizationQuery } from "@/lib/queries";
 import { telHref } from "@/lib/format";
+import { useFt } from "@/core/formText";
 
 type DonateSearch = { campaign?: string; seva?: string; type?: string };
 
@@ -51,6 +52,7 @@ const ways = [
 ];
 
 function DonatePage() {
+  const t = useFt();
   const { data: org } = useSuspenseQuery(organizationQuery());
   const tenant = useTenant();
   const search = Route.useSearch();
@@ -69,7 +71,7 @@ function DonatePage() {
     try {
       await submitMaterialDonation({ data: { ...values, pickup_required: pickup } });
       setSent(true);
-      toast.success("Thank you. Our team will contact you about collection.");
+      toast.success(t("Thank you. Our team will contact you about collection."));
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Could not submit your offer";
       setFormError(msg);
@@ -87,15 +89,15 @@ function DonatePage() {
 
       <section className="section-y">
         <div className="container-page">
-          <SectionHeading eyebrow="Ways to give" title="Choose how you want to help" />
+          <SectionHeading eyebrow="Ways to give" title={t("Choose how you want to help")} />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {ways.map((w) => (
               <article key={w.title} className="surface-card p-5">
                 <span className="bg-accent-soft text-accent flex size-11 items-center justify-center rounded-lg">
                   <w.icon className="size-5" />
                 </span>
-                <h3 className="mt-4 font-display text-base font-semibold">{w.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{w.text}</p>
+                <h3 className="mt-4 font-display text-base font-semibold">{t(w.title)}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{t(w.text)}</p>
               </article>
             ))}
           </div>
@@ -103,7 +105,7 @@ function DonatePage() {
           <div id="give" className="mt-10">
             <SectionHeading
               eyebrow="Donate online"
-              title="Give securely by UPI, card or net banking"
+              title={t("Give securely by UPI, card or net banking")}
               subtitle="Your receipt is generated the moment the payment is confirmed on our server."
             />
             <DonateForm
@@ -115,7 +117,7 @@ function DonatePage() {
             <p className="mt-4 text-sm text-muted-foreground">
               Already donated?{" "}
               <Link to="/donation-status" className="text-primary underline">
-                Check your donation status or download a receipt
+                {t("Check your donation status or download a receipt")}
               </Link>
               .
             </p>
@@ -128,7 +130,7 @@ function DonatePage() {
                 </Button>
               ) : null}
               <Button asChild variant="outline">
-                <Link to="/contact">Message us</Link>
+                <Link to="/contact">{t("Message us")}</Link>
               </Button>
             </div>
           </div>
@@ -139,52 +141,52 @@ function DonatePage() {
         <div className="container-page max-w-3xl">
           <SectionHeading
             eyebrow="Material donation"
-            title="Offer food, clothes, medicines or supplies"
+            title={t("Offer food, clothes, medicines or supplies")}
             subtitle="Tell us what you have. We will arrange collection or share a drop-off point."
           />
           {sent ? (
             <FormSuccess
-              title="Offer received"
-              text="Our collection team will contact you to confirm the items and pickup details."
+              title={t("Offer received")}
+              text={t("Our collection team will contact you to confirm the items and pickup details.")}
             />
           ) : (
             <form onSubmit={onSubmit} className="surface-card grid gap-4 p-6 sm:grid-cols-2">
-              <Field label="Your name" required error={errors.donor_name?.message}>
+              <Field label={t("Your name")} required error={errors.donor_name?.message}>
                 <Input {...register("donor_name", { required: "Please enter your name" })} />
               </Field>
-              <Field label="Mobile" required error={errors.mobile?.message}>
+              <Field label={t("Mobile")} required error={errors.mobile?.message}>
                 <Input type="tel" {...register("mobile", { required: "Mobile number is required" })} />
               </Field>
-              <Field label="WhatsApp" error={errors.whatsapp?.message}>
+              <Field label={t("WhatsApp")} error={errors.whatsapp?.message}>
                 <Input type="tel" {...register("whatsapp")} />
               </Field>
-              <Field label="Email" error={errors.email?.message}>
+              <Field label={t("Email")} error={errors.email?.message}>
                 <Input type="email" {...register("email")} />
               </Field>
-              <Field label="What are you donating?" required className="sm:col-span-2" error={errors.material?.message}>
-                <Input placeholder="e.g. 50 kg wheat, winter blankets" {...register("material", { required: "Please describe the material" })} />
+              <Field label={t("What are you donating?")} required className="sm:col-span-2" error={errors.material?.message}>
+                <Input placeholder={t("e.g. 50 kg wheat, winter blankets")} {...register("material", { required: "Please describe the material" })} />
               </Field>
-              <Field label="Quantity" error={errors.quantity?.message}>
+              <Field label={t("Quantity")} error={errors.quantity?.message}>
                 <Input type="number" step="any" {...register("quantity")} />
               </Field>
-              <Field label="Unit" error={errors.unit?.message}>
-                <Input placeholder="kg / pieces / boxes" {...register("unit")} />
+              <Field label={t("Unit")} error={errors.unit?.message}>
+                <Input placeholder={t("kg / pieces / boxes")} {...register("unit")} />
               </Field>
               <LocationFields form={form} />
-              <Field label="Pincode" error={errors.pincode?.message}>
-                <Input {...register("pincode")} />
+              <Field label={t("Pincode")} error={errors.pincode?.message}>
+                <Input inputMode="numeric" maxLength={6} {...register("pincode")} />
               </Field>
-              <Field label="Pickup address" className="sm:col-span-2" error={errors.address?.message}>
+              <Field label={t("Pickup address")} className="sm:col-span-2" error={errors.address?.message}>
                 <Textarea rows={2} {...register("address")} />
               </Field>
-              <Field label="Preferred date" error={errors.preferred_date?.message}>
+              <Field label={t("Preferred date")} error={errors.preferred_date?.message}>
                 <Input type="date" {...register("preferred_date")} />
               </Field>
               <label className="flex items-center gap-3 self-end text-sm">
                 <Checkbox checked={pickup} onCheckedChange={(v) => setPickup(v === true)} />
-                <span className="text-muted-foreground">I need pickup from my address</span>
+                <span className="text-muted-foreground">{t("I need pickup from my address")}</span>
               </label>
-              <Field label="Notes" className="sm:col-span-2" error={errors.notes?.message}>
+              <Field label={t("Notes")} className="sm:col-span-2" error={errors.notes?.message}>
                 <Textarea rows={3} {...register("notes")} />
               </Field>
               <div className="sm:col-span-2">
@@ -194,7 +196,7 @@ function DonatePage() {
               </div>
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting…" : "Submit donation offer"}
+                  {isSubmitting ? t("Submitting…") : t("Submit donation offer")}
                 </Button>
               </div>
             </form>
