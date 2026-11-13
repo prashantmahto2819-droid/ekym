@@ -6,7 +6,8 @@ import { Clock, Globe, Mail, MapPin, Pencil, Phone, Share2, ShieldAlert, Store }
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
-import { catOf, catLabel, telLink, useBizPage, useBizRefresh, waLink } from "@/components/business/biz";
+import { catOf, catLabel, inr, planName, telLink, useBizPage, useBizRefresh, useSponsorStatus, waLink, type BizPage } from "@/components/business/biz";
+import { PlanDialog } from "@/components/business/PlanDialog";
 import { BizEditor, BizFollowButton, BizLogo, TierBadge, Verified } from "@/components/business/BizUI";
 import { CreatePost, PostCard, type Post } from "@/components/site/Feed";
 import { EmptyState } from "@/components/site/kit";
@@ -90,6 +91,7 @@ function BizPageView() {
 
         <div className="mt-4 grid gap-4 px-3 sm:px-0 lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+            {b.mine ? <PlanPanel b={b} hi={hi} onChanged={() => void q.refetch()} /> : null}
             {b.offer ? <div className="rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 p-4 text-white shadow-sm"><p className="text-xs font-bold uppercase tracking-wide opacity-90">{hi ? "समाज के लिए खास" : "Community offer"}</p><p className="mt-1 font-display text-lg font-semibold leading-snug">🏷️ {b.offer}</p></div> : null}
             <section className="space-y-3 rounded-2xl bg-card p-4 text-sm shadow-sm ring-1 ring-border/70">
               <h2 className="font-display text-lg font-semibold">{hi ? "परिचय" : "About"}</h2>
@@ -128,5 +130,34 @@ function BizPageView() {
       {editing ? <BizEditor page={b} hi={hi} onClose={() => { setEditing(false); void q.refetch(); }} /> : null}
       {posting ? <CreatePost org={tenant.organization_id} L={hi} start="text" bizId={b.id} onClose={() => setPosting(false)} onPosted={() => { setPosting(false); void q.refetch(); void posts.refetch(); }} /> : null}
     </div>
+  );
+}
+
+/** Owner's box: current plan, pending request, sponsored posts this month, buy / renew. */
+function PlanPanel({ b, hi, onChanged }: { b: BizPage; hi: boolean; onChanged: () => void }) {
+  const [open, setOpen] = useState(false);
+  const sp = useSponsorStatus(b.tier !== "free" ? b.id : null);
+  const paid = b.tier !== "free";
+  const days = b.tier_until ? Math.ceil((new Date(b.tier_until).getTime() - Date.now()) / 864e5) : null;
+  async function cancel() {
+    if (!b.pending_request || !confirm(hi ? "यह अनुरोध रद्द करें?" : "Cancel this request?")) return;
+    try { await call("biz_cancel_request", { p_id: b.pending_request.id }); onChanged(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  }
+  return (
+    <section className={`space-y-3 rounded-2xl p-4 text-sm shadow-sm ring-1 ${b.tier === "gold" ? "bg-amber-50 ring-amber-300 dark:bg-amber-950/30" : paid ? "bg-slate-50 ring-slate-300 dark:bg-slate-900/40" : "bg-card ring-border/70"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold">{hi ? "पैकेज" : "Plan"}: {planName(b.tier, hi)}</h2>
+        {paid && days !== null ? <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${days <= 7 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"}`}>{hi ? `${days} दिन बाकी` : `${days} days left`}</span> : null}
+      </div>
+      <p className="text-muted-foreground">{hi ? `रोज़ ${b.daily_limit} पोस्ट` : `${b.daily_limit} posts a day`}{paid && b.tier_until ? ` · ${hi ? "वैध" : "valid till"} ${new Date(b.tier_until).toLocaleDateString(hi ? "hi-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" })}` : ""}</p>
+      {paid && sp.data ? <p>{hi ? "इस महीने प्रायोजित पोस्ट" : "Sponsored posts this month"}: <b>{sp.data.used}/{sp.data.limit}</b>{sp.data.active.length ? ` · ${hi ? "अभी चल रही" : "running"} ${sp.data.active.length}` : ""}<br /><span className="text-xs text-muted-foreground">{hi ? "किसी पोस्ट के ⋯ मेनू में \"प्रायोजित करें\" दबाएँ।" : "Use \"Sponsor\" in a post's ⋯ menu."}</span></p> : null}
+      {b.pending_request ? (
+        <div className="rounded-xl bg-amber-100 px-3 py-2 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+          ⏳ {hi ? `${planName(b.pending_request.plan, true)} (${b.pending_request.period === "year" ? "साल" : "महीना"}) ${inr(b.pending_request.amount)} — एडमिन की मंज़ूरी बाकी` : `${planName(b.pending_request.plan, false)} (${b.pending_request.period}) ${inr(b.pending_request.amount)} — awaiting admin approval`}
+          <button type="button" onClick={() => void cancel()} className="ml-2 text-xs underline">{hi ? "रद्द करें" : "Cancel"}</button>
+        </div>
+      ) : <Button className="w-full rounded-full bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:opacity-95" onClick={() => setOpen(true)}>{paid ? (hi ? "नवीनीकरण / पैकेज बदलें" : "Renew / change plan") : (hi ? "⭐ पैकेज लें — रोज़ 10 पोस्ट + प्रायोजित" : "⭐ Get a plan — 10 posts/day + sponsored")}</Button>}
+      {open ? <PlanDialog page={b} hi={hi} onClose={() => { setOpen(false); onChanged(); }} /> : null}
+    </section>
   );
 }

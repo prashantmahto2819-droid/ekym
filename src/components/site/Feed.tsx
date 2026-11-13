@@ -22,7 +22,7 @@ import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean; shared?: Shared | null; author_rel?: "me" | "friend" | "following" | "none"; reason?: { kind: "like" | "comment"; user_id: string; name: string } | null; business?: BizCardData | null };
+export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean; shared?: Shared | null; author_rel?: "me" | "friend" | "following" | "none"; reason?: { kind: "like" | "comment" | "sponsored"; user_id?: string; name?: string } | null; business?: BizCardData | null };
 export type Shared = { id: string; available: boolean; author_id?: string; author_name?: string; author_photo?: string | null; as_org?: string | null; body?: string | null; media?: { type: string; path: string }[]; link_url?: string | null; link_kind?: string | null; created_at?: string; visibility?: string };
 type Comment = { id: string; parent_id: string | null; author_id: string; author_name: string; author_photo?: string | null; body: string; created_at: string; mine: boolean };
 
@@ -109,7 +109,17 @@ export function Feed({ postId, inline, initialMode = "for_you" }: { postId?: str
     },
     getNextPageParam: (last, all) => (last.length === 15 ? (offsetPaged ? all.flat().length : last[last.length - 1]!.created_at) : undefined),
   });
-  const posts = dedupe(feed.data?.pages.flat() ?? []);
+  const organic = dedupe(feed.data?.pages.flat() ?? []);
+  // Sponsored business posts: at most one after every 5 posts, only in "For you".
+  const sponsoredQ = useQuery({ queryKey: ["feed", org, "sponsored"], enabled: ranked && mode === "for_you", staleTime: 120_000, queryFn: () => rpc<Post[]>("biz_sponsored_for_me", { p_org: org, p_limit: 4 }).catch(() => [] as Post[]) });
+  const posts = (() => {
+    if (!(ranked && mode === "for_you") || !sponsoredQ.data?.length) return organic;
+    const ids = new Set(organic.map((p) => p.id)); const sp = sponsoredQ.data.filter((p) => !ids.has(p.id));
+    const out: Post[] = [];
+    organic.forEach((p, i) => { out.push(p); if ((i + 1) % 5 === 0 && sp.length) out.push(sp.shift()!); });
+    if (organic.length && organic.length < 5 && sp.length && !feed.hasNextPage) out.push(sp.shift()!);
+    return out;
+  })();
   const refresh = () => qc.invalidateQueries({ queryKey: ["feed", org] });
   const note = (cls: string, children: ReactNode) => <div className={`${card} p-4 text-sm ${cls}`}>{children}</div>;
   const TABS = [["for_you", <Sparkles key="i" className="size-4" />, L ? "आपके लिए" : "For you"], ["latest", <Clock key="i" className="size-4" />, L ? "सबसे नई" : "Latest"], ["business", <Store key="i" className="size-4" />, L ? "व्यापार" : "Business"]] as const;
@@ -152,7 +162,7 @@ export function Feed({ postId, inline, initialMode = "for_you" }: { postId?: str
       {feed.isLoading ? [0, 1].map((i) => <div key={i} className={`${card} animate-pulse p-4`}><div className="flex gap-3"><span className="size-10 rounded-full bg-muted" /><span className="flex-1 space-y-2"><span className="block h-3 w-1/3 rounded bg-muted" /><span className="block h-2.5 w-1/4 rounded bg-muted" /></span></div><div className="mt-4 h-40 rounded-xl bg-muted" /></div>) : null}
       {posts.map((p, i) => (
         <Fragment key={p.id}>
-          <PostCard p={p} L={L} signedIn={!!user} onChange={refresh} onTag={biz ? undefined : setTag} startOpen={!!postId} />
+          <PostCard key={p.reason?.kind === "sponsored" ? `s-${p.id}` : p.id} p={p} L={L} signedIn={!!user} onChange={refresh} onTag={biz ? undefined : setTag} startOpen={!!postId} />
           {i === 1 && inline && ranked ? inline : null}
           {i === 2 ? <AdSlot slot="feed" className={`${card} p-3`} /> : null}
         </Fragment>
@@ -432,10 +442,21 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
   const ActBtn = ({ onClick, active, children }: { onClick?: () => void; active?: boolean; children: ReactNode }) => (
     <button type="button" onClick={onClick} className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition hover:bg-secondary ${active ? "text-primary" : "text-muted-foreground"}`}>{children}</button>
   );
+  const sponsored = p.reason?.kind === "sponsored";
+  async function sponsor() {
+    if (!confirm(L ? "इस पोस्ट को प्रायोजित करें? यह कुछ दिन सबके \"आपके लिए\" फ़ीड में दिखेगी और इस महीने की प्रायोजित गिनती से घटेगी।" : "Sponsor this post? It will show in everyone's For you feed for a few days and count against this month's sponsored posts.")) return;
+    try { const r = await rpc<{ used: number; limit: number }>("biz_sponsor_post", { p_post: p.id }); toast.success(L ? `प्रायोजित हो गई — इस महीने ${r.used}/${r.limit}` : `Sponsored — ${r.used}/${r.limit} this month`); onChange(); }
+    catch (e) { toast.error((e as Error).message); }
+  }
+  async function hideBiz() {
+    if (!p.business) return;
+    try { await rpc("biz_hide_sponsored", { p_page: p.business.id }); toast.success(L ? "ठीक है — 30 दिन तक इस व्यापार की प्रायोजित पोस्ट नहीं दिखेंगी" : "OK — you won't see this business's sponsored posts for 30 days"); onChange(); }
+    catch (e) { toast.error((e as Error).message); }
+  }
   const canWall = signedIn && p.visibility !== "friends" && p.reach === "normal" && (!p.shared || p.shared.available) && p.shared?.visibility !== "friends";
   return (
     <article ref={seenRef} className={`${card} overflow-hidden`}>
-      {p.reason ? (
+      {p.reason && p.reason.kind !== "sponsored" && p.reason.user_id ? (
         <p className="mx-4 flex items-center gap-1.5 border-b border-border py-2 text-xs text-muted-foreground">
           {p.reason.kind === "like" ? <ThumbsUp className="size-3.5 text-primary" /> : <MessageCircle className="size-3.5 text-primary" />}
           <Link to="/u/$id" params={{ id: p.reason.user_id }} className="font-semibold text-foreground hover:underline">{p.reason.name}</Link>
@@ -455,7 +476,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
               <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                 <span className="rounded bg-amber-100 px-1.5 py-px font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">{catLabel(p.business.category, L)}</span>
                 {p.business.city ? <span>· {p.business.city}</span> : null} ·
-                <Link to="/community/$id" params={{ id: p.id }} className="hover:underline" title={new Date(p.created_at).toLocaleString(L ? "hi-IN" : "en-IN")}>{timeAgo(p.created_at, L)}</Link>
+                {sponsored ? <span className="font-semibold text-foreground">{L ? "प्रायोजित" : "Sponsored"}</span> : <Link to="/community/$id" params={{ id: p.id }} className="hover:underline" title={new Date(p.created_at).toLocaleString(L ? "hi-IN" : "en-IN")}>{timeAgo(p.created_at, L)}</Link>}
               </p>
             </div>
           </>
@@ -474,6 +495,8 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
             <DropdownMenuTrigger className="grid size-9 place-items-center rounded-full text-muted-foreground hover:bg-secondary" aria-label={L ? "विकल्प" : "Options"}><MoreHorizontal className="size-5" /></DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => void share("copy")}>{L ? "लिंक कॉपी करें" : "Copy link"}</DropdownMenuItem>
+              {p.business && p.mine && p.business.tier !== "free" && !sponsored ? <DropdownMenuItem onClick={() => void sponsor()}>⭐ {L ? "प्रायोजित करें (सबको दिखाएँ)" : "Sponsor (show to everyone)"}</DropdownMenuItem> : null}
+              {sponsored && !p.mine ? <DropdownMenuItem onClick={() => void hideBiz()}>{L ? "इस व्यापार के विज्ञापन न दिखाएँ" : "Hide ads from this business"}</DropdownMenuItem> : null}
               {p.can_moderate ? <><DropdownMenuItem onClick={() => void moderate(null, !p.pinned)}>{p.pinned ? (L ? "अनपिन करें" : "Unpin") : (L ? "ऊपर पिन करें" : "Pin to top")}</DropdownMenuItem><DropdownMenuItem onClick={() => void moderate("hidden", null)}>{L ? "छिपाएँ" : "Hide"}</DropdownMenuItem></> : null}
               {!p.mine ? <DropdownMenuItem onClick={() => void report()}>{L ? "रिपोर्ट करें" : "Report"}</DropdownMenuItem> : null}
               {p.mine || p.can_moderate ? <><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onClick={() => void remove()}>{L ? "पोस्ट हटाएँ" : "Delete post"}</DropdownMenuItem></> : null}

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { CrudPage } from "@/components/admin/CrudPage";
+import { BizAdmin } from "@/components/business/BizAdmin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ function CommunityAdmin() {
   const org = tenant.organization_id;
   const { can } = useAuth();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"feed" | "listings" | "matrimony" | "polls" | "people">("feed");
+  const [tab, setTab] = useState<"feed" | "business" | "listings" | "matrimony" | "polls" | "people">("feed");
   const [status, setStatus] = useState("pending");
   const listings = useQuery({ queryKey: ["cm_listings_admin", org, status], queryFn: async () => { let q = supabase.from("cm_listings").select("*").eq("organization_id", org).order("created_at", { ascending: false }).limit(300); if (status) q = q.eq("status", status); const { data } = await q; return (data ?? []) as unknown as Listing[]; } });
   const profiles = useQuery({ queryKey: ["cm_matri_admin", org], enabled: tab === "matrimony", queryFn: async () => { const { data } = await supabase.from("cm_matrimony_profiles").select("id,display_name,gender,birth_year,city,education,profession,created_for,verified_at,status,created_at").eq("organization_id", org).order("created_at", { ascending: false }); return (data ?? []) as { id: string; display_name: string; gender: string; birth_year: number; city: string | null; education: string | null; profession: string | null; created_for: string; verified_at: string | null; status: string; created_at: string }[]; } });
@@ -37,9 +38,10 @@ function CommunityAdmin() {
   return (
     <div className="space-y-4">
       <header><h1 className="font-display text-2xl font-semibold">Community</h1><p className="text-sm text-muted-foreground">Directory listings (business, professionals, jobs, scholarships, emergency help), matrimony verification and polls.</p></header>
-      <div className="flex w-fit rounded-md border border-border p-0.5 text-xs">{([["feed", "Kalchuri One feed"], ["listings", "Listings"], ["matrimony", "Matrimony"], ["polls", "Polls"], ["people", "Contributors & testimonials"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
+      <div className="flex w-fit rounded-md border border-border p-0.5 text-xs">{([["feed", "Kalchuri One feed"], ["business", "व्यापार पैकेज"], ["listings", "Listings"], ["matrimony", "Matrimony"], ["polls", "Polls"], ["people", "Contributors & testimonials"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
 
       {tab === "feed" ? <FeedModeration org={org} /> : null}
+      {tab === "business" ? <BizAdmin org={org} /> : null}
 
       {tab === "listings" ? (
         <div className="space-y-2">

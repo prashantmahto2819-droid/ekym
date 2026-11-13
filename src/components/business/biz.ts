@@ -11,6 +11,7 @@ export type BizPage = {
   address: string | null; city: string | null; district: string | null; state: string | null; map_url: string | null; hours: string | null; offer: string | null;
   services: Service[]; tier: "free" | "silver" | "gold"; tier_until: string | null; verified: boolean; status: "active" | "blocked"; admin_note: string | null;
   followers: number; posts: number; i_follow: boolean; mine: boolean; can_moderate: boolean; today_posts: number | null; daily_limit: number; created_at: string;
+  pending_request?: { id: string; plan: string; period: string; amount: number; created_at: string } | null; sponsored_live?: number;
 };
 export type BizCardData = { id: string; slug: string; name: string; logo_url: string | null; category: string; city: string | null; verified: boolean; tier: string };
 
@@ -56,5 +57,27 @@ export function useBizFacets() {
 }
 export function useBizRefresh() {
   const qc = useQueryClient();
-  return () => Promise.all(["biz_my_pages", "biz_page", "biz_directory", "biz_facets", "feed"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
+  return () => Promise.all(["biz_my_pages", "biz_page", "biz_directory", "biz_facets", "feed", "biz_sponsor_status", "biz_subs_admin", "biz_page_subs"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
 }
+
+/* ---- paid plans, paid offline (QR / UPI / bank / cash) and approved by an admin (migration cm_17) ---- */
+export type Plan = { key: "silver" | "gold"; name: string; name_hi: string; price_month: number; price_year: number; daily_posts: number; sponsored_per_month: number; sponsored_reach: number; sponsored_days: number; active: boolean; sort: number };
+export type PaySettings = { payee_name?: string | null; upi_id?: string | null; qr_url?: string | null; bank_text?: string | null; note?: string | null };
+export type Sub = { id: string; page_id: string; plan: "silver" | "gold"; period: "month" | "year"; amount: number; pay_mode: "upi" | "bank" | "cash" | "grant"; pay_ref: string | null; pay_proof_url: string | null; paid_on: string | null; buyer_name: string | null; buyer_gstin: string | null; buyer_address: string | null; status: "pending" | "approved" | "rejected" | "cancelled"; admin_note: string | null; decided_at: string | null; starts_at: string | null; ends_at: string | null; created_at: string; page_name?: string; page_slug?: string; page_tier?: string; page_tier_until?: string | null; owner_name?: string; owner_phone?: string | null; decided_by_name?: string | null };
+export type SponsorStatus = { tier: string; limit: number; used: number; reach: number | null; days: number | null; active: { post_id: string; ends_at: string; delivered: number; reach_cap: number }[] };
+
+export const inr = (n: number | string) => `₹${Number(n).toLocaleString("en-IN")}`;
+export const planName = (k: string | null | undefined, hi: boolean) => (k === "gold" ? (hi ? "गोल्ड" : "Gold") : k === "silver" ? (hi ? "सिल्वर" : "Silver") : (hi ? "मुफ़्त" : "Free"));
+
+export function usePlans() {
+  return useQuery({ queryKey: ["biz_plans"], staleTime: 300_000, queryFn: () => call<Plan[]>("biz_plans_list").catch(() => [] as Plan[]) });
+}
+export function usePaySettings(enabled = true) {
+  const tenant = useTenant();
+  return useQuery({ queryKey: ["biz_pay_settings", tenant.organization_id], enabled, staleTime: 60_000, queryFn: () => call<PaySettings>("biz_pay_settings_get", { p_org: tenant.organization_id }) });
+}
+export function useSponsorStatus(pageId: string | null) {
+  return useQuery({ queryKey: ["biz_sponsor_status", pageId], enabled: !!pageId, queryFn: () => call<SponsorStatus | null>("biz_sponsor_status", { p_page: pageId }) });
+}
+export const upiLink = (s: PaySettings, amount: number, note: string) =>
+  s.upi_id ? `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(s.payee_name ?? "")}&am=${amount}&cu=INR&tn=${encodeURIComponent(note.slice(0, 60))}` : null;
