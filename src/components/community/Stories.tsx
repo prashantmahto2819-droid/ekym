@@ -49,7 +49,7 @@ export function StoriesStrip({ L, enabled }: { L: boolean; enabled: boolean }) {
           return (
             <button key={g.user_id} type="button" onClick={() => setOpen(i)} className={`${cardCls} group text-left`}>
               {img ? <img src={img} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105" />
-                : <span className={`absolute inset-0 grid place-items-center bg-gradient-to-br p-2 text-center text-xs font-semibold text-white ${BGS[st?.bg ?? "classic"] ?? BGS.classic}`}>{(st?.caption ?? "").slice(0, 60)}</span>}
+                : <span className={`absolute inset-0 grid place-items-center bg-gradient-to-br p-2 text-center text-xs font-semibold text-white ${BGS[st?.bg ?? "classic"] ?? BGS["classic"]}`}>{(st?.caption ?? "").slice(0, 60)}</span>}
               <span className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/65" />
               <span className={`absolute left-2 top-2 rounded-full p-[3px] ${g.all_seen ? "bg-white/60" : "bg-gradient-to-tr from-amber-400 via-rose-500 to-fuchsia-600"}`}><span className="block rounded-full ring-2 ring-black/10"><Avatar url={g.photo} name={g.name} size={9} /></span></span>
               <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-xs font-semibold text-white drop-shadow">{g.mine ? (L ? "आपकी स्टोरी" : "Your story") : g.name}</span>
