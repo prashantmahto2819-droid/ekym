@@ -38,6 +38,7 @@ function LevelHall() {
   const tracks = useTracks(tenant.organization_id);
   const t = tracks.data?.find((x) => x.slug === slug);
   const [name, setName] = useState("");
+  const [blood, setBlood] = useState(() => { try { return localStorage.getItem("k1_blood") ?? ""; } catch { return ""; } });
   const [paper, setPaper] = useState<Paper | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -51,8 +52,10 @@ function LevelHall() {
 
   async function start() {
     if (!t) return;
+    if (!blood) { setErr("रक्त समूह चुनें (पता न हो तो \"पता नहीं\") · Choose the blood group (or \"Don't know\")"); return; }
+    try { localStorage.setItem("k1_blood", blood); } catch { /* ignore */ }
     setBusy(true); setErr(null);
-    const { data, error } = await sb.rpc("ex_level_start", { p_track: t.id, p_level: level, p_name: name.trim() || null });
+    const { data, error } = await sb.rpc("ex_level_start", { p_track: t.id, p_level: level, p_name: name.trim() || null, p_blood: blood });
     setBusy(false);
     if (error) { setErr(error.message); return; }
     const p = data as unknown as Paper;
@@ -152,6 +155,14 @@ function LevelHall() {
           <label className="block text-sm">
             <span className="font-medium">{hi ? "प्रमाण-पत्र पर नाम" : "Name on the certificate"}</span>
             <Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder={hi ? "खाली छोड़ें तो खाते का नाम लिखा जाएगा" : "Leave blank to use your account name"} />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium">{hi ? "रक्त समूह (ज़रूरी)" : "Blood group (required)"}</span>
+            <select className={`mt-1 h-9 w-full rounded-md border bg-background px-2 ${blood ? "border-input" : "border-amber-500"}`} value={blood} onChange={(e) => setBlood(e.target.value)}>
+              <option value="">{hi ? "— रक्त समूह चुनें —" : "— choose blood group —"}</option>
+              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => <option key={b} value={b}>{b}</option>)}
+              <option value="unknown">{hi ? "पता नहीं" : "Don't know"}</option>
+            </select>
           </label>
           {err ? <p className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">{hi ? err.split(" · ")[0] : (err.split(" · ")[1] ?? err)}</p> : null}
           <div className="flex flex-wrap gap-2">

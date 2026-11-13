@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { dt, STATUS_HI, useExamList, useMyRegs } from "./exams.index";
 
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
 export const Route = createFileRoute("/exams/$slug/")({
   head: ({ matches, params }) => pageMeta(matches, { en: `Exam ${params.slug}`, hi: `परीक्षा ${params.slug}` }),
   component: ExamPage,
@@ -42,16 +44,17 @@ function ExamPage() {
   const mine = useMyRegs(!!user);
   const myRegs = (mine.data ?? []).filter((r) => r.exam_id === row?.id);
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ category: "", student: "", student_hi: "", dob: "", gender: "", class_level: "", school: "", city: "", district: "", org: "", lang: "hi", mobile: "", parent_name: "", parent_mobile: "", consent: false });
+  const [f, setF] = useState({ category: "", student: "", student_hi: "", dob: "", gender: "", class_level: "", school: "", city: "", district: "", org: "", lang: "hi", mobile: "", parent_name: "", parent_mobile: "", consent: false, blood: "" });
   const [busy, setBusy] = useState(false);
   const e = exam.data;
   const minor = !f.dob || new Date(f.dob) > new Date(Date.now() - 18 * 365.25 * 86400000);
   async function register() {
     if (!e) return;
     if (cats.data?.length && !f.category) { toast.error(hi ? "श्रेणी / कक्षा चुनें" : "Choose a category"); return; }
+    if (!f.blood) { toast.error(hi ? "रक्त समूह चुनें (पता न हो तो \"पता नहीं\")" : "Choose the blood group (or \"Don't know\")"); return; }
     setBusy(true);
     try {
-      const { error } = await supabase.rpc("ex_register", { p_exam: e.id, p_category: f.category || null, p_student: f.student, p_student_hi: f.student_hi, p_dob: f.dob || null, p_gender: f.gender || null, p_class: f.class_level || null, p_school: f.school || null, p_city: f.city || null, p_district: f.district || null, p_org: f.org || null, p_lang: f.lang, p_mobile: f.mobile || null, p_parent_name: f.parent_name || null, p_parent_mobile: f.parent_mobile || null, p_consent: f.consent } as never);
+      const { error } = await supabase.rpc("ex_register", { p_exam: e.id, p_category: f.category || null, p_student: f.student, p_student_hi: f.student_hi, p_dob: f.dob || null, p_gender: f.gender || null, p_class: f.class_level || null, p_school: f.school || null, p_city: f.city || null, p_district: f.district || null, p_org: f.org || null, p_lang: f.lang, p_mobile: f.mobile || null, p_parent_name: f.parent_name || null, p_parent_mobile: f.parent_mobile || null, p_consent: f.consent, p_blood: f.blood || null } as never);
       if (error) throw error;
       toast.success(hi ? "पंजीयन हो गया — WhatsApp/ईमेल पर पुष्टि भेजी गई" : "Registered — confirmation sent"); setOpen(false);
       qc.invalidateQueries({ queryKey: ["ex_my"] }); qc.invalidateQueries({ queryKey: ["ex_list"] });
@@ -106,6 +109,13 @@ function ExamPage() {
                     <select className="h-9 rounded-md border border-input bg-background px-2" value={f.gender} onChange={(ev) => setF({ ...f, gender: ev.target.value })}><option value="">{hi ? "लिंग" : "Gender"}</option><option value="male">{hi ? "छात्र" : "Male"}</option><option value="female">{hi ? "छात्रा" : "Female"}</option></select>
                     <Input placeholder={hi ? "कक्षा" : "Class"} value={f.class_level} onChange={(ev) => setF({ ...f, class_level: ev.target.value })} />
                   </div>
+                  <label className="block text-xs text-muted-foreground">{hi ? "रक्त समूह (ज़रूरी)" : "Blood group (required)"}
+                    <select required className={`mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm text-foreground ${f.blood ? "border-input" : "border-amber-500"}`} value={f.blood} onChange={(ev) => setF({ ...f, blood: ev.target.value })}>
+                      <option value="">{hi ? "— रक्त समूह चुनें —" : "— choose blood group —"}</option>
+                      {BLOOD_GROUPS.map((b) => <option key={b} value={b}>{b}</option>)}
+                      <option value="unknown">{hi ? "पता नहीं" : "Don't know"}</option>
+                    </select>
+                  </label>
                   <Input placeholder={hi ? "स्कूल / कॉलेज" : "School / college"} value={f.school} onChange={(ev) => setF({ ...f, school: ev.target.value })} />
                   <div className="grid grid-cols-2 gap-2"><Input placeholder={hi ? "शहर / गाँव" : "City"} value={f.city} onChange={(ev) => setF({ ...f, city: ev.target.value })} /><Input placeholder={hi ? "ज़िला" : "District"} value={f.district} onChange={(ev) => setF({ ...f, district: ev.target.value })} /></div>
                   {orgs.data?.length ? <select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f.org} onChange={(ev) => setF({ ...f, org: ev.target.value })}><option value="">{hi ? "— किस समाज/संस्था से —" : "— organization —"}</option>{orgs.data.map((o) => <option key={o.id} value={o.id}>{(hi && o.name_hi) || o.name}</option>)}</select> : null}
