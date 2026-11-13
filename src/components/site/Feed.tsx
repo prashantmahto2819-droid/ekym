@@ -2,12 +2,14 @@
 // post cards with photo grid + lightbox, reaction/comment/share counts, full-width action bar, comment bubbles with photos.
 import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Globe, Repeat2, Sparkles, Clock, Hash, ImagePlus, Link2, MessageCircle, MoreHorizontal, Pin, Search, Send, Share2, ThumbsUp, Users, UserCheck, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Globe, Repeat2, Sparkles, Clock, Store, Hash, ImagePlus, Link2, MessageCircle, MoreHorizontal, Pin, Search, Send, Share2, ThumbsUp, Users, UserCheck, X } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { AdSlot } from "@/components/site/Ads";
 import { Avatar, FollowButton } from "@/components/community/ChatBits";
+import { catLabel, CATEGORIES, useBizFacets, useMyPages, type BizCardData } from "@/components/business/biz";
+import { BizEditor, BizFollowButton, BizLogo, TierBadge, Verified } from "@/components/business/BizUI";
 import { useConsent } from "@/components/community/ConsentGate";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,7 +22,7 @@ import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean; shared?: Shared | null; author_rel?: "me" | "friend" | "following" | "none"; reason?: { kind: "like" | "comment"; user_id: string; name: string } | null };
+export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean; shared?: Shared | null; author_rel?: "me" | "friend" | "following" | "none"; reason?: { kind: "like" | "comment"; user_id: string; name: string } | null; business?: BizCardData | null };
 export type Shared = { id: string; available: boolean; author_id?: string; author_name?: string; author_photo?: string | null; as_org?: string | null; body?: string | null; media?: { type: string; path: string }[]; link_url?: string | null; link_kind?: string | null; created_at?: string; visibility?: string };
 type Comment = { id: string; parent_id: string | null; author_id: string; author_name: string; author_photo?: string | null; body: string; created_at: string; mine: boolean };
 
@@ -76,7 +78,7 @@ function LinkEmbed({ url, kind }: { url: string; kind: string | null }) {
 
 function dedupe(list: Post[]) { const seen = new Set<string>(); return list.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))); }
 
-export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }) {
+export function Feed({ postId, inline, initialMode = "for_you" }: { postId?: string; inline?: ReactNode; initialMode?: "for_you" | "latest" | "business" }) {
   const tenant = useTenant();
   const org = tenant.organization_id;
   const { user } = useAuth();
@@ -85,47 +87,60 @@ export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
-  const searching = !postId && (q.trim().length >= 2 || !!tag);
-  const [mode, setMode] = useState<"for_you" | "latest">("for_you");
+  const [mode, setMode] = useState<"for_you" | "latest" | "business">(initialMode);
+  const [cat, setCat] = useState("");
+  const biz = !postId && mode === "business";
+  const searching = !postId && !biz && (q.trim().length >= 2 || !!tag);
   const member = useQuery({ queryKey: ["is_member", org], enabled: !!user, queryFn: () => rpc<boolean>("k1_is_member", { p_org: org }) });
   const applicant = useQuery({ queryKey: ["is_applicant", org], enabled: !!user && member.isSuccess && !member.data, queryFn: () => rpc<boolean>("k1_is_applicant", { p_org: org }) });
-  const tags = useQuery({ queryKey: ["cm_tags", org], enabled: !postId, staleTime: 120_000, queryFn: () => rpc<{ tag: string; n: number }[]>("k1_cm_tags", { p_org: org, p_limit: 12 }) });
-  const ranked = !postId && !searching;
+  const tags = useQuery({ queryKey: ["cm_tags", org], enabled: !postId && !biz, staleTime: 120_000, queryFn: () => rpc<{ tag: string; n: number }[]>("k1_cm_tags", { p_org: org, p_limit: 12 }) });
+  const facets = useBizFacets();
+  const ranked = !postId && !searching && !biz;
+  const offsetPaged = ranked || biz;
   const feed = useInfiniteQuery({
-    queryKey: ["feed", org, postId ?? null, searching ? q.trim() : "", tag, ranked ? mode : ""],
+    queryKey: ["feed", org, postId ?? null, searching || biz ? q.trim() : "", tag, ranked || biz ? mode : "", biz ? cat : ""],
     initialPageParam: null as string | number | null,
-    queryFn: ({ pageParam }) => ranked
-      ? rpc<Post[]>("k1_feed2", { p_org: org, p_mode: mode, p_offset: typeof pageParam === "number" ? pageParam : 0, p_limit: 15 })
-      : searching
-        ? rpc<Post[]>("k1_feed_search", { p_org: org, p_q: q.trim() || null, p_tag: tag, p_before: pageParam, p_limit: 15 })
-        : rpc<Post[]>("k1_feed", { p_org: org, p_before: pageParam, p_limit: 15, p_post: postId ?? null }),
-    getNextPageParam: (last, all) => (last.length === 15 ? (ranked ? all.flat().length : last[last.length - 1]!.created_at) : undefined),
+    queryFn: ({ pageParam }) => {
+      const off = typeof pageParam === "number" ? pageParam : 0;
+      if (biz) return rpc<Post[]>("biz_feed", { p_org: org, p_page: null, p_category: cat || null, p_city: null, p_q: q.trim().length >= 2 ? q.trim() : null, p_offset: off, p_limit: 15 });
+      if (ranked) return rpc<Post[]>("k1_feed2", { p_org: org, p_mode: mode, p_offset: off, p_limit: 15 });
+      if (searching) return rpc<Post[]>("k1_feed_search", { p_org: org, p_q: q.trim() || null, p_tag: tag, p_before: pageParam, p_limit: 15 });
+      return rpc<Post[]>("k1_feed", { p_org: org, p_before: pageParam, p_limit: 15, p_post: postId ?? null });
+    },
+    getNextPageParam: (last, all) => (last.length === 15 ? (offsetPaged ? all.flat().length : last[last.length - 1]!.created_at) : undefined),
   });
   const posts = dedupe(feed.data?.pages.flat() ?? []);
   const refresh = () => qc.invalidateQueries({ queryKey: ["feed", org] });
   const note = (cls: string, children: ReactNode) => <div className={`${card} p-4 text-sm ${cls}`}>{children}</div>;
+  const TABS = [["for_you", <Sparkles key="i" className="size-4" />, L ? "आपके लिए" : "For you"], ["latest", <Clock key="i" className="size-4" />, L ? "सबसे नई" : "Latest"], ["business", <Store key="i" className="size-4" />, L ? "व्यापार" : "Business"]] as const;
   return (
     <div className="space-y-4">
-      {!postId ? (user ? (member.data ? <Composer org={org} onPosted={refresh} L={L} /> : member.isSuccess ? (applicant.data
+      {!postId && !biz ? (user ? (member.data ? <Composer org={org} onPosted={refresh} L={L} /> : member.isSuccess ? (applicant.data
           ? note("bg-amber-50 text-amber-900 ring-amber-300 dark:bg-amber-950/40 dark:text-amber-200", L ? "⏳ आपकी सदस्यता की मंज़ूरी बाकी है — तब तक आप पढ़ सकते हैं; मंज़ूरी मिलते ही पोस्ट, लाइक और टिप्पणी खुल जाएँगे।" : "⏳ Your membership is awaiting approval — you can read meanwhile; posting, likes and comments open once approved.")
           : note("", <div className="flex flex-wrap items-center justify-between gap-2"><span>{L ? "पोस्ट करने के लिए संगठन का सदस्य बनें।" : "Become a member to post."}</span><Button asChild size="sm" className="rounded-full"><Link to="/join">{L ? "सदस्यता फ़ॉर्म" : "Membership form"}</Link></Button></div>)) : null)
         : note("", <div className="flex flex-wrap items-center justify-between gap-2"><span>{L ? "पोस्ट, लाइक और टिप्पणी के लिए लॉगिन करें।" : "Sign in to post, like and comment."}</span><Button asChild size="sm" className="rounded-full"><Link to="/auth">{L ? "लॉगिन करें" : "Sign in"}</Link></Button></div>)) : null}
 
-      {ranked ? (
+      {!postId ? (
         <div className="flex gap-1 rounded-2xl bg-card p-1 shadow-sm ring-1 ring-border/70" role="tablist">
-          {([["for_you", <Sparkles key="i" className="size-4" />, L ? "आपके लिए" : "For you"], ["latest", <Clock key="i" className="size-4" />, L ? "सबसे नई" : "Latest"]] as const).map(([k, icon, label]) => (
-            <button key={k} type="button" role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-semibold transition ${mode === k ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-secondary"}`}>{icon}{label}</button>
+          {TABS.map(([k, icon, label]) => (
+            <button key={k} type="button" role="tab" aria-selected={mode === k} onClick={() => { setMode(k); setTag(null); }} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-semibold transition ${mode === k ? (k === "business" ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm" : "bg-primary text-primary-foreground shadow-sm") : "text-muted-foreground hover:bg-secondary"}`}>{icon}<span className="truncate">{label}</span></button>
           ))}
         </div>
       ) : null}
+      {biz ? <BizBar L={L} member={!!member.data} onPosted={refresh} /> : null}
       {!postId ? (
         <div className="space-y-2">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="h-10 rounded-full border-0 bg-card pl-10 shadow-sm ring-1 ring-border/70" placeholder={L ? "पोस्ट खोजें… (नाम, शब्द, #टैग)" : "Search posts… (name, words, #tag)"} value={q} onChange={(e) => { const v = e.target.value; if (v.startsWith("#") && v.length > 1) { setTag(v.slice(1)); setQ(""); } else setQ(v); }} />
+            <Input className="h-10 rounded-full border-0 bg-card pl-10 shadow-sm ring-1 ring-border/70" placeholder={biz ? (L ? "व्यापार की पोस्ट खोजें… (दुकान, सामान, सेवा)" : "Search business posts… (shop, product, service)") : (L ? "पोस्ट खोजें… (नाम, शब्द, #टैग)" : "Search posts… (name, words, #tag)")} value={q} onChange={(e) => { const v = e.target.value; if (!biz && v.startsWith("#") && v.length > 1) { setTag(v.slice(1)); setQ(""); } else setQ(v); }} />
             {q ? <button type="button" onClick={() => setQ("")} aria-label="clear" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-secondary"><X className="size-4" /></button> : null}
           </label>
-          {tag || tags.data?.length ? (
+          {biz ? (
+            <div className="scrollbar-none -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5">
+              <button type="button" onClick={() => setCat("")} className={`shrink-0 rounded-full px-3 py-1 text-xs shadow-sm ring-1 ${!cat ? "bg-amber-600 text-white ring-amber-600" : "bg-card ring-border/70 hover:text-primary"}`}>{L ? "सभी" : "All"}</button>
+              {(facets.data?.categories ?? []).map((c) => { const m = CATEGORIES.find((x) => x.key === c.name); return <button key={c.name} type="button" onClick={() => setCat(c.name)} className={`shrink-0 rounded-full px-3 py-1 text-xs shadow-sm ring-1 ${cat === c.name ? "bg-amber-600 text-white ring-amber-600" : "bg-card ring-border/70 hover:text-primary"}`}>{m?.icon} {catLabel(c.name, L)} <span className="opacity-70">{c.n}</span></button>; })}
+            </div>
+          ) : tag || tags.data?.length ? (
             <div className="scrollbar-none -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5">
               {tag ? <button type="button" onClick={() => setTag(null)} className="flex shrink-0 items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">#{tag} <X className="size-3" /></button>
                 : tags.data!.map((t) => <button key={t.tag} type="button" className="shrink-0 rounded-full bg-card px-3 py-1 text-xs shadow-sm ring-1 ring-border/70 hover:text-primary" onClick={() => setTag(t.tag)}>#{t.tag} <span className="text-muted-foreground">{t.n}</span></button>)}
@@ -137,20 +152,64 @@ export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }
       {feed.isLoading ? [0, 1].map((i) => <div key={i} className={`${card} animate-pulse p-4`}><div className="flex gap-3"><span className="size-10 rounded-full bg-muted" /><span className="flex-1 space-y-2"><span className="block h-3 w-1/3 rounded bg-muted" /><span className="block h-2.5 w-1/4 rounded bg-muted" /></span></div><div className="mt-4 h-40 rounded-xl bg-muted" /></div>) : null}
       {posts.map((p, i) => (
         <Fragment key={p.id}>
-          <PostCard p={p} L={L} signedIn={!!user} onChange={refresh} onTag={setTag} startOpen={!!postId} />
-          {i === 1 && inline && !searching ? inline : null}
+          <PostCard p={p} L={L} signedIn={!!user} onChange={refresh} onTag={biz ? undefined : setTag} startOpen={!!postId} />
+          {i === 1 && inline && ranked ? inline : null}
           {i === 2 ? <AdSlot slot="feed" className={`${card} p-3`} /> : null}
         </Fragment>
       ))}
       {feed.isSuccess && !posts.length ? (
         <div className={`${card} px-6 py-12 text-center`}>
-          <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary-soft text-primary-deep"><MessageCircle className="size-7" /></span>
-          <p className="mt-3 font-display text-lg font-semibold">{searching ? (L ? "कुछ नहीं मिला" : "Nothing found") : ranked && mode === "latest" ? (L ? "अभी यहाँ कुछ नहीं" : "Nothing here yet") : (L ? "अभी कोई पोस्ट नहीं" : "No posts yet")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{searching ? (L ? "दूसरा शब्द या टैग आज़माइए।" : "Try another word or tag.") : ranked && mode === "latest" ? (L ? "यहाँ मित्रों और जिन्हें आप फ़ॉलो करते हैं उनकी पोस्ट आती है। \"आपके लिए\" में लोगों को देखकर फ़ॉलो करें।" : "Posts from friends and people you follow appear here. Follow people from \"For you\".") : (L ? "पहली पोस्ट आप कीजिए!" : "Be the first to post!")}</p>
+          <span className={`mx-auto grid size-14 place-items-center rounded-2xl ${biz ? "bg-amber-100 text-amber-700 dark:bg-amber-950/50" : "bg-primary-soft text-primary-deep"}`}>{biz ? <Store className="size-7" /> : <MessageCircle className="size-7" />}</span>
+          <p className="mt-3 font-display text-lg font-semibold">{searching ? (L ? "कुछ नहीं मिला" : "Nothing found") : biz ? (L ? "अभी व्यापार की कोई पोस्ट नहीं" : "No business posts yet") : ranked && mode === "latest" ? (L ? "अभी यहाँ कुछ नहीं" : "Nothing here yet") : (L ? "अभी कोई पोस्ट नहीं" : "No posts yet")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{searching ? (L ? "दूसरा शब्द या टैग आज़माइए।" : "Try another word or tag.") : biz ? (L ? "अपना व्यापार पेज बनाइए और पहली पोस्ट कीजिए।" : "Create your business page and post first.") : ranked && mode === "latest" ? (L ? "यहाँ मित्रों और जिन्हें आप फ़ॉलो करते हैं उनकी पोस्ट आती है। \"आपके लिए\" में लोगों को देखकर फ़ॉलो करें।" : "Posts from friends and people you follow appear here. Follow people from \"For you\".") : (L ? "पहली पोस्ट आप कीजिए!" : "Be the first to post!")}</p>
         </div>
       ) : null}
       {feed.hasNextPage ? <div className="text-center"><Button variant="outline" className="rounded-full bg-card" onClick={() => feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>{feed.isFetchingNextPage ? "…" : (L ? "और पोस्ट देखें" : "Load more")}</Button></div> : null}
       {feed.isSuccess && posts.length && !feed.hasNextPage && !postId ? <p className="py-2 text-center text-xs text-muted-foreground">{L ? "आप सब पोस्ट देख चुके ✓" : "You're all caught up ✓"}</p> : null}
+    </div>
+  );
+}
+
+/** Top of the Business tab: your pages (post as them, see today's quota) or a "create your page" call to action. */
+function BizBar({ L, member, onPosted }: { L: boolean; member: boolean; onPosted: () => void }) {
+  const tenant = useTenant();
+  const { user } = useAuth();
+  const pages = useMyPages(!!user);
+  const [posting, setPosting] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const mine = (pages.data ?? []).filter((b) => b.status === "active");
+  return (
+    <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 p-4 shadow-sm ring-1 ring-amber-200 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-rose-950/20 dark:ring-amber-900">
+      {mine.length ? (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold">{L ? "मेरे व्यापार पेज" : "My business pages"}</p>
+          {mine.map((b) => {
+            const left = Math.max(0, b.daily_limit - (b.today_posts ?? 0));
+            return (
+              <div key={b.id} className="flex items-center gap-3 rounded-xl bg-card/80 p-2 ring-1 ring-border/60">
+                <Link to="/business/$slug" params={{ slug: b.slug }}><BizLogo url={b.logo_url} name={b.name} className="size-11" /></Link>
+                <div className="min-w-0 flex-1">
+                  <Link to="/business/$slug" params={{ slug: b.slug }} className="flex items-center gap-1 truncate font-semibold hover:underline">{b.name}<Verified on={b.verified} /> <TierBadge tier={b.tier} hi={L} /></Link>
+                  <p className="text-xs text-muted-foreground">{L ? `आज ${left}/${b.daily_limit} पोस्ट बची · ${b.followers} फ़ॉलोअर्स` : `${left}/${b.daily_limit} posts left today · ${b.followers} followers`}</p>
+                </div>
+                <Button size="sm" className="rounded-full bg-amber-600 hover:bg-amber-700" disabled={!left} onClick={() => setPosting(b.id)}>{L ? "पोस्ट करें" : "Post"}</Button>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white"><Store className="size-6" /></span>
+          <div className="min-w-0 flex-1"><p className="font-semibold">{L ? "समाज का अपना बाज़ार" : "The community marketplace"}</p><p className="text-xs text-muted-foreground">{L ? "अपनी दुकान या सेवा का मुफ़्त पेज बनाइए — समाज के लोग आपको ढूँढ़ें, फ़ॉलो करें और सीधे कॉल/WhatsApp करें।" : "Create a free page for your shop or service — members can find, follow and call you."}</p></div>
+          {user && member ? <Button size="sm" className="rounded-full bg-amber-600 hover:bg-amber-700" onClick={() => setCreating(true)}>{L ? "+ पेज बनाएँ" : "+ Create page"}</Button> : null}
+        </div>
+      )}
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <Link to="/business" className="rounded-full bg-card px-3 py-1 font-semibold shadow-sm ring-1 ring-border/60 hover:text-primary">{L ? "🏪 व्यापार निर्देशिका" : "🏪 Business directory"}</Link>
+        {mine.length && user && member ? <button type="button" onClick={() => setCreating(true)} className="rounded-full bg-card px-3 py-1 font-semibold shadow-sm ring-1 ring-border/60 hover:text-primary">{L ? "+ नया पेज" : "+ New page"}</button> : null}
+      </div>
+      {posting ? <CreatePost org={tenant.organization_id} L={L} start="text" bizId={posting} onClose={() => setPosting(null)} onPosted={() => { setPosting(null); void pages.refetch(); onPosted(); }} /> : null}
+      {creating ? <BizEditor hi={L} onClose={() => setCreating(false)} /> : null}
     </div>
   );
 }
@@ -189,14 +248,17 @@ function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: 
   );
 }
 
-function CreatePost({ org, L, start, onClose, onPosted }: { org: string; L: boolean; start: "text" | "photo" | "link"; onClose: () => void; onPosted: () => void }) {
+export function CreatePost({ org, L, start, onClose, onPosted, bizId }: { org: string; L: boolean; start: "text" | "photo" | "link"; onClose: () => void; onPosted: () => void; bizId?: string | undefined }) {
   const { me } = useMe();
   const [body, setBody] = useState("");
   const [link, setLink] = useState("");
   const [showLink, setShowLink] = useState(start === "link");
   const [files, setFiles] = useState<File[]>([]);
   const [vis, setVis] = useState<"members" | "public" | "friends">("members");
-  const [asOrg, setAsOrg] = useState<string>("");
+  const [asOrg, setAsOrg] = useState<string>(bizId ? `biz:${bizId}` : "");
+  const myPages = useMyPages(true);
+  const biz = asOrg.startsWith("biz:") ? myPages.data?.find((b) => b.id === asOrg.slice(4)) : undefined;
+  const bizLeft = biz ? Math.max(0, biz.daily_limit - (biz.today_posts ?? 0)) : null;
   const asOpts = useQuery({ queryKey: ["post_as_options"], queryFn: () => rpc<{ id: string; name: string; name_hi: string | null; logo: string | null }[]>("k1_post_as_options", {}) });
   const [busy, setBusy] = useState(false);
   const [mentions, setMentions] = useState<{ user_id: string; full_name: string }[]>([]);
@@ -224,12 +286,14 @@ function CreatePost({ org, L, start, onClose, onPosted }: { org: string; L: bool
         const { error } = await supabase.storage.from("community").upload(path, f, { contentType: f.type }); if (error) throw error;
         media.push({ type: "image", path });
       }
-      await rpc("k1_post_create", { p_org: org, p_body: body.trim() || null, p_media: media, p_link: link.trim() || null, p_link_kind: link.trim() ? linkKind(link.trim()) : null, p_visibility: vis, p_as_org: asOrg || null, p_mentions: mentions.filter((m) => body.includes(`@${m.full_name}`)).map((m) => m.user_id) });
+      if (asOrg.startsWith("biz:")) await rpc("biz_post_create", { p_page: asOrg.slice(4), p_body: body.trim() || null, p_media: media, p_link: link.trim() || null, p_link_kind: link.trim() ? linkKind(link.trim()) : null });
+      else await rpc("k1_post_create", { p_org: org, p_body: body.trim() || null, p_media: media, p_link: link.trim() || null, p_link_kind: link.trim() ? linkKind(link.trim()) : null, p_visibility: vis, p_as_org: asOrg || null, p_mentions: mentions.filter((m) => body.includes(`@${m.full_name}`)).map((m) => m.user_id) });
       toast.success(L ? "पोस्ट हो गई 🎉" : "Posted 🎉");
+      if (asOrg.startsWith("biz:")) void myPages.refetch();
       onPosted();
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
-  const org_ = asOpts.data?.find((o) => o.id === asOrg);
+  const org_ = asOpts.data?.find((o) => o.id === asOrg) ?? (biz ? { id: biz.id, name: biz.name, name_hi: null, logo: biz.logo_url } : undefined);
   const big = !files.length && !showLink && body.length < 90;
   return (
     <Dialog open onOpenChange={(o) => { if (!o && !busy) onClose(); }}>
@@ -241,10 +305,11 @@ function CreatePost({ org, L, start, onClose, onPosted }: { org: string; L: bool
             <div className="min-w-0 space-y-1">
               <p className="truncate font-semibold leading-tight">{org_ ? (L && org_.name_hi ? org_.name_hi : org_.name) : me?.name}</p>
               <div className="flex flex-wrap gap-1">
-                <select aria-label={L ? "कौन देखे" : "Audience"} className="h-7 rounded-md bg-secondary px-2 text-xs font-medium" value={vis} onChange={(e) => setVis(e.target.value as typeof vis)}>
+                {biz ? <span className="flex h-7 items-center rounded-md bg-amber-100 px-2 text-xs font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">🏪 {L ? "व्यापार पोस्ट · सबको" : "Business post · public"}</span>
+                  : <select aria-label={L ? "कौन देखे" : "Audience"} className="h-7 rounded-md bg-secondary px-2 text-xs font-medium" value={vis} onChange={(e) => setVis(e.target.value as typeof vis)}>
                   {VIS(L).map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
-                </select>
-                {asOpts.data?.length ? <select aria-label={L ? "किसकी ओर से" : "Post as"} className="h-7 max-w-[200px] rounded-md bg-secondary px-2 text-xs font-medium" value={asOrg} onChange={(e) => setAsOrg(e.target.value)}><option value="">{L ? "व्यक्तिगत पोस्ट" : "Personal post"}</option>{asOpts.data.map((o) => <option key={o.id} value={o.id}>{L ? "संगठन: " : "As: "}{L && o.name_hi ? o.name_hi : o.name}</option>)}</select> : null}
+                </select>}
+                {asOpts.data?.length || myPages.data?.length ? <select aria-label={L ? "किसकी ओर से" : "Post as"} className="h-7 max-w-[220px] rounded-md bg-secondary px-2 text-xs font-medium" value={asOrg} onChange={(e) => setAsOrg(e.target.value)}><option value="">{L ? "व्यक्तिगत पोस्ट" : "Personal post"}</option>{(asOpts.data ?? []).map((o) => <option key={o.id} value={o.id}>{L ? "संगठन: " : "As: "}{L && o.name_hi ? o.name_hi : o.name}</option>)}{(myPages.data ?? []).filter((b) => b.status === "active").map((b) => <option key={b.id} value={`biz:${b.id}`}>{L ? "व्यापार: " : "Business: "}{b.name}</option>)}</select> : null}
               </div>
             </div>
           </div>
@@ -273,7 +338,8 @@ function CreatePost({ org, L, start, onClose, onPosted }: { org: string; L: bool
               <button type="button" title={L ? "टैग" : "Tag"} onClick={() => setBody((b) => `${b}${b && !b.endsWith(" ") ? " " : ""}#`)} className="grid size-9 place-items-center rounded-full text-amber-600 hover:bg-secondary"><Hash className="size-5" /></button>
             </span>
           </div>
-          <Button className="h-11 w-full rounded-xl text-base" onClick={() => void post()} disabled={busy || empty}>{busy ? (L ? "पोस्ट हो रही है…" : "Posting…") : (L ? "पोस्ट करें" : "Post")}</Button>
+          {biz ? <p className={`rounded-lg px-3 py-2 text-xs ${bizLeft ? "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200" : "bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-200"}`}>{bizLeft ? (L ? `आज ${bizLeft} में से ${biz.daily_limit} पोस्ट बची हैं। व्यापार की पोस्ट "व्यापार" टैब और आपके फ़ॉलोअर्स को दिखती है।` : `${bizLeft} of ${biz.daily_limit} posts left today. Business posts appear in the Business tab and to your followers.`) : (L ? `आज की पोस्ट सीमा (${biz.daily_limit}) पूरी हो गई — कल फिर पोस्ट करें।${biz.tier === "free" ? " रोज़ 10 पोस्ट के लिए पैकेज जल्द आ रहा है।" : ""}` : `Today's limit (${biz.daily_limit}) is used — post again tomorrow.`)}</p> : null}
+          <Button className="h-11 w-full rounded-xl text-base" onClick={() => void post()} disabled={busy || empty || bizLeft === 0}>{busy ? (L ? "पोस्ट हो रही है…" : "Posting…") : (L ? "पोस्ट करें" : "Post")}</Button>
           <p className="text-center text-[11px] leading-snug text-muted-foreground">{L ? "विज्ञापन / व्यापारिक या चुनावी प्रचार वाली पोस्ट की पहुँच अपने-आप सीमित होती है। विज्ञापन के लिए " : "Advertising, business or political promotion gets limited reach automatically. To advertise, see "}<Link to="/sponsored" className="underline">{L ? "प्रायोजित सेक्शन" : "Sponsored"}</Link>.</p>
         </div>
       </DialogContent>
@@ -377,6 +443,23 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
         </p>
       ) : null}
       <header className="flex items-start gap-2.5 px-4 pt-3">
+        {p.business ? (
+          <>
+            <Link to="/business/$slug" params={{ slug: p.business.slug }} title={p.business.name}><BizLogo url={p.business.logo_url} name={p.business.name} className="size-10 rounded-xl" /></Link>
+            <div className="min-w-0 flex-1">
+              <p className="flex flex-wrap items-center gap-x-1 font-semibold leading-tight">
+                <Link to="/business/$slug" params={{ slug: p.business.slug }} className="truncate hover:underline">{p.business.name}</Link><Verified on={p.business.verified} />
+                <TierBadge tier={p.business.tier} hi={L} />
+                {signedIn && !p.mine && p.author_rel !== "following" ? <><span className="font-normal text-muted-foreground">·</span> <BizFollowButton pageId={p.business.id} following={false} hi={L} variant="link" /></> : null}
+              </p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                <span className="rounded bg-amber-100 px-1.5 py-px font-medium text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">{catLabel(p.business.category, L)}</span>
+                {p.business.city ? <span>· {p.business.city}</span> : null} ·
+                <Link to="/community/$id" params={{ id: p.id }} className="hover:underline" title={new Date(p.created_at).toLocaleString(L ? "hi-IN" : "en-IN")}>{timeAgo(p.created_at, L)}</Link>
+              </p>
+            </div>
+          </>
+        ) : <>
         {p.as_org ? <Avatar url={p.author_photo} name={p.author_name} size={10} /> : <Link to="/u/$id" params={{ id: p.author_id }} title={L ? "प्रोफ़ाइल देखें" : "View profile"}><Avatar url={p.author_photo} name={p.author_name} size={10} /></Link>}
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold leading-tight">{p.as_org ? p.author_name : <Link to="/u/$id" params={{ id: p.author_id }} className="hover:underline">{p.author_name}</Link>}{p.as_org ? <span className="ml-1.5 rounded bg-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-primary-deep">{L ? "संगठन" : "Organization"}</span> : null}{p.shared ? <span className="font-normal text-muted-foreground"> {L ? "ने एक पोस्ट शेयर की" : "shared a post"}</span> : null}{signedIn && !p.as_org && !p.mine && p.author_rel === "none" ? <> <span className="font-normal text-muted-foreground">·</span> <FollowButton userId={p.author_id} following={false} L={L} variant="link" /></> : null}</p>
@@ -385,6 +468,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
             <Link to="/community/$id" params={{ id: p.id }} className="hover:underline" title={new Date(p.created_at).toLocaleString(L ? "hi-IN" : "en-IN")}>{timeAgo(p.created_at, L)}</Link> · <span title={vis.label}>{vis.icon}</span>
           </p>
         </div>
+        </>}
         {signedIn ? (
           <DropdownMenu>
             <DropdownMenuTrigger className="grid size-9 place-items-center rounded-full text-muted-foreground hover:bg-secondary" aria-label={L ? "विकल्प" : "Options"}><MoreHorizontal className="size-5" /></DropdownMenuTrigger>

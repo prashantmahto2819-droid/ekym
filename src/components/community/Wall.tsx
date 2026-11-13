@@ -2,7 +2,7 @@
 // friend requests, birthdays, people you may know, who's online and sponsors. On phones the rails fold into a
 // shortcut strip on top and a "people you may know" strip inside the feed.
 import { Link, useLocation } from "@tanstack/react-router";
-import { BookOpen, Briefcase, CalendarDays, Droplet, Heart, Home, Images, MessageCircle, Megaphone, Network, User, Users, Vote, type LucideIcon } from "lucide-react";
+import { BookOpen, Briefcase, CalendarDays, Droplet, Heart, Home, Images, MessageCircle, Megaphone, Store, Network, User, Users, Vote, type LucideIcon } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 
 import { Avatar, FriendButton } from "@/components/community/ChatBits";
@@ -27,6 +27,7 @@ function useShortcuts(): Short[] {
     { to: "/community/chat", icon: MessageCircle, hi: "चैट व मित्र", en: "Chat & friends", tone: "from-violet-500 to-fuchsia-600", badge: unread.data ?? 0 },
     { to: "/me/profile", icon: User, hi: "मेरी प्रोफ़ाइल", en: "My profile", tone: "from-teal-500 to-emerald-600" },
     { to: "/my-family", icon: Network, hi: "मेरा परिवार", en: "My family", tone: "from-amber-500 to-orange-600" },
+    { to: "/business", icon: Store, hi: "व्यापार", en: "Business", tone: "from-amber-500 to-orange-600", mod: "directory" },
     { to: "/events", icon: CalendarDays, hi: "आयोजन", en: "Events", tone: "from-rose-500 to-red-600", mod: "events" },
     { to: "/polls", icon: Vote, hi: "मतदान", en: "Polls", tone: "from-indigo-500 to-blue-700", mod: "polls" },
     { to: "/matrimony", icon: Heart, hi: "विवाह", en: "Matrimony", tone: "from-pink-500 to-rose-600", mod: "matrimony" },
