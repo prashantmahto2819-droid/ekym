@@ -2,12 +2,12 @@
 // post cards with photo grid + lightbox, reaction/comment/share counts, full-width action bar, comment bubbles with photos.
 import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Globe, Hash, ImagePlus, Link2, MessageCircle, MoreHorizontal, Pin, Search, Send, Share2, ThumbsUp, Users, UserCheck, X } from "lucide-react";
-import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight, Globe, Repeat2, Sparkles, Clock, Hash, ImagePlus, Link2, MessageCircle, MoreHorizontal, Pin, Search, Send, Share2, ThumbsUp, Users, UserCheck, X } from "lucide-react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { AdSlot } from "@/components/site/Ads";
-import { Avatar } from "@/components/community/ChatBits";
+import { Avatar, FollowButton } from "@/components/community/ChatBits";
 import { useConsent } from "@/components/community/ConsentGate";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -20,13 +20,35 @@ import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
-export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean };
+export type Post = { id: string; author_id: string; author_name: string; author_photo: string | null; body: string | null; media: { type: string; path: string }[]; link_url: string | null; link_kind: string | null; visibility: string; pinned: boolean; like_count: number; comment_count: number; share_count: number; created_at: string; liked: boolean; mine: boolean; can_moderate: boolean; reach: string; moderation_status: string; as_org: string | null; as_org_name: string | null; tags: string[]; political?: boolean; shared?: Shared | null; author_rel?: "me" | "friend" | "following" | "none"; reason?: { kind: "like" | "comment"; user_id: string; name: string } | null };
+export type Shared = { id: string; available: boolean; author_id?: string; author_name?: string; author_photo?: string | null; as_org?: string | null; body?: string | null; media?: { type: string; path: string }[]; link_url?: string | null; link_kind?: string | null; created_at?: string; visibility?: string };
 type Comment = { id: string; parent_id: string | null; author_id: string; author_name: string; author_photo?: string | null; body: string; created_at: string; mine: boolean };
 
 export const COMMUNITY_NAME = { en: "Kalchuri One", hi: "कलचुरी वन" };
 const rpc = async <T,>(fn: string, args: Record<string, unknown>): Promise<T> => { const { data, error } = await supabase.rpc(fn as never, args as never); if (error) throw new Error(error.message); return data as T; };
 export const mediaUrl = (path: string) => supabase.storage.from("community").getPublicUrl(path).data.publicUrl;
 const card = "rounded-2xl bg-card shadow-sm ring-1 ring-border/70";
+
+/* Posts that stayed on screen for a moment are reported in small batches, so the "For you" feed can sink them later. */
+const seenBuf = new Set<string>(); const seenSent = new Set<string>(); let seenTimer: number | null = null;
+function markSeen(id: string) {
+  if (seenSent.has(id)) return; seenBuf.add(id);
+  if (seenTimer !== null || typeof window === "undefined") return;
+  seenTimer = window.setTimeout(() => {
+    seenTimer = null; const ids = [...seenBuf].slice(0, 50); seenBuf.clear(); ids.forEach((x) => seenSent.add(x));
+    if (ids.length) supabase.rpc("k1_posts_seen" as never, { p_ids: ids } as never).then(() => undefined, () => undefined);
+  }, 4000);
+}
+function useSeen(id: string, enabled: boolean) {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current; if (!enabled || !el || typeof IntersectionObserver === "undefined") return;
+    let t: number | null = null;
+    const io = new IntersectionObserver(([e]) => { if (e?.isIntersecting) t = window.setTimeout(() => { markSeen(id); io.disconnect(); }, 1500); else if (t) { clearTimeout(t); t = null; } }, { threshold: 0.5 });
+    io.observe(el); return () => { io.disconnect(); if (t) clearTimeout(t); };
+  }, [id, enabled]);
+  return ref;
+}
 
 /** Detect embeddable video/social links. Only URLs are stored — nothing is uploaded, so video hosting stays free. */
 export function linkKind(url: string): "youtube" | "instagram" | "facebook" | "other" {
@@ -52,6 +74,8 @@ function LinkEmbed({ url, kind }: { url: string; kind: string | null }) {
   );
 }
 
+function dedupe(list: Post[]) { const seen = new Set<string>(); return list.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true))); }
+
 export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }) {
   const tenant = useTenant();
   const org = tenant.organization_id;
@@ -62,18 +86,22 @@ export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
   const searching = !postId && (q.trim().length >= 2 || !!tag);
+  const [mode, setMode] = useState<"for_you" | "latest">("for_you");
   const member = useQuery({ queryKey: ["is_member", org], enabled: !!user, queryFn: () => rpc<boolean>("k1_is_member", { p_org: org }) });
   const applicant = useQuery({ queryKey: ["is_applicant", org], enabled: !!user && member.isSuccess && !member.data, queryFn: () => rpc<boolean>("k1_is_applicant", { p_org: org }) });
   const tags = useQuery({ queryKey: ["cm_tags", org], enabled: !postId, staleTime: 120_000, queryFn: () => rpc<{ tag: string; n: number }[]>("k1_cm_tags", { p_org: org, p_limit: 12 }) });
+  const ranked = !postId && !searching;
   const feed = useInfiniteQuery({
-    queryKey: ["feed", org, postId ?? null, searching ? q.trim() : "", tag],
-    initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => searching
-      ? rpc<Post[]>("k1_feed_search", { p_org: org, p_q: q.trim() || null, p_tag: tag, p_before: pageParam, p_limit: 15 })
-      : rpc<Post[]>("k1_feed", { p_org: org, p_before: pageParam, p_limit: 15, p_post: postId ?? null }),
-    getNextPageParam: (last) => (last.length === 15 ? last[last.length - 1]!.created_at : undefined),
+    queryKey: ["feed", org, postId ?? null, searching ? q.trim() : "", tag, ranked ? mode : ""],
+    initialPageParam: null as string | number | null,
+    queryFn: ({ pageParam }) => ranked
+      ? rpc<Post[]>("k1_feed2", { p_org: org, p_mode: mode, p_offset: typeof pageParam === "number" ? pageParam : 0, p_limit: 15 })
+      : searching
+        ? rpc<Post[]>("k1_feed_search", { p_org: org, p_q: q.trim() || null, p_tag: tag, p_before: pageParam, p_limit: 15 })
+        : rpc<Post[]>("k1_feed", { p_org: org, p_before: pageParam, p_limit: 15, p_post: postId ?? null }),
+    getNextPageParam: (last, all) => (last.length === 15 ? (ranked ? all.flat().length : last[last.length - 1]!.created_at) : undefined),
   });
-  const posts = feed.data?.pages.flat() ?? [];
+  const posts = dedupe(feed.data?.pages.flat() ?? []);
   const refresh = () => qc.invalidateQueries({ queryKey: ["feed", org] });
   const note = (cls: string, children: ReactNode) => <div className={`${card} p-4 text-sm ${cls}`}>{children}</div>;
   return (
@@ -83,6 +111,13 @@ export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }
           : note("", <div className="flex flex-wrap items-center justify-between gap-2"><span>{L ? "पोस्ट करने के लिए संगठन का सदस्य बनें।" : "Become a member to post."}</span><Button asChild size="sm" className="rounded-full"><Link to="/join">{L ? "सदस्यता फ़ॉर्म" : "Membership form"}</Link></Button></div>)) : null)
         : note("", <div className="flex flex-wrap items-center justify-between gap-2"><span>{L ? "पोस्ट, लाइक और टिप्पणी के लिए लॉगिन करें।" : "Sign in to post, like and comment."}</span><Button asChild size="sm" className="rounded-full"><Link to="/auth">{L ? "लॉगिन करें" : "Sign in"}</Link></Button></div>)) : null}
 
+      {ranked ? (
+        <div className="flex gap-1 rounded-2xl bg-card p-1 shadow-sm ring-1 ring-border/70" role="tablist">
+          {([["for_you", <Sparkles key="i" className="size-4" />, L ? "आपके लिए" : "For you"], ["latest", <Clock key="i" className="size-4" />, L ? "सबसे नई" : "Latest"]] as const).map(([k, icon, label]) => (
+            <button key={k} type="button" role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-semibold transition ${mode === k ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-secondary"}`}>{icon}{label}</button>
+          ))}
+        </div>
+      ) : null}
       {!postId ? (
         <div className="space-y-2">
           <label className="relative block">
@@ -110,8 +145,8 @@ export function Feed({ postId, inline }: { postId?: string; inline?: ReactNode }
       {feed.isSuccess && !posts.length ? (
         <div className={`${card} px-6 py-12 text-center`}>
           <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary-soft text-primary-deep"><MessageCircle className="size-7" /></span>
-          <p className="mt-3 font-display text-lg font-semibold">{searching ? (L ? "कुछ नहीं मिला" : "Nothing found") : (L ? "अभी कोई पोस्ट नहीं" : "No posts yet")}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{searching ? (L ? "दूसरा शब्द या टैग आज़माइए।" : "Try another word or tag.") : (L ? "पहली पोस्ट आप कीजिए!" : "Be the first to post!")}</p>
+          <p className="mt-3 font-display text-lg font-semibold">{searching ? (L ? "कुछ नहीं मिला" : "Nothing found") : ranked && mode === "latest" ? (L ? "अभी यहाँ कुछ नहीं" : "Nothing here yet") : (L ? "अभी कोई पोस्ट नहीं" : "No posts yet")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{searching ? (L ? "दूसरा शब्द या टैग आज़माइए।" : "Try another word or tag.") : ranked && mode === "latest" ? (L ? "यहाँ मित्रों और जिन्हें आप फ़ॉलो करते हैं उनकी पोस्ट आती है। \"आपके लिए\" में लोगों को देखकर फ़ॉलो करें।" : "Posts from friends and people you follow appear here. Follow people from \"For you\".") : (L ? "पहली पोस्ट आप कीजिए!" : "Be the first to post!")}</p>
         </div>
       ) : null}
       {feed.hasNextPage ? <div className="text-center"><Button variant="outline" className="rounded-full bg-card" onClick={() => feed.fetchNextPage()} disabled={feed.isFetchingNextPage}>{feed.isFetchingNextPage ? "…" : (L ? "और पोस्ट देखें" : "Load more")}</Button></div> : null}
@@ -303,6 +338,8 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
   const [liked, setLiked] = useState(p.liked); const [likes, setLikes] = useState(p.like_count);
   const [comments, setComments] = useState(p.comment_count);
   const [photo, setPhoto] = useState<number | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const seenRef = useSeen(p.id, signedIn && !p.mine);
   useEffect(() => { setLiked(p.liked); setLikes(p.like_count); setComments(p.comment_count); }, [p.liked, p.like_count, p.comment_count]);
   const url = typeof window !== "undefined" ? `${window.location.origin}/community/${p.id}` : `/community/${p.id}`;
   const urls = p.media.filter((m) => m.type === "image").map((m) => mediaUrl(m.path));
@@ -325,16 +362,24 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
   async function remove() { if (!confirm(L ? "पोस्ट हटाएँ?" : "Delete this post?")) return; const { error } = await supabase.from("cm_posts").delete().eq("id", p.id); if (error) toast.error(error.message); else onChange(); }
   async function report() { const r = prompt(L ? "क्या गलत है? (एडमिन देखेगा)" : "What's wrong? (sent to moderators)"); if (!r) return; const uid = (await supabase.auth.getUser()).data.user?.id; const { error } = await supabase.from("cm_post_reports").insert({ post_id: p.id, organization_id: (await supabase.from("cm_posts").select("organization_id").eq("id", p.id).single()).data?.organization_id, reporter_id: uid, reason: r } as never); if (error) toast.error(error.message); else toast.success(L ? "रिपोर्ट भेजी" : "Reported"); }
   const vis = VIS(L).find((v) => v.v === p.visibility) ?? VIS(L)[0]!;
-  const big = !!p.body && !urls.length && !p.link_url && p.body.length < 110 && !p.body.includes("\n");
+  const big = !!p.body && !p.shared && !urls.length && !p.link_url && p.body.length < 110 && !p.body.includes("\n");
   const ActBtn = ({ onClick, active, children }: { onClick?: () => void; active?: boolean; children: ReactNode }) => (
     <button type="button" onClick={onClick} className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition hover:bg-secondary ${active ? "text-primary" : "text-muted-foreground"}`}>{children}</button>
   );
+  const canWall = signedIn && p.visibility !== "friends" && p.reach === "normal" && (!p.shared || p.shared.available) && p.shared?.visibility !== "friends";
   return (
-    <article className={`${card} overflow-hidden`}>
+    <article ref={seenRef} className={`${card} overflow-hidden`}>
+      {p.reason ? (
+        <p className="mx-4 flex items-center gap-1.5 border-b border-border py-2 text-xs text-muted-foreground">
+          {p.reason.kind === "like" ? <ThumbsUp className="size-3.5 text-primary" /> : <MessageCircle className="size-3.5 text-primary" />}
+          <Link to="/u/$id" params={{ id: p.reason.user_id }} className="font-semibold text-foreground hover:underline">{p.reason.name}</Link>
+          {p.reason.kind === "like" ? (L ? "ने यह पसंद किया" : "liked this") : (L ? "ने इस पर टिप्पणी की" : "commented on this")}
+        </p>
+      ) : null}
       <header className="flex items-start gap-2.5 px-4 pt-3">
         {p.as_org ? <Avatar url={p.author_photo} name={p.author_name} size={10} /> : <Link to="/u/$id" params={{ id: p.author_id }} title={L ? "प्रोफ़ाइल देखें" : "View profile"}><Avatar url={p.author_photo} name={p.author_name} size={10} /></Link>}
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold leading-tight">{p.as_org ? p.author_name : <Link to="/u/$id" params={{ id: p.author_id }} className="hover:underline">{p.author_name}</Link>}{p.as_org ? <span className="ml-1.5 rounded bg-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-primary-deep">{L ? "संगठन" : "Organization"}</span> : null}</p>
+          <p className="truncate font-semibold leading-tight">{p.as_org ? p.author_name : <Link to="/u/$id" params={{ id: p.author_id }} className="hover:underline">{p.author_name}</Link>}{p.as_org ? <span className="ml-1.5 rounded bg-primary-soft px-1.5 py-0.5 text-[10px] font-medium text-primary-deep">{L ? "संगठन" : "Organization"}</span> : null}{p.shared ? <span className="font-normal text-muted-foreground"> {L ? "ने एक पोस्ट शेयर की" : "shared a post"}</span> : null}{signedIn && !p.as_org && !p.mine && p.author_rel === "none" ? <> <span className="font-normal text-muted-foreground">·</span> <FollowButton userId={p.author_id} following={false} L={L} variant="link" /></> : null}</p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
             {p.pinned ? <><Pin className="size-3 text-primary" /><span className="text-primary">{L ? "पिन" : "Pinned"}</span> ·</> : null}
             <Link to="/community/$id" params={{ id: p.id }} className="hover:underline" title={new Date(p.created_at).toLocaleString(L ? "hi-IN" : "en-IN")}>{timeAgo(p.created_at, L)}</Link> · <span title={vis.label}>{vis.icon}</span>
@@ -357,6 +402,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
         {p.body ? <Body text={p.body} onTag={onTag} big={big} /> : null}
         {urls.length ? <PhotoGrid urls={urls} onOpen={setPhoto} /> : null}
         {p.link_url ? <LinkEmbed url={p.link_url} kind={p.link_kind} /> : null}
+        {p.shared ? <SharedBox s={p.shared} L={L} onTag={onTag} /> : null}
       </div>
       {likes || comments || p.share_count ? (
         <div className="mx-4 mt-3 flex items-center justify-between gap-2 text-[13px] text-muted-foreground">
@@ -372,7 +418,8 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
         <ActBtn onClick={() => setOpen((v) => !v)}><MessageCircle className="size-[18px]" />{L ? "टिप्पणी" : "Comment"}</ActBtn>
         <DropdownMenu>
           <DropdownMenuTrigger className="flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold text-muted-foreground transition hover:bg-secondary"><Share2 className="size-[18px]" />{L ? "शेयर" : "Share"}</DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-60">
+            {canWall ? <><DropdownMenuItem onClick={() => setSharing(true)}><Repeat2 className="size-4 text-primary" /> {L ? "अपनी प्रोफ़ाइल पर शेयर करें" : "Share to your profile"}</DropdownMenuItem><DropdownMenuSeparator /></> : null}
             <DropdownMenuItem onClick={() => void share("wa")}><span className="text-emerald-600">●</span> WhatsApp {L ? "पर भेजें" : ""}</DropdownMenuItem>
             {typeof navigator !== "undefined" && typeof navigator.share === "function" ? <DropdownMenuItem onClick={() => void share("native")}>{L ? "दूसरे ऐप में…" : "Other apps…"}</DropdownMenuItem> : null}
             <DropdownMenuItem onClick={() => void share("copy")}>{L ? "लिंक कॉपी करें" : "Copy link"}</DropdownMenuItem>
@@ -381,7 +428,65 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
       </footer>
       {open ? <Comments post={p} L={L} signedIn={signedIn} onCount={setComments} /> : null}
       {photo !== null ? <Lightbox urls={urls} index={photo} onClose={() => setPhoto(null)} /> : null}
+      {sharing ? <ShareToWall p={p} L={L} onClose={() => setSharing(false)} onDone={() => { setSharing(false); onChange(); }} /> : null}
     </article>
+  );
+}
+
+/** The original post shown inside a share. */
+function SharedBox({ s, L, onTag }: { s: Shared; L: boolean; onTag?: ((t: string) => void) | undefined }) {
+  const [photo, setPhoto] = useState<number | null>(null);
+  if (!s.available) return <p className="mx-4 rounded-xl border border-dashed border-border bg-secondary/40 px-4 py-6 text-center text-sm text-muted-foreground">{L ? "यह पोस्ट अब उपलब्ध नहीं है — हटाई गई है या आप इसे नहीं देख सकते।" : "This post is no longer available — it was removed or you can't see it."}</p>;
+  const urls = (s.media ?? []).filter((m) => m.type === "image").map((m) => mediaUrl(m.path));
+  return (
+    <div className="mx-4 overflow-hidden rounded-xl border border-border">
+      {urls.length ? <PhotoGrid urls={urls} onOpen={setPhoto} /> : null}
+      {s.link_url ? <div className="pt-3"><LinkEmbed url={s.link_url} kind={s.link_kind ?? null} /></div> : null}
+      <div className="flex items-center gap-2 px-4 pt-3">
+        {s.as_org ? <Avatar url={s.author_photo} name={s.author_name ?? "?"} size={8} /> : <Link to="/u/$id" params={{ id: s.author_id! }}><Avatar url={s.author_photo} name={s.author_name ?? "?"} size={8} /></Link>}
+        <div className="min-w-0 text-sm">
+          {s.as_org ? <p className="truncate font-semibold">{s.author_name}</p> : <Link to="/u/$id" params={{ id: s.author_id! }} className="block truncate font-semibold hover:underline">{s.author_name}</Link>}
+          <Link to="/community/$id" params={{ id: s.id }} className="text-xs text-muted-foreground hover:underline">{timeAgo(s.created_at, L)}</Link>
+        </div>
+      </div>
+      <div className="pb-3 pt-2">{s.body ? <Body text={s.body} onTag={onTag} big={false} /> : null}</div>
+      {photo !== null ? <Lightbox urls={urls} index={photo} onClose={() => setPhoto(null)} /> : null}
+    </div>
+  );
+}
+
+/** "Share to your profile": your words on top, the original underneath. */
+function ShareToWall({ p, L, onClose, onDone }: { p: Post; L: boolean; onClose: () => void; onDone: () => void }) {
+  const { me } = useMe();
+  const consent = useConsent();
+  const [body, setBody] = useState("");
+  const [vis, setVis] = useState<"members" | "public" | "friends">("members");
+  const [busy, setBusy] = useState(false);
+  const original: Shared = p.shared ?? { id: p.id, available: true, author_id: p.author_id, author_name: p.author_name, author_photo: p.author_photo, as_org: p.as_org, body: p.body, media: p.media, link_url: p.link_url, link_kind: p.link_kind, created_at: p.created_at, visibility: p.visibility };
+  async function go() {
+    if (!consent.accepted) { consent.ensure(() => void go()); return; }
+    setBusy(true);
+    try { await rpc("k1_post_share_to_wall", { p_post: original.id, p_body: body.trim() || null, p_visibility: vis }); toast.success(L ? "आपकी प्रोफ़ाइल पर शेयर हो गई" : "Shared to your profile"); onDone(); }
+    catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
+  }
+  return (
+    <Dialog open onOpenChange={(o) => { if (!o && !busy) onClose(); }}>
+      <DialogContent className="max-h-[92vh] max-w-lg gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-4 py-3"><DialogTitle className="text-center font-display text-lg">{L ? "अपनी प्रोफ़ाइल पर शेयर करें" : "Share to your profile"}</DialogTitle></DialogHeader>
+        <div className="space-y-3 p-4">
+          <div className="flex items-center gap-2.5">
+            <Avatar url={me?.photo} name={me?.name ?? "?"} size={10} />
+            <div className="min-w-0 space-y-1">
+              <p className="truncate font-semibold leading-tight">{me?.name}</p>
+              <select aria-label={L ? "कौन देखे" : "Audience"} className="h-7 rounded-md bg-secondary px-2 text-xs font-medium" value={vis} onChange={(e) => setVis(e.target.value as typeof vis)}>{VIS(L).map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}</select>
+            </div>
+          </div>
+          <Textarea autoFocus rows={2} className="resize-none border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0" placeholder={L ? "इसके बारे में कुछ लिखें… (वैकल्पिक)" : "Say something about this… (optional)"} value={body} onChange={(e) => setBody(e.target.value)} maxLength={2000} />
+          <div className="pointer-events-none max-h-72 overflow-hidden opacity-90"><SharedBox s={original} L={L} /></div>
+          <Button className="h-11 w-full rounded-xl text-base" onClick={() => void go()} disabled={busy}><Repeat2 className="size-5" /> {busy ? "…" : (L ? "अभी शेयर करें" : "Share now")}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -8557,6 +8557,9 @@ export type Database = {
           moderation_status: string
           pinned: boolean
           political: boolean
+          reason: Json
+          shared: Json
+          author_rel: string
           reach: string
           share_count: number
           tags: string[]
@@ -8591,6 +8594,9 @@ export type Database = {
           moderation_status: string
           pinned: boolean
           political: boolean
+          reason: Json
+          shared: Json
+          author_rel: string
           reach: string
           share_count: number
           tags: string[]
