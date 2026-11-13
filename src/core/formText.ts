@@ -10,7 +10,7 @@ const HI: Record<string, string> = {
   Home: "होम", "Full name": "पूरा नाम", "Your name": "आपका नाम", Mobile: "मोबाइल", "Your mobile": "आपका मोबाइल", WhatsApp: "व्हाट्सऐप", "Your WhatsApp": "आपका व्हाट्सऐप",
   Email: "ईमेल", "Date of birth": "जन्म तिथि", Gender: "लिंग", Male: "पुरुष", Female: "महिला", Other: "अन्य", "Select…": "चुनें…", "— choose —": "— चुनें —",
   Address: "पता", "Area / locality": "मोहल्ला / क्षेत्र", Pincode: "पिन कोड", Notes: "टिप्पणी", "Message (optional)": "संदेश (वैकल्पिक)", Education: "शिक्षा",
-  State: "राज्य", "Select state": "राज्य चुनें", District: "ज़िला", "Select district": "ज़िला चुनें", "Type your district name": "अपने ज़िले का नाम लिखें",
+  State: "राज्य", "Select state": "राज्य चुनें", District: "ज़िला", "Select district": "ज़िला चुनें", "Type your district name": "अपने ज़िले का नाम लिखें", "Type a few letters and pick from the list": "कुछ अक्षर लिखें और सूची से चुनें", "Type a few letters — the state is filled in for you": "कुछ अक्षर लिखें — राज्य अपने-आप भर जाएगा",
   "City / town / village": "शहर / कस्बा / गाँव", "Preferred date": "सुविधाजनक तारीख", "I need pickup from my address": "सामान मेरे पते से ले जाएँ",
   "Pickup address": "सामान लेने का पता", Quantity: "मात्रा", Unit: "इकाई", All: "सभी", Search: "खोजें",
   // validation & status

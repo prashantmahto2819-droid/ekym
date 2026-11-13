@@ -5,18 +5,17 @@ import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { RichText } from "@/components/site/Blocks";
+import { DistrictInput } from "@/components/site/DistrictInput";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { placeName } from "@/core/formText";
 import { useLang } from "@/core/i18n";
 import { pageMeta } from "@/core/seo";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { CHHATTISGARH_DISTRICTS } from "@/lib/locations";
 import { dt, STATUS_HI, useExamList, useMyRegs } from "./exams.index";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -136,7 +135,7 @@ function ExamPage() {
                   <Lbl t={hi ? "स्कूल / कॉलेज का नाम" : "School / college"}><Input value={f.school} onChange={(ev) => setF({ ...f, school: ev.target.value })} /></Lbl>
                   <div className="grid grid-cols-2 gap-2">
                     <Lbl t={hi ? "शहर / गाँव" : "City / village"}><Input value={f.city} onChange={(ev) => setF({ ...f, city: ev.target.value })} /></Lbl>
-                    <Lbl t={hi ? "ज़िला" : "District"}><Input value={f.district} list="ex-districts" onChange={(ev) => setF({ ...f, district: ev.target.value })} /><datalist id="ex-districts">{CHHATTISGARH_DISTRICTS.map((d) => <option key={d} value={placeName(d, hi)} />)}</datalist></Lbl>
+                    <Lbl t={hi ? "ज़िला" : "District"}><DistrictInput value={f.district} hi={hi} onChange={(v) => setF((x) => ({ ...x, district: v }))} /></Lbl>
                   </div>
                   {orgs.data?.length ? <Lbl t={hi ? "किस समाज / संस्था से" : "Organization"}><select className={SEL} value={f.org} onChange={(ev) => setF({ ...f, org: ev.target.value })}><option value="">{hi ? "— चुनें —" : "— choose —"}</option>{orgs.data.map((o) => <option key={o.id} value={o.id}>{(hi && o.name_hi) || o.name}</option>)}</select></Lbl> : null}
                   <div className="grid grid-cols-2 gap-2">

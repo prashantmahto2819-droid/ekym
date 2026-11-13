@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { CardDesigner } from "@/components/matrimony/CardDesigner";
 import { ExtraEditor } from "@/components/matrimony/ExtraEditor";
+import { DistrictInput } from "@/components/site/DistrictInput";
 import { ExtraList, Points } from "@/components/matrimony/ExtraList";
 import { readExtra, type ExtraField } from "@/components/matrimony/extraFields";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -14,14 +15,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { placeName } from "@/core/formText";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { signedUrls, uploadPhoto } from "@/lib/images";
 import { normPhone } from "@/lib/comms";
-import { CHHATTISGARH_DISTRICTS } from "@/lib/locations";
 
 export const Route = createFileRoute("/_authenticated/matrimony")({ head: () => ({ meta: [{ title: "Matrimony" }, { name: "robots", content: "noindex" }] }), component: MatrimonyPage });
 
@@ -163,7 +162,7 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
           {In("display_name", L ? "नाम (जो दिखेगा)" : "Display name", "text", {}, true)}{In("birth_year", L ? "जन्म वर्ष (18+)" : "Birth year (18+)", "number", { min: new Date().getFullYear() - 70, max: new Date().getFullYear() - 18, inputMode: "numeric" }, true)}
           {In("height_cm", L ? `कद (सेमी में)${ftIn ? ` = ${ftIn}` : ""}` : `Height (cm)${ftIn ? ` = ${ftIn}` : ""}`, "number", { min: 120, max: 220, inputMode: "numeric", placeholder: L ? "जैसे 170" : "e.g. 170" })}{In("education", L ? "शिक्षा" : "Education")}
           {In("profession", L ? "व्यवसाय" : "Profession")}{In("income_range", L ? "वार्षिक आय (लगभग)" : "Annual income (approx.)", "text", { list: "mx-income" })}<datalist id="mx-income">{(L ? ["2 लाख तक", "2–5 लाख", "5–10 लाख", "10–20 लाख", "20 लाख से अधिक"] : ["Up to 2 lakh", "2–5 lakh", "5–10 lakh", "10–20 lakh", "Above 20 lakh"]).map((x) => <option key={x} value={x} />)}</datalist>
-          {In("city", L ? "शहर / गाँव" : "City / village")}{In("district", L ? "ज़िला" : "District", "text", { list: "mx-districts" })}<datalist id="mx-districts">{CHHATTISGARH_DISTRICTS.map((d) => <option key={d} value={placeName(d, L)} />)}</datalist>
+          {In("city", L ? "शहर / गाँव" : "City / village")}<label className="block text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "ज़िला" : "District"}</span><DistrictInput value={f["district"] ?? ""} hi={L} onChange={(v) => set("district", v)} /></label>
           {In("gotra", L ? "गोत्र" : "Gotra")}{In("native_place", L ? "मूल ग्राम" : "Native place")}
           <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "परिचय (बिंदुवार लिखना हो तो हर बिंदु नई पंक्ति में)" : "About (for points, one point per line)"}</span><Textarea rows={4} value={f["about"] ?? ""} onChange={(e) => set("about", e.target.value)} /></label>
           <label className="block sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपेक्षाएँ (हर बिंदु नई पंक्ति में लिख सकते हैं)" : "Expectations (one point per line is fine)"}</span><Textarea rows={3} value={f["expectations"] ?? ""} onChange={(e) => set("expectations", e.target.value)} /></label>
