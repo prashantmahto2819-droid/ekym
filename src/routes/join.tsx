@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Field, FormError, FormSuccess } from "@/components/site/Field";
+import { PhotoPicker } from "@/components/site/PhotoPicker";
 import { LocationFields } from "@/components/site/LocationFields";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,7 @@ function JoinPage() {
                 </Field>
               ) : null}
               <Field label={hi ? "आपकी फोटो" : "Your photo"} required className="sm:col-span-2">
-                <div className="flex items-center gap-3">{photo ? <img src={URL.createObjectURL(photo)} alt="" className="size-16 rounded-full object-cover" /> : <span className="grid size-16 place-items-center rounded-full bg-secondary text-xs text-muted-foreground">{hi ? "फोटो" : "photo"}</span>}<input type="file" accept="image/*" capture="user" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} /></div>
+                <PhotoPicker value={photo} onChange={setPhoto} hi={hi} />
               </Field>
               <Field label={hi ? "पूरा नाम (English)" : "Full name (English)"} required error={errors.full_name?.message}>
                 <Input {...register("full_name", { required: "Required" })} />
