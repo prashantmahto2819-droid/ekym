@@ -1,15 +1,19 @@
+// Dates follow the site language (set by LangProvider on every render).
+let DATE_LOCALE = "en-IN";
+export function setDateLocale(lang: string) { DATE_LOCALE = lang === "hi" ? "hi-IN" : "en-IN"; }
+
 export function formatDate(value?: string | null) {
   if (!value) return "";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  return d.toLocaleDateString(DATE_LOCALE, { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function formatDateTime(value?: string | null) {
   if (!value) return "";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleString("en-IN", {
+  return d.toLocaleString(DATE_LOCALE, {
     day: "numeric",
     month: "short",
     year: "numeric",

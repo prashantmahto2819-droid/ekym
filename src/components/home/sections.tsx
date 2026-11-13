@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   CalendarDays,
+  GraduationCap,
+  Users,
   Droplet,
   Heart,
   MapPin,
@@ -12,7 +14,7 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { SectionHeading } from "@/components/site/SectionHeading";
 import { useLang } from "@/core/i18n";
@@ -49,9 +51,10 @@ export function HeroSlider({ slides }: { slides: any[] }) {
     const t = setInterval(() => { if (!document.hidden) api.scrollNext(); }, 6500);
     return () => { clearInterval(t); api.off("select", onSel); };
   }, [api]);
-  if (!slides.length) return null;
   const donate = moduleOn(tenant.branding, "donate");
+  if (!slides.length) return <DefaultHero />;
   return (
+    <>
     <section aria-label="Highlights" className="relative">
       <Carousel opts={{ loop: true }} setApi={setApi} className="relative">
         <CarouselContent>
@@ -90,10 +93,69 @@ export function HeroSlider({ slides }: { slides: any[] }) {
         ) : null}
       </Carousel>
       {slides.length > 1 ? (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+        <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-2 md:bottom-20">
           {slides.map((s, i) => <button key={s.id} type="button" aria-label={`Slide ${i + 1}`} onClick={() => api?.scrollTo(i)} className={`h-2 rounded-full transition-all ${i === cur ? "w-6 bg-amber-300" : "w-2 bg-white/50"}`} />)}
         </div>
       ) : null}
+    </section>
+    <QuickActions />
+    </>
+  );
+}
+
+/** Shown when no slides are set: organization name, tagline and the main buttons. */
+function DefaultHero() {
+  const tenant = useTenant();
+  const { lang } = useLang();
+  const hi = lang === "hi";
+  const t = tenant as unknown as { name: string; name_hi?: string | null; branding?: Record<string, unknown> };
+  const tag = (hi ? t.branding?.["tagline_hi"] : t.branding?.["tagline"]) as string | undefined;
+  return (
+    <>
+      <section className="page-hero relative isolate overflow-hidden text-white">
+        <div aria-hidden className="page-hero-pattern absolute inset-0 -z-10" />
+        <div aria-hidden className="absolute -right-20 top-10 -z-10 size-96 rounded-full bg-accent/30 blur-3xl" />
+        <div className="container-page flex min-h-[26rem] flex-col justify-center py-16 md:min-h-[32rem]">
+          <p className="eyebrow text-amber-200">{hi ? "एक समाज · एक मंच" : "One community · one platform"}</p>
+          <h1 className="mt-3 max-w-3xl text-balance font-display text-4xl font-semibold leading-tight md:text-6xl">{(hi && t.name_hi) || t.name}</h1>
+          {tag ? <p className="mt-4 max-w-2xl text-lg text-white/85">{tag}</p> : null}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to="/join" className="inline-flex h-12 items-center rounded-full bg-accent px-7 font-semibold text-accent-foreground shadow-lg hover:opacity-95">{hi ? "सदस्य बनें" : "Become a member"}</Link>
+            <Link to="/events" className="inline-flex h-12 items-center rounded-full bg-white/15 px-7 font-semibold ring-1 ring-white/30 backdrop-blur hover:bg-white/25">{hi ? "आगामी आयोजन" : "Upcoming events"}</Link>
+          </div>
+        </div>
+      </section>
+      <QuickActions />
+    </>
+  );
+}
+
+/** Big, friendly shortcuts under the hero (only for modules that are switched on). */
+function QuickActions() {
+  const tenant = useTenant();
+  const { lang } = useLang();
+  const hi = lang === "hi";
+  const items: { to: string; mod?: string; icon: ReactNode; hi: string; en: string; sub_hi: string; sub_en: string; tone: string }[] = [
+    { to: "/blood", mod: "blood", icon: <Droplet />, hi: "रक्त सहायता", en: "Blood help", sub_hi: "ज़रूरत दर्ज करें / रक्तदाता बनें", sub_en: "Request or donate", tone: "from-rose-500 to-red-700" },
+    { to: "/donate", mod: "donate", icon: <Heart />, hi: "दान करें", en: "Donate", sub_hi: "सुरक्षित ऑनलाइन दान", sub_en: "Give securely online", tone: "from-amber-500 to-orange-600" },
+    { to: "/events", mod: "events", icon: <CalendarDays />, hi: "आयोजन", en: "Events", sub_hi: "कार्यक्रम व पंजीकरण", sub_en: "Programmes & registration", tone: "from-teal-500 to-emerald-700" },
+    { to: "/exams", mod: "exam", icon: <GraduationCap />, hi: "परीक्षा", en: "Exams", sub_hi: "स्तर परीक्षा व प्रमाण-पत्र", sub_en: "Level tests & certificates", tone: "from-sky-500 to-indigo-600" },
+    { to: "/matrimony", mod: "matrimony", icon: <Users />, hi: "विवाह", en: "Matrimony", sub_hi: "समाज के रिश्ते", sub_en: "Find a match", tone: "from-fuchsia-500 to-pink-700" },
+    { to: "/join", icon: <Sparkles />, hi: "सदस्य बनें", en: "Join", sub_hi: "समाज से जुड़ें", sub_en: "Become a member", tone: "from-violet-500 to-purple-700" },
+  ];
+  const list = items.filter((i) => !i.mod || moduleOn(tenant.branding, i.mod)).slice(0, 6);
+  return (
+    <section aria-label={hi ? "मुख्य सुविधाएँ" : "Quick links"} className="relative z-10 -mt-10 md:-mt-14">
+      <div className="container-page">
+        <div className="grid grid-cols-2 gap-3 rounded-3xl bg-card/95 p-3 shadow-xl ring-1 ring-border backdrop-blur sm:grid-cols-3 lg:grid-cols-6">
+          {list.map((i) => (
+            <Link key={i.to} to={i.to} className="group flex items-center gap-3 rounded-2xl p-3 transition hover:bg-secondary">
+              <span className={`grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md transition group-hover:scale-105 [&>svg]:size-5 ${i.tone}`}>{i.icon}</span>
+              <span className="min-w-0"><span className="block font-semibold leading-tight">{hi ? i.hi : i.en}</span><span className="block truncate text-xs text-muted-foreground">{hi ? i.sub_hi : i.sub_en}</span></span>
+            </Link>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
@@ -206,37 +268,18 @@ export function TodayActivities({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   const cutoff = Date.now() - 36 * 60 * 60 * 1000;
   const recent = blogs.filter((b) => b.published_at && new Date(b.published_at).getTime() >= cutoff);
   const items = recent.length ? recent : blogs.slice(0, 3);
   if (!items.length && !contributors.length) return null;
-
   return (
     <section className="bg-secondary/60 section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="Last 24 hours" title={title} subtitle={subtitle} action={{ label: "All updates", to: "/blogs" }} />
-        <div className="grid gap-4 md:grid-cols-3">
-          {items.slice(0, 3).map((b) => (
-            <Link key={b.id} to="/blogs/$slug" params={{ slug: b.slug }} className="surface-card lift-on-hover overflow-hidden">
-              {b.featured_image ? (
-                <img src={b.featured_image} alt="" loading="lazy" className="h-40 w-full object-cover" />
-              ) : null}
-              <div className="p-5">
-                <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <CalendarDays className="size-3.5" />
-                  {formatDate(b.published_at)}
-                  {b.city ? (
-                    <>
-                      <MapPin className="ml-1 size-3.5" />
-                      {b.city}
-                    </>
-                  ) : null}
-                </p>
-                <h3 className="mt-2 font-display text-base font-semibold">{b.title}</h3>
-                {b.excerpt ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{b.excerpt}</p> : null}
-              </div>
-            </Link>
-          ))}
+        <SectionHeading eyebrow={recent.length ? (hi ? "पिछले 24 घंटे" : "Last 24 hours") : (hi ? "हाल की गतिविधियाँ" : "Recent activity")} title={title} subtitle={subtitle} action={{ label: hi ? "सभी अपडेट" : "All updates", to: "/blogs" }} />
+        <div className="grid gap-5 md:grid-cols-3">
+          {items.slice(0, 3).map((b) => <BlogCard key={b.id} blog={b} />)}
         </div>
       </div>
     </section>
@@ -254,34 +297,32 @@ export function BloodRequirementSection({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   return (
     <section className="section-y">
       <div className="container-page">
-        <SectionHeading
-          eyebrow="Blood seva"
-          title={title}
-          subtitle={subtitle}
-          action={{ label: "All requirements", to: "/blood" }}
-        />
-        {requirements.length ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {requirements.slice(0, 3).map((r) => (
-              <BloodRequirementCard key={r.id} requirement={r} />
-            ))}
-          </div>
-        ) : (
-          <div className="surface-card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-display text-lg font-semibold">No verified requirement right now</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Register as a donor so we can reach you the moment someone needs your blood group.
-              </p>
+        <div className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-rose-600 via-red-700 to-rose-900 p-6 text-white shadow-xl md:p-10">
+          <Droplet aria-hidden className="absolute -right-6 -top-6 -z-10 size-56 text-white/10" />
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <p className="eyebrow text-rose-100">{hi ? "रक्त सेवा" : "Blood seva"}</p>
+              <h2 className="mt-1 text-2xl font-semibold sm:text-3xl">{title}</h2>
+              {subtitle ? <p className="mt-2 text-white/85">{subtitle}</p> : null}
             </div>
-            <Button asChild>
-              <Link to="/blood">Register as donor</Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Link to="/blood" className="inline-flex h-11 items-center rounded-full bg-white px-5 text-sm font-semibold text-red-700 shadow hover:bg-white/90">{hi ? "रक्तदाता बनें" : "Become a donor"}</Link>
+              <Link to="/blood" className="inline-flex h-11 items-center rounded-full bg-white/15 px-5 text-sm font-semibold ring-1 ring-white/40 hover:bg-white/25">{hi ? "ज़रूरत दर्ज करें" : "Request blood"}</Link>
+            </div>
           </div>
-        )}
+          {requirements.length ? (
+            <div className="mt-6 grid gap-4 text-foreground sm:grid-cols-2 lg:grid-cols-3">
+              {requirements.slice(0, 3).map((r) => <BloodRequirementCard key={r.id} requirement={r} />)}
+            </div>
+          ) : (
+            <p className="mt-6 rounded-2xl bg-white/10 p-4 text-sm text-white/90 ring-1 ring-white/20">{hi ? "अभी कोई सत्यापित आवश्यकता नहीं है। रक्तदाता के रूप में पंजीयन करें, ताकि ज़रूरत पड़ते ही हम आप तक पहुँच सकें।" : "No verified requirement right now. Register as a donor so we can reach you the moment someone needs your blood group."}</p>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -339,7 +380,7 @@ export function BloodRequirementCard({ requirement: r }: { requirement: any }) {
         ) : null}
         <Button asChild size="sm">
           <Link to="/blood">
-            <Droplet className="size-4" /> Donate blood
+            <Droplet className="size-4" /> {hi ? "रक्तदान करें" : "Donate blood"}
           </Link>
         </Button>
       </div>
@@ -361,36 +402,29 @@ export function BhojanSeva({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang, loc } = useLang();
+  const hi = lang === "hi";
   return (
-    <section className="bg-primary-soft/60 section-y">
-      <div className="container-page grid items-center gap-8 md:grid-cols-2">
-        <div>
-          <p className="eyebrow">Bhojan sewa</p>
-          <h2 className="mt-1 text-2xl font-semibold sm:text-3xl">{title}</h2>
-          <p className="mt-3 text-muted-foreground">
-            {subtitle ?? project?.short_description ?? "Warm meals served with dignity, every single day."}
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button asChild>
-              <Link to="/donate">Sponsor a meal</Link>
-            </Button>
-            {project ? (
-              <Button asChild variant="outline">
-                <Link to="/seva/$slug" params={{ slug: project.slug }}>
-                  About Bhojan Seva
-                </Link>
-              </Button>
-            ) : null}
+    <section className="section-y">
+      <div className="container-page">
+        <div className="grid items-center gap-8 overflow-hidden rounded-3xl bg-accent-soft p-6 md:grid-cols-2 md:p-10">
+          <div>
+            <p className="eyebrow">{hi ? "भोजन सेवा" : "Bhojan seva"}</p>
+            <h2 className="mt-1 text-2xl font-semibold sm:text-3xl">{title}</h2>
+            <p className="mt-3 text-muted-foreground">{subtitle ?? (loc(project, "short_description") || (hi ? "सम्मान के साथ गरम भोजन, हर दिन।" : "Warm meals served with dignity, every single day."))}</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/donate" className="inline-flex h-11 items-center rounded-full bg-accent px-6 text-sm font-semibold text-accent-foreground shadow hover:opacity-95">{hi ? "एक समय का भोजन प्रायोजित करें" : "Sponsor a meal"}</Link>
+              {project ? <Link to="/seva/$slug" params={{ slug: project.slug }} className="inline-flex h-11 items-center rounded-full border border-border bg-background px-6 text-sm font-semibold hover:border-primary hover:text-primary">{hi ? "भोजन सेवा के बारे में" : "About Bhojan Seva"}</Link> : null}
+            </div>
           </div>
-        </div>
-        <div className="surface-card flex items-center gap-4 p-6">
-          <span className="gradient-warm flex size-14 shrink-0 items-center justify-center rounded-full text-accent-foreground">
-            <UtensilsCrossed className="size-6" />
-          </span>
-          <p className="text-sm text-muted-foreground">
-            Our kitchen team starts at 5:30 am. Meals are cooked, counted, packed and delivered before 11 am —
-            no questions asked, no documents needed.
-          </p>
+          <div className="relative">
+            {project?.featured_image ? <img src={project.featured_image} alt="" loading="lazy" className="aspect-[4/3] w-full rounded-2xl object-cover shadow-lg" /> : (
+              <div className="grid aspect-[4/3] place-items-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-white shadow-lg"><UtensilsCrossed className="size-20 opacity-90" /></div>
+            )}
+            <div className="absolute -bottom-4 left-4 right-4 rounded-2xl bg-card p-4 text-sm shadow-lg ring-1 ring-border md:left-auto md:w-72">
+              {hi ? "रसोई सुबह 5:30 बजे शुरू होती है — 11 बजे से पहले भोजन पककर, गिनकर, पैक होकर पहुँच जाता है।" : "Our kitchen starts at 5:30 am — meals are cooked, packed and delivered before 11 am."}
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -408,18 +442,19 @@ export function Contributors({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang } = useLang();
   if (!contributors.length) return null;
   return (
     <section className="section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="Gratitude" title={title} subtitle={subtitle} />
+        <SectionHeading eyebrow={lang === "hi" ? "आभार" : "Gratitude"} title={title} subtitle={subtitle} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {contributors.map((c) => (
-            <article key={c.id} className="surface-card p-5 text-center">
+            <article key={c.id} className="surface-card lift-on-hover p-6 text-center">
               {c.photo ? (
-                <img src={c.photo} alt="" loading="lazy" className="mx-auto size-16 rounded-full object-cover" />
+                <img src={c.photo} alt="" loading="lazy" className="mx-auto size-20 rounded-full object-cover ring-4 ring-accent-soft" />
               ) : (
-                <span className="bg-accent-soft text-accent mx-auto flex size-16 items-center justify-center rounded-full">
+                <span className="bg-accent-soft text-accent mx-auto flex size-20 items-center justify-center rounded-full">
                   <Heart className="size-6" />
                 </span>
               )}
@@ -452,11 +487,13 @@ export function BlogGrid({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   if (!blogs.length) return null;
   return (
     <section className="bg-secondary/60 section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="From the field" title={title} subtitle={subtitle} action={{ label: "All blogs", to: "/blogs" }} />
+        <SectionHeading eyebrow={hi ? "मैदान से" : "From the field"} title={title} subtitle={subtitle} action={{ label: hi ? "सभी लेख" : "All blogs", to: "/blogs" }} />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {blogs.slice(0, 6).map((b) => (
             <BlogCard key={b.id} blog={b} />
@@ -490,11 +527,13 @@ export function BlogCard({ blog: b }: { blog: any }) {
 /* ------------------------------ NEWS ------------------------------ */
 
 export function NewsSlider({ news, title }: { news: any[]; title: string }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   if (!news.length) return null;
   return (
     <section className="section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="Press & updates" title={title} action={{ label: "All news", to: "/news" }} />
+        <SectionHeading eyebrow={hi ? "समाचार व अपडेट" : "Press & updates"} title={title} action={{ label: hi ? "सभी समाचार" : "All news", to: "/news" }} />
         <Carousel opts={{ align: "start" }}>
           <CarouselContent>
             {news.map((n) => (
@@ -531,11 +570,13 @@ export function NewsCard({ item: n, featured }: { item: any; featured?: boolean 
 /* --------------------------- VIDEOS / REELS --------------------------- */
 
 export function VideoSection({ videos, title }: { videos: any[]; title: string }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   if (!videos.length) return null;
   return (
     <section className="section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="Watch" title={title} action={{ label: "All videos", to: "/videos" }} />
+        <SectionHeading eyebrow={hi ? "देखें" : "Watch"} title={title} action={{ label: hi ? "सभी वीडियो" : "All videos", to: "/videos" }} />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {videos.slice(0, 3).map((v) => (
             <VideoCard key={v.id} video={v} />
@@ -575,11 +616,13 @@ export function VideoCard({ video: v, vertical }: { video: any; vertical?: boole
 }
 
 export function ReelSection({ reels, title }: { reels: any[]; title: string }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   if (!reels.length) return null;
   return (
     <section className="bg-secondary/60 section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="Short videos" title={title} action={{ label: "All reels", to: "/reels" }} />
+        <SectionHeading eyebrow={hi ? "छोटे वीडियो" : "Short videos"} title={title} action={{ label: hi ? "सभी रील्स" : "All reels", to: "/reels" }} />
         <div className="scrollbar-none -mx-4 flex gap-4 overflow-x-auto px-4 pb-2">
           {reels.map((r) => (
             <div key={r.id} className="w-64 shrink-0">
@@ -603,13 +646,15 @@ export function CampaignSection({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   if (!campaigns.length) return null;
   return (
     <section className="section-y">
       <div className="container-page">
-        <SectionHeading eyebrow="Campaigns" title={title} subtitle={subtitle} action={{ label: "All campaigns", to: "/campaigns" }} />
-        <div className="grid gap-4 md:grid-cols-2">
-          {campaigns.slice(0, 2).map((c) => (
+        <SectionHeading eyebrow={hi ? "अभियान" : "Campaigns"} title={title} subtitle={subtitle} action={{ label: hi ? "सभी अभियान" : "All campaigns", to: "/campaigns" }} />
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {campaigns.slice(0, 3).map((c) => (
             <CampaignCard key={c.id} campaign={c} />
           ))}
         </div>
@@ -662,31 +707,25 @@ export function Testimonials({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang, loc } = useLang();
   if (!testimonials.length) return null;
   return (
-    <section className="section-y">
+    <section className="section-y bg-secondary/40">
       <div className="container-page">
-        <SectionHeading eyebrow="Voices" title={title} subtitle={subtitle} />
+        <SectionHeading eyebrow={lang === "hi" ? "लोगों की बात" : "Voices"} title={title} subtitle={subtitle} />
         <Carousel opts={{ align: "start", loop: testimonials.length > 2 }}>
           <CarouselContent>
             {testimonials.map((t) => (
               <CarouselItem key={t.id} className="md:basis-1/2 lg:basis-1/3">
-                <article className="surface-card flex h-full flex-col p-6">
-                  <Quote className="text-accent size-6" />
-                  <p className="mt-3 flex-1 text-sm leading-relaxed">{t.message}</p>
-                  <div className="mt-5 flex items-center gap-3">
-                    {t.photo ? (
-                      <img src={t.photo} alt="" loading="lazy" className="size-10 rounded-full object-cover" />
-                    ) : (
-                      <span className="bg-primary-soft text-primary-deep flex size-10 items-center justify-center rounded-full font-semibold">
-                        {t.name?.[0] ?? "?"}
-                      </span>
-                    )}
+                <article className="surface-card relative flex h-full flex-col overflow-hidden p-7">
+                  <Quote aria-hidden className="absolute -right-2 -top-2 size-24 text-accent/10" />
+                  <Quote className="size-7 text-accent" />
+                  <p className="mt-4 flex-1 text-base leading-relaxed">{loc(t, "message") || t.message}</p>
+                  <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
+                    {t.photo ? <img src={t.photo} alt="" loading="lazy" className="size-12 rounded-full object-cover ring-2 ring-primary-soft" /> : <span className="flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-deep font-semibold text-primary-foreground">{t.name?.[0] ?? "?"}</span>}
                     <div>
-                      <p className="text-sm font-semibold">{t.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {[t.role, t.city].filter(Boolean).join(" · ")}
-                      </p>
+                      <p className="font-semibold">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{[t.role, t.city].filter(Boolean).join(" · ")}</p>
                     </div>
                   </div>
                 </article>
@@ -704,20 +743,24 @@ export function Testimonials({
 /* ------------------------------ CTAs ------------------------------ */
 
 export function DonateCta({ title, subtitle, text }: { title: string; subtitle?: string | null | undefined; text?: string | null | undefined }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   return (
-    <section className="gradient-teal text-primary-foreground">
-      <div className="container-page flex flex-col items-start gap-6 py-14 md:flex-row md:items-center md:justify-between">
-        <div className="max-w-2xl">
-          <h2 className="text-2xl font-semibold sm:text-3xl">{title}</h2>
-          <p className="mt-3 opacity-90">{text ?? subtitle}</p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-            <Link to="/donate">Donate</Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary">
-            <Link to="/campaigns">See campaigns</Link>
-          </Button>
+    <section className="section-y">
+      <div className="container-page">
+        <div className="page-hero relative isolate overflow-hidden rounded-3xl px-6 py-12 text-primary-foreground shadow-xl md:px-12">
+          <div aria-hidden className="page-hero-pattern absolute inset-0 -z-10" />
+          <Heart aria-hidden className="absolute -bottom-8 -right-8 -z-10 size-56 text-white/10" />
+          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-semibold sm:text-4xl">{title}</h2>
+              <p className="mt-3 text-white/85">{text ?? subtitle}</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/donate" className="inline-flex h-12 items-center rounded-full bg-accent px-7 font-semibold text-accent-foreground shadow-lg hover:opacity-95">{hi ? "दान करें" : "Donate"}</Link>
+              <Link to="/campaigns" className="inline-flex h-12 items-center rounded-full bg-white/15 px-7 font-semibold ring-1 ring-white/30 backdrop-blur hover:bg-white/25">{hi ? "अभियान देखें" : "See campaigns"}</Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -725,23 +768,29 @@ export function DonateCta({ title, subtitle, text }: { title: string; subtitle?:
 }
 
 export function VolunteerCta({ title, subtitle }: { title: string; subtitle?: string | null }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
+  const ways = hi ? [["⏱️", "समय दें", "आयोजन, शिविर और सेवा में हाथ बँटाएँ"], ["🧠", "कौशल दें", "पढ़ाना, डिज़ाइन, लेखा, तकनीक"], ["🤝", "जुड़ें", "अपने गाँव-शहर की टीम बनाएँ"]] : [["⏱️", "Give time", "Help at events, camps and seva"], ["🧠", "Share skills", "Teaching, design, accounts, tech"], ["🤝", "Connect", "Build a team in your town"]];
   return (
     <section className="section-y">
-      <div className="container-page grid gap-6 md:grid-cols-3">
+      <div className="container-page grid items-center gap-8 md:grid-cols-5">
         <div className="md:col-span-2">
-          <p className="eyebrow">Join us</p>
+          <p className="eyebrow">{hi ? "हमसे जुड़ें" : "Join us"}</p>
           <h2 className="mt-1 text-2xl font-semibold sm:text-3xl">{title}</h2>
-          <p className="mt-3 text-muted-foreground">
-            {subtitle ?? "Give your time, skills and heart. Volunteers run almost everything we do."}
-          </p>
+          <p className="mt-3 text-muted-foreground">{subtitle ?? (hi ? "अपना समय, कौशल और मन दीजिए — हमारा लगभग हर काम स्वयंसेवक चलाते हैं।" : "Give your time, skills and heart. Volunteers run almost everything we do.")}</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link to="/join" className="inline-flex h-11 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground shadow hover:opacity-95">{hi ? "स्वयंसेवक बनें" : "Become a volunteer"}</Link>
+            <Link to="/internship" className="inline-flex h-11 items-center rounded-full border border-border px-6 text-sm font-semibold hover:border-primary hover:text-primary">{hi ? "इंटर्नशिप के लिए आवेदन" : "Apply for internship"}</Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-3">
-          <Button asChild size="lg">
-            <Link to="/join">Become a volunteer</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/internship">Apply for internship</Link>
-          </Button>
+        <div className="grid gap-4 sm:grid-cols-3 md:col-span-3">
+          {ways.map(([ic, h, d]) => (
+            <div key={h} className="surface-card lift-on-hover p-5">
+              <span className="text-3xl">{ic}</span>
+              <p className="mt-3 font-display font-semibold">{h}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -757,39 +806,26 @@ export function ContactCta({
   title: string;
   subtitle?: string | null;
 }) {
+  const { lang } = useLang();
+  const hi = lang === "hi";
   return (
     <section className="bg-secondary/60 section-y">
       <div className="container-page grid gap-6 md:grid-cols-2">
         <div>
-          <p className="eyebrow">Contact</p>
+          <p className="eyebrow">{hi ? "संपर्क" : "Contact"}</p>
           <h2 className="mt-1 text-2xl font-semibold sm:text-3xl">{title}</h2>
-          <p className="mt-3 text-muted-foreground">{subtitle ?? "We would love to hear from you."}</p>
-          <div className="mt-5 space-y-2 text-sm">
-            {org?.phone ? (
-              <p className="flex items-center gap-2">
-                <Phone className="size-4 text-primary" />
-                <a href={telHref(org.phone)} className="hover:underline">
-                  {org.phone}
-                </a>
-              </p>
-            ) : null}
-            {org?.address ? (
-              <p className="flex items-start gap-2">
-                <MapPin className="mt-0.5 size-4 text-primary" />
-                <span>
-                  {[org.address, org.city, org.state, org.pincode].filter(Boolean).join(", ")}
-                </span>
-              </p>
-            ) : null}
+          <p className="mt-3 text-muted-foreground">{subtitle ?? (hi ? "हमें आपसे बात करके खुशी होगी।" : "We would love to hear from you.")}</p>
+          <div className="mt-5 space-y-3 text-sm">
+            {org?.phone ? <p className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-primary-deep"><Phone className="size-4" /></span><a href={telHref(org.phone)} className="font-medium hover:underline">{org.phone}</a></p> : null}
+            {org?.address ? <p className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary-deep"><MapPin className="size-4" /></span><span>{[org.address, org.city, org.state, org.pincode].filter(Boolean).join(", ")}</span></p> : null}
           </div>
         </div>
-        <div className="surface-card flex flex-col justify-center gap-3 p-6">
-          <p className="text-sm text-muted-foreground">
-            Have a question, a requirement, or want to organise a seva activity with us?
-          </p>
-          <Button asChild>
-            <Link to="/contact">Send us a message</Link>
-          </Button>
+        <div className="surface-card flex flex-col justify-center gap-4 p-6 md:p-8">
+          <p className="text-muted-foreground">{hi ? "कोई सवाल, ज़रूरत, या हमारे साथ कोई सेवा कार्य करना चाहते हैं?" : "Have a question, a requirement, or want to organise a seva activity with us?"}</p>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/contact" className="inline-flex h-11 items-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground hover:opacity-95">{hi ? "संदेश भेजें" : "Send us a message"}</Link>
+            {org?.whatsapp || org?.phone ? <a href={whatsappHref(org.whatsapp ?? org.phone)} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#25D366] px-6 text-sm font-semibold text-white hover:opacity-90"><MessageCircle className="size-4" />WhatsApp</a> : null}
+          </div>
         </div>
       </div>
     </section>

@@ -1,6 +1,8 @@
 // English is the default site language; Hindi is a toggle. The choice lives in a cookie so SSR renders the same language.
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
+import { setDateLocale } from "@/lib/format";
+
 export type Lang = "en" | "hi";
 export const LANG_COOKIE = "k1_lang";
 
@@ -39,6 +41,7 @@ export function parseLangCookie(cookie: string | null | undefined): Lang {
 
 export function LangProvider({ initial, children }: { initial: Lang; children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(initial);
+  setDateLocale(lang);
   const value = useMemo<Ctx>(() => ({
     lang,
     t: (k) => dict[lang][k] ?? dict.en[k],
