@@ -34,21 +34,29 @@ export function StoriesStrip({ L, enabled }: { L: boolean; enabled: boolean }) {
   if (!enabled) return null;
   const groups = q.data ?? [];
   const mine = groups.find((g) => g.mine);
+  const cardCls = "relative h-48 w-28 shrink-0 overflow-hidden rounded-xl shadow-sm ring-1 ring-border/60 sm:h-52 sm:w-[118px]";
   return (
-    <section className="rounded-xl border border-border bg-card p-3">
-      <div className="flex items-center justify-between"><p className="font-display text-sm font-semibold">📸 {L ? "स्टोरी" : "Stories"} <span className="font-normal text-muted-foreground">· {L ? "24 घंटे में अपने आप हट जाती है" : "disappears after 24 hours"}</span></p></div>
-      <div className="mt-2 flex gap-3 overflow-x-auto pb-1">
-        <button type="button" onClick={() => consent.ensure(() => setCompose(true))} className="flex w-16 shrink-0 flex-col items-center gap-1 text-center">
-          <span className="relative"><Avatar url={me?.photo} name={me?.name ?? "+"} size={14} /><span className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-card bg-primary text-primary-foreground"><Plus className="size-3" /></span></span>
-          <span className="w-full truncate text-[11px]">{L ? "मेरी स्टोरी" : "Your story"}</span>
+    <section aria-label={L ? "स्टोरी" : "Stories"} className="relative">
+      <div className="scrollbar-none flex gap-2 overflow-x-auto pb-1">
+        <button type="button" onClick={() => consent.ensure(() => setCompose(true))} className={`${cardCls} group flex flex-col bg-card text-left`}>
+          <span className="block h-[70%] w-full overflow-hidden bg-secondary">{me?.photo ? <img src={me.photo} alt="" className="size-full object-cover transition duration-300 group-hover:scale-105" /> : <span className="grid size-full place-items-center bg-gradient-to-br from-primary/80 to-primary-deep font-display text-4xl text-primary-foreground">{(me?.name ?? "+").slice(0, 1)}</span>}</span>
+          <span className="absolute left-1/2 top-[70%] grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-card bg-primary text-primary-foreground"><Plus className="size-4" /></span>
+          <span className="flex flex-1 items-end justify-center pb-2 text-center text-xs font-semibold">{L ? "स्टोरी बनाएँ" : "Create story"}</span>
         </button>
-        {groups.map((g, i) => (
-          <button key={g.user_id} type="button" onClick={() => setOpen(i)} className="flex w-16 shrink-0 flex-col items-center gap-1 text-center">
-            <span className={`rounded-full p-0.5 ${g.all_seen ? "bg-muted" : "bg-gradient-to-tr from-amber-400 via-rose-500 to-fuchsia-600"}`}><span className="block rounded-full border-2 border-card"><Avatar url={g.photo} name={g.name} size={13} /></span></span>
-            <span className="w-full truncate text-[11px]">{g.mine ? (L ? "आप" : "You") : g.name.split(" ")[0]}</span>
-          </button>
-        ))}
-        {q.isSuccess && !groups.length ? <p className="self-center text-xs text-muted-foreground">{L ? "अभी किसी की स्टोरी नहीं — पहली आप लगाइए!" : "No stories yet — post the first one!"}</p> : null}
+        {groups.map((g, i) => {
+          const st = g.stories[g.stories.length - 1];
+          const img = st?.path ? storyUrl(st.path) : "";
+          return (
+            <button key={g.user_id} type="button" onClick={() => setOpen(i)} className={`${cardCls} group text-left`}>
+              {img ? <img src={img} alt="" loading="lazy" className="absolute inset-0 size-full object-cover transition duration-300 group-hover:scale-105" />
+                : <span className={`absolute inset-0 grid place-items-center bg-gradient-to-br p-2 text-center text-xs font-semibold text-white ${BGS[st?.bg ?? "classic"] ?? BGS.classic}`}>{(st?.caption ?? "").slice(0, 60)}</span>}
+              <span className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/65" />
+              <span className={`absolute left-2 top-2 rounded-full p-[3px] ${g.all_seen ? "bg-white/60" : "bg-gradient-to-tr from-amber-400 via-rose-500 to-fuchsia-600"}`}><span className="block rounded-full ring-2 ring-black/10"><Avatar url={g.photo} name={g.name} size={9} /></span></span>
+              <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-xs font-semibold text-white drop-shadow">{g.mine ? (L ? "आपकी स्टोरी" : "Your story") : g.name}</span>
+            </button>
+          );
+        })}
+        {q.isSuccess && !groups.length ? <div className={`${cardCls} grid place-items-center bg-card p-3 text-center text-xs text-muted-foreground`}>{L ? "अभी किसी की स्टोरी नहीं — पहली आप लगाइए! 24 घंटे में अपने-आप हट जाती है।" : "No stories yet — post the first! They vanish after 24 hours."}</div> : null}
       </div>
       {open !== null && groups[open] ? <StoryViewer groups={groups} index={open} L={L} onClose={() => setOpen(null)} onIndex={setOpen} /> : null}
       {compose ? <StoryComposer L={L} onClose={() => setCompose(false)} onDone={() => { setCompose(false); void q.refetch(); if (mine) setOpen(0); }} /> : null}

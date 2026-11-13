@@ -9092,6 +9092,7 @@ export type Database = {
         Returns: {
           author_id: string
           author_name: string
+          author_photo: string
           body: string
           created_at: string
           id: string
