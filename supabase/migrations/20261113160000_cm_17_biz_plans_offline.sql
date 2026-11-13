@@ -358,8 +358,8 @@ language plpgsql security definer set search_path to '' as $$
 declare b public.biz_pages; n int := 0; d int; msg text;
 begin
   for b in select * from public.biz_pages where tier in ('silver', 'gold') and status = 'active' and tier_until is not null
-             and (tier_until::date - (now() at time zone 'Asia/Kolkata')::date) in (7, 1) loop
-    d := b.tier_until::date - (now() at time zone 'Asia/Kolkata')::date;
+             and ((tier_until at time zone 'Asia/Kolkata')::date - (now() at time zone 'Asia/Kolkata')::date) in (7, 1) loop
+    d := (b.tier_until at time zone 'Asia/Kolkata')::date - (now() at time zone 'Asia/Kolkata')::date;
     msg := '⏳ ' || b.name || ' का ' || case b.tier when 'gold' then 'गोल्ड' else 'सिल्वर' end || ' पैकेज ' || d || ' दिन में ख़त्म होगा। समय पर नवीनीकरण करें ताकि रोज़ 10 पोस्ट और प्रायोजित पोस्ट चलती रहें: https://kalchuri.org/business/' || b.slug;
     begin
       perform public.k1_cm_notify(b.owner_id, b.organization_id, 'renewal', null, null, null, msg);
