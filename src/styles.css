@@ -270,3 +270,29 @@
     display: none;
   }
 }
+
+/* ---------- page banner (PageHeader) ---------- */
+@utility page-hero {
+  background-image:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in oklab, var(--accent) 28%, transparent) 0%, transparent 45%),
+    linear-gradient(125deg, oklch(0.24 0.05 205) 0%, var(--primary-deep) 45%, var(--primary) 100%);
+}
+@utility page-hero-pattern {
+  opacity: 0.16;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1'%3E%3Cpath d='M28 4 52 28 28 52 4 28Z'/%3E%3Ccircle cx='28' cy='28' r='6'/%3E%3Cpath d='M28 22v-6M28 34v6M22 28h-6M34 28h6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 56px 56px;
+  mask-image: linear-gradient(100deg, transparent 0%, black 35%, black 100%);
+}
+
+/* image zoom inside cards */
+@utility zoom-media {
+  overflow: hidden;
+  & img {
+    transition: transform 0.5s ease;
+  }
+  &:hover img,
+  .group:hover & img {
+    transform: scale(1.05);
+  }
+}

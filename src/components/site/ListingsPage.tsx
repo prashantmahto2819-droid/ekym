@@ -1,9 +1,11 @@
 // Public listing pages (directory / jobs / scholarships / help) + the "submit a listing" form (login required).
 import { Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { Globe, LayoutGrid, MapPin, MessageCircle, Phone, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { Chips, EmptyState, Initial, SearchBox } from "@/components/site/kit";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,32 +29,61 @@ export function ListingsPage({ kinds }: { kinds: ListingKind[] }) {
   const [kind, setKind] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
   const cats = useMemo(() => [...new Set(data.map((l) => l.category).filter(Boolean))] as string[], [data]);
-  const rows = data.filter((l) => (!kind || l.kind === kind) && (!cat || l.category === cat) && (!q || [l.title, l.title_hi, l.body, l.category, l.city, l.contact_name].some((t) => (t ?? "").toLowerCase().includes(q.toLowerCase()))));
+  const rows = data
+    .filter((l) => (!kind || l.kind === kind) && (!cat || l.category === cat) && (!q || [l.title, l.title_hi, l.body, l.category, l.city, l.contact_name].some((t) => (t ?? "").toLowerCase().includes(q.toLowerCase()))))
+    .sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+  const addBtn = (
+    <button type="button" onClick={() => setShowForm((v) => !v)} className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-foreground shadow-lg hover:opacity-95">
+      {showForm ? <X className="size-4" /> : <Plus className="size-4" />}{showForm ? (L ? "फ़ॉर्म बंद करें" : "Close form") : (L ? "अपनी जानकारी जोड़ें" : "Add a listing")}
+    </button>
+  );
   return (
     <>
-      <PageHeader title={L ? main.hi : main.en} description={L ? main.blurb_hi : main.blurb_en} crumbs={[{ label: L ? main.hi : main.en }]} />
-      <section className="section-y"><div className="container-page space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Input placeholder={L ? "खोजें…" : "Search…"} value={q} onChange={(e) => setQ(e.target.value)} className="w-56" />
-          {kinds.length > 1 ? <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={kind} onChange={(e) => setKind(e.target.value)}><option value="">{L ? "सभी" : "All"}</option>{kinds.map((k) => <option key={k} value={k}>{L ? KIND_LABEL[k].hi : KIND_LABEL[k].en}</option>)}</select> : null}
-          {cats.length ? <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={cat} onChange={(e) => setCat(e.target.value)}><option value="">{L ? "सभी श्रेणियाँ" : "All categories"}</option>{cats.map((c) => <option key={c} value={c}>{c}</option>)}</select> : null}
-          <Button className="ml-auto" variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>{showForm ? (L ? "फ़ॉर्म बंद" : "Close form") : (L ? "+ अपनी जानकारी जोड़ें" : "+ Add a listing")}</Button>
+      <PageHeader icon={<LayoutGrid />} title={L ? main.hi : main.en} description={L ? main.blurb_hi : main.blurb_en} crumbs={[{ label: L ? main.hi : main.en }]}
+        stats={data.length ? [{ label: L ? "प्रविष्टियाँ" : "listings", value: data.length }] : undefined} actions={addBtn} />
+      <section className="section-y pt-8 md:pt-10"><div className="container-page space-y-5">
+        {showForm ? (user ? <SubmitForm kinds={kinds} onDone={() => setShowForm(false)} /> : <div className="rounded-2xl border border-border bg-secondary/40 p-5 text-sm">{L ? "जानकारी जोड़ने के लिए " : "Please "}<Link to="/auth" className="font-semibold text-primary underline">{L ? "लॉगिन करें" : "sign in"}</Link>{L ? "।" : " to add a listing."}</div>) : null}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <SearchBox value={q} onChange={setQ} placeholder={L ? "नाम, काम या शहर से खोजें…" : "Search by name, service or city…"} className="lg:w-96" />
+          {kinds.length > 1 ? <Chips items={[{ value: "", label: L ? "सभी" : "All", count: data.length }, ...kinds.map((k) => ({ value: k, label: L ? KIND_LABEL[k].hi : KIND_LABEL[k].en, count: data.filter((x) => x.kind === k).length }))]} value={kind} onChange={setKind} /> : null}
         </div>
-        {showForm ? (user ? <SubmitForm kinds={kinds} onDone={() => setShowForm(false)} /> : <p className="rounded-lg border border-border bg-secondary/40 p-4 text-sm">{L ? "जानकारी जोड़ने के लिए " : "Please "}<Link to="/auth" className="underline">{L ? "लॉगिन करें" : "sign in"}</Link>{L ? "।" : " to add a listing."}</p>) : null}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((l) => (
-            <article key={l.id} className={`surface-card p-4 ${l.featured ? "ring-1 ring-accent" : ""}`}>
-              {l.image ? <img src={l.image} alt="" className="mb-3 aspect-[16/9] w-full rounded-md object-cover" loading="lazy" /> : null}
-              <p className="text-xs text-muted-foreground">{kinds.length > 1 ? (L ? KIND_LABEL[l.kind as ListingKind].hi : KIND_LABEL[l.kind as ListingKind].en) + " · " : ""}{l.category ?? ""}{l.city ? ` · ${l.city}` : ""}</p>
-              <h3 className="mt-1 font-display text-lg font-semibold">{loc(l, "title")}</h3>
-              {loc(l, "body") ? <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{loc(l, "body")}</p> : null}
-              <dl className="mt-2 grid grid-cols-2 gap-x-3 text-xs">{KIND_FIELDS[l.kind as ListingKind].filter((f) => (l.fields as Record<string, string>)?.[f.key]).map((f) => <div key={f.key}><dt className="text-muted-foreground">{L ? f.hi : f.en}</dt><dd>{f.key.endsWith("_url") ? <a href={(l.fields as Record<string, string>)[f.key]} target="_blank" rel="noreferrer" className="underline">{L ? "खोलें" : "open"}</a> : (l.fields as Record<string, string>)[f.key]}</dd></div>)}</dl>
-              <p className="mt-3 flex flex-wrap gap-2 text-sm">{l.contact_name ? <span>{l.contact_name}</span> : null}{l.phone ? <a href={`tel:+${l.phone}`} className="underline">📞 {l.phone}</a> : null}{l.phone ? <a href={`https://wa.me/${l.phone}`} target="_blank" rel="noreferrer" className="underline">WhatsApp</a> : null}{l.website ? <a href={l.website} target="_blank" rel="noreferrer" className="underline">{L ? "वेबसाइट" : "Website"}</a> : null}</p>
-              {l.address ? <p className="mt-1 text-xs text-muted-foreground">{l.address}</p> : null}
-            </article>
-          ))}
-          {!rows.length ? <p className="text-muted-foreground">{L ? "अभी कोई प्रविष्टि नहीं।" : "No listings yet."}</p> : null}
-        </div>
+        {cats.length > 1 ? <Chips items={[{ value: "", label: L ? "सभी श्रेणियाँ" : "All categories" }, ...cats.map((c) => ({ value: c, label: c }))]} value={cat} onChange={setCat} /> : null}
+        {rows.length ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {rows.map((l) => {
+              const fields = KIND_FIELDS[l.kind as ListingKind].filter((f) => (l.fields as Record<string, string>)?.[f.key]);
+              return (
+                <article key={l.id} className={`surface-card flex flex-col overflow-hidden transition hover:shadow-lg ${l.featured ? "ring-2 ring-accent" : ""}`}>
+                  {l.image ? <div className="zoom-media relative aspect-[16/9]"><img src={l.image} alt="" className="size-full object-cover" loading="lazy" />{l.featured ? <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground shadow">★ {L ? "विशेष" : "Featured"}</span> : null}</div> : null}
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="flex items-start gap-3">
+                      {!l.image ? <Initial name={loc(l, "title")} className="size-12 text-lg" /> : null}
+                      <div className="min-w-0">
+                        <h3 className="font-display text-lg font-semibold leading-snug">{loc(l, "title")}</h3>
+                        <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
+                          {kinds.length > 1 ? <span className="rounded-full bg-primary-soft px-2 py-0.5 font-medium text-primary-deep">{L ? KIND_LABEL[l.kind as ListingKind].hi : KIND_LABEL[l.kind as ListingKind].en}</span> : null}
+                          {l.category ? <span className="rounded-full bg-secondary px-2 py-0.5">{l.category}</span> : null}
+                          {l.city ? <span className="inline-flex items-center gap-0.5 rounded-full bg-secondary px-2 py-0.5"><MapPin className="size-3" />{l.city}</span> : null}
+                        </div>
+                      </div>
+                    </div>
+                    {loc(l, "body") ? <p className="mt-3 line-clamp-4 whitespace-pre-line text-sm text-muted-foreground">{loc(l, "body")}</p> : null}
+                    {fields.length ? <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-xl bg-secondary/50 p-3 text-xs">{fields.map((f) => <div key={f.key} className="min-w-0"><dt className="text-muted-foreground">{L ? f.hi : f.en}</dt><dd className="truncate font-medium">{f.key.endsWith("_url") ? <a href={(l.fields as Record<string, string>)[f.key]} target="_blank" rel="noreferrer" className="text-primary underline">{L ? "खोलें" : "Open"}</a> : (l.fields as Record<string, string>)[f.key]}</dd></div>)}</dl> : null}
+                    {l.address ? <p className="mt-2 text-xs text-muted-foreground">{l.address}</p> : null}
+                    <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
+                      {l.contact_name ? <span className="mr-auto text-sm font-medium">{l.contact_name}</span> : null}
+                      {l.phone ? <a href={`tel:+${l.phone}`} className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-sm hover:border-primary hover:text-primary"><Phone className="size-4" />{L ? "कॉल" : "Call"}</a> : null}
+                      {l.phone ? <a href={`https://wa.me/${l.phone}`} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#25D366] px-3 text-sm font-medium text-white hover:opacity-90"><MessageCircle className="size-4" />WhatsApp</a> : null}
+                      {l.website ? <a href={l.website} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-sm hover:border-primary hover:text-primary"><Globe className="size-4" />{L ? "वेबसाइट" : "Website"}</a> : null}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyState icon={<LayoutGrid />} title={q || cat || kind ? (L ? "इस खोज से कुछ नहीं मिला" : "Nothing matches this search") : (L ? "अभी कोई प्रविष्टि नहीं" : "No listings yet")} text={L ? "अपनी या जान-पहचान की जानकारी जोड़कर शुरुआत करें।" : "Be the first to add one."} />
+        )}
       </div></section>
     </>
   );

@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/carousel";
 import { embedUrl, formatCurrency, formatDate, telHref, whatsappHref } from "@/lib/format";
 import { useFt } from "@/core/formText";
+import { videoThumb } from "@/components/site/kit";
 
 /* ------------------------------ HERO ------------------------------ */
 
@@ -159,29 +160,30 @@ export function SevaGrid({
   subtitle?: string | null;
   limit?: number;
 }) {
+  const { lang, loc } = useLang();
+  const hi = lang === "hi";
   if (!seva.length) return null;
   const list = limit ? seva.slice(0, limit) : seva;
   return (
     <section className="section-y">
       <div className="container-page">
         <SectionHeading
-          eyebrow={`${seva.length} seva prakalp`}
+          eyebrow={hi ? `${seva.length} सेवा प्रकल्प` : `${seva.length} seva projects`}
           title={title}
           subtitle={subtitle}
-          action={limit && seva.length > limit ? { label: "View all", to: "/seva" } : undefined}
+          action={limit && seva.length > limit ? { label: hi ? "सभी देखें" : "View all", to: "/seva" } : undefined}
         />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((p) => (
-            <Link key={p.id} to="/seva/$slug" params={{ slug: p.slug }} className="surface-card lift-on-hover p-5">
-              <span className="bg-primary-soft text-primary-deep flex size-11 items-center justify-center rounded-lg">
-                <SevaIcon name={p.icon} className="size-5" />
+          {list.map((p, i) => (
+            <Link key={p.id} to="/seva/$slug" params={{ slug: p.slug }} className="group surface-card lift-on-hover relative overflow-hidden p-6">
+              <span aria-hidden className="absolute -right-10 -top-10 size-32 rounded-full bg-primary-soft opacity-60 transition group-hover:scale-125" />
+              <span className={`relative flex size-12 items-center justify-center rounded-2xl text-primary-foreground shadow-md ${i % 3 === 1 ? "bg-gradient-to-br from-accent to-orange-600" : "bg-gradient-to-br from-primary to-primary-deep"}`}>
+                <SevaIcon name={p.icon} className="size-6" />
               </span>
-              <h3 className="mt-4 font-display text-lg font-semibold">{p.name}</h3>
-              {p.short_description ? (
-                <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{p.short_description}</p>
-              ) : null}
-              <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                Read more <ArrowRight className="size-4" />
+              <h3 className="relative mt-5 font-display text-lg font-semibold">{loc(p, "name")}</h3>
+              {loc(p, "short_description") ? <p className="relative mt-2 line-clamp-3 text-sm text-muted-foreground">{loc(p, "short_description")}</p> : null}
+              <span className="relative mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                {hi ? "और जानें" : "Read more"} <ArrowRight className="size-4 transition group-hover:translate-x-1" />
               </span>
             </Link>
           ))}
@@ -466,17 +468,20 @@ export function BlogGrid({
 }
 
 export function BlogCard({ blog: b }: { blog: any }) {
+  const { lang, loc } = useLang();
+  const hi = lang === "hi";
+  const words = `${loc(b, "excerpt")} ${loc(b, "content")}`.split(/\s+/).length;
   return (
-    <Link to="/blogs/$slug" params={{ slug: b.slug }} className="surface-card lift-on-hover overflow-hidden">
-      {b.featured_image ? (
-        <img src={b.featured_image} alt="" loading="lazy" className="h-44 w-full object-cover" />
-      ) : (
-        <div className="gradient-teal h-44 w-full" />
-      )}
-      <div className="p-5">
-        <p className="text-xs text-muted-foreground">{formatDate(b.published_at)}</p>
-        <h3 className="mt-2 font-display text-lg font-semibold">{b.title}</h3>
-        {b.excerpt ? <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{b.excerpt}</p> : null}
+    <Link to="/blogs/$slug" params={{ slug: b.slug }} className="group surface-card lift-on-hover flex h-full flex-col overflow-hidden">
+      <div className="zoom-media relative aspect-[16/10]">
+        {b.featured_image ? <img src={b.featured_image} alt="" loading="lazy" className="size-full object-cover" /> : <div className="gradient-teal size-full" />}
+        {b.city ? <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium shadow backdrop-blur"><MapPin className="size-3" />{b.city}</span> : null}
+      </div>
+      <div className="flex flex-1 flex-col p-5">
+        <p className="text-xs text-muted-foreground">{formatDate(b.published_at)}{words > 40 ? ` · ${Math.max(1, Math.round(words / 180))} ${hi ? "मिनट पढ़ें" : "min read"}` : ""}</p>
+        <h3 className="mt-2 line-clamp-2 font-display text-lg font-semibold group-hover:text-primary">{loc(b, "title")}</h3>
+        {loc(b, "excerpt") ? <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{loc(b, "excerpt")}</p> : null}
+        <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-primary">{hi ? "पूरा पढ़ें" : "Read"} <ArrowRight className="size-4 transition group-hover:translate-x-1" /></span>
       </div>
     </Link>
   );
@@ -506,21 +511,18 @@ export function NewsSlider({ news, title }: { news: any[]; title: string }) {
   );
 }
 
-export function NewsCard({ item: n }: { item: any }) {
+export function NewsCard({ item: n, featured }: { item: any; featured?: boolean }) {
+  const { loc } = useLang();
   return (
-    <Link to="/news/$slug" params={{ slug: n.slug }} className="surface-card lift-on-hover block h-full overflow-hidden">
-      {n.thumbnail ? (
-        <img src={n.thumbnail} alt="" loading="lazy" className="h-36 w-full object-cover" />
-      ) : (
-        <div className="gradient-warm h-36 w-full" />
-      )}
-      <div className="p-5">
-        <p className="text-xs text-muted-foreground">
-          {n.source_name ? `${n.source_name} · ` : ""}
-          {formatDate(n.published_at)}
-        </p>
-        <h3 className="mt-2 font-display text-base font-semibold">{n.title}</h3>
-        {n.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{n.description}</p> : null}
+    <Link to="/news/$slug" params={{ slug: n.slug }} className={`group surface-card lift-on-hover flex h-full overflow-hidden ${featured ? "flex-col md:flex-row" : "flex-col"}`}>
+      <div className={`zoom-media relative shrink-0 ${featured ? "aspect-[16/10] md:aspect-auto md:w-3/5" : "aspect-[16/10]"}`}>
+        {n.thumbnail ? <img src={n.thumbnail} alt="" loading="lazy" className="size-full object-cover" /> : <div className="gradient-warm size-full" />}
+        {n.source_name ? <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-primary shadow backdrop-blur">{n.source_name}</span> : null}
+      </div>
+      <div className={`flex flex-1 flex-col ${featured ? "p-6 md:p-8" : "p-5"}`}>
+        <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><CalendarDays className="size-3.5" />{formatDate(n.published_at)}</p>
+        <h3 className={`mt-2 font-display font-semibold group-hover:text-primary ${featured ? "text-2xl md:text-3xl" : "line-clamp-2 text-base"}`}>{loc(n, "title")}</h3>
+        {loc(n, "description") ? <p className={`mt-2 text-sm text-muted-foreground ${featured ? "line-clamp-4 md:text-base" : "line-clamp-2"}`}>{loc(n, "description")}</p> : null}
       </div>
     </Link>
   );
@@ -545,21 +547,28 @@ export function VideoSection({ videos, title }: { videos: any[]; title: string }
 }
 
 export function VideoCard({ video: v, vertical }: { video: any; vertical?: boolean }) {
+  const { loc } = useLang();
+  const [play, setPlay] = useState(false);
+  const thumb = v.thumbnail || videoThumb(v.platform, v.video_url);
   return (
-    <article className="surface-card overflow-hidden">
-      <div className={vertical ? "aspect-[9/16]" : "aspect-video"}>
-        <iframe
-          src={embedUrl(v.platform, v.video_url)}
-          title={v.title}
-          loading="lazy"
-          allowFullScreen
-          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          className="size-full"
-        />
+    <article className="group surface-card overflow-hidden">
+      <div className={`relative bg-black ${vertical ? "aspect-[9/16]" : "aspect-video"}`}>
+        {play || !thumb ? (
+          <iframe src={`${embedUrl(v.platform, v.video_url)}${play && /youtube/.test(embedUrl(v.platform, v.video_url)) ? "?autoplay=1" : ""}`} title={loc(v, "title")} loading="lazy" allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" className="size-full" />
+        ) : (
+          <button type="button" onClick={() => setPlay(true)} className="zoom-media absolute inset-0 size-full" aria-label={loc(v, "title")}>
+            <img src={thumb} alt="" loading="lazy" className="size-full object-cover opacity-90" />
+            <span className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <span className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-primary shadow-xl transition group-hover:scale-110">
+              <svg viewBox="0 0 24 24" className="ml-1 size-7 fill-current"><path d="M8 5v14l11-7z" /></svg>
+            </span>
+          </button>
+        )}
       </div>
       <div className="p-4">
-        <h3 className="font-display text-sm font-semibold">{v.title}</h3>
-        {v.description ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{v.description}</p> : null}
+        <h3 className="line-clamp-2 font-display text-sm font-semibold">{loc(v, "title")}</h3>
+        {loc(v, "description") ? <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{loc(v, "description")}</p> : null}
       </div>
     </article>
   );
@@ -610,27 +619,31 @@ export function CampaignSection({
 }
 
 export function CampaignCard({ campaign: c }: { campaign: any }) {
+  const { lang, loc } = useLang();
+  const hi = lang === "hi";
   const target = Number(c.target_amount ?? 0);
   const raised = Number(c.raised_amount ?? 0);
   const pct = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
+  const days = c.end_date ? Math.ceil((new Date(c.end_date).getTime() - Date.now()) / 864e5) : null;
   return (
-    <Link to="/campaigns/$slug" params={{ slug: c.slug }} className="surface-card lift-on-hover overflow-hidden">
-      {c.cover_image ? (
-        <img src={c.cover_image} alt="" loading="lazy" className="h-48 w-full object-cover" />
-      ) : (
-        <div className="gradient-teal h-48 w-full" />
-      )}
-      <div className="p-5">
-        <h3 className="font-display text-lg font-semibold">{c.title}</h3>
-        {c.description ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{c.description}</p> : null}
+    <Link to="/campaigns/$slug" params={{ slug: c.slug }} className="group surface-card lift-on-hover flex h-full flex-col overflow-hidden">
+      <div className="zoom-media relative aspect-[16/9]">
+        {c.cover_image ? <img src={c.cover_image} alt="" loading="lazy" className="size-full object-cover" /> : <div className="gradient-teal size-full" />}
+        {days != null ? <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-semibold shadow ${days < 0 ? "bg-muted text-muted-foreground" : days <= 7 ? "bg-blood text-blood-foreground" : "bg-background/90 text-foreground backdrop-blur"}`}>{days < 0 ? (hi ? "समाप्त" : "Ended") : days === 0 ? (hi ? "आज अंतिम दिन" : "Last day") : hi ? `${days} दिन बाकी` : `${days} days left`}</span> : null}
+      </div>
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="font-display text-lg font-semibold group-hover:text-primary">{loc(c, "title")}</h3>
+        {loc(c, "description") ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{loc(c, "description")}</p> : null}
         {target > 0 ? (
-          <div className="mt-4">
-            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-              <div className="gradient-warm h-full" style={{ width: `${pct}%` }} />
+          <div className="mt-auto pt-5">
+            <div className="flex items-baseline justify-between text-sm">
+              <span><b className="font-display text-base">{formatCurrency(raised)}</b> <span className="text-muted-foreground">{hi ? "जुटे" : "raised"}</span></span>
+              <span className="font-semibold text-primary">{pct}%</span>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Goal {formatCurrency(target)} · {pct}% funded
-            </p>
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+              <div className="gradient-warm h-full rounded-full transition-[width] duration-700" style={{ width: `${Math.max(pct, 2)}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">{hi ? `लक्ष्य ${formatCurrency(target)}` : `Goal ${formatCurrency(target)}`}</p>
           </div>
         ) : null}
       </div>
