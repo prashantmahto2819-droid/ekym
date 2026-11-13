@@ -1,10 +1,10 @@
 // Business community UI pieces: follow button, directory card, page editor (create / edit), verified tick.
 import { Link, useNavigate } from "@tanstack/react-router";
-import { BadgeCheck, ImagePlus, MapPin, Phone, Plus, Trash2, X } from "lucide-react";
+import { BadgeCheck, ImagePlus, MapPin, Phone, Plus, Star, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { catLabel, catOf, CATEGORIES, telLink, useBizRefresh, waLink, type BizPage, type Service } from "@/components/business/biz";
+import { bizTrack, catLabel, catOf, CATEGORIES, telLink, useBizRefresh, waLink, type BizPage, type Service } from "@/components/business/biz";
 import { useConsent } from "@/components/community/ConsentGate";
 import { DistrictInput } from "@/components/site/DistrictInput";
 import { Button } from "@/components/ui/button";
@@ -59,13 +59,14 @@ export function BizCard({ b, hi }: { b: BizPage; hi: boolean }) {
         <Link to="/business/$slug" params={{ slug: b.slug }}><BizLogo url={b.logo_url} name={b.name} className="size-14 border-4 border-card" /></Link>
         <Link to="/business/$slug" params={{ slug: b.slug }} className="mt-2 flex items-center gap-1 font-semibold leading-tight hover:underline"><span className="line-clamp-1">{b.name}</span><Verified on={b.verified} /></Link>
         <p className="mt-0.5 text-xs text-muted-foreground">{c.icon} {catLabel(b.category, hi)}{b.city ? ` · ${b.city}` : ""}</p>
+        {b.rating?.count ? <p className="mt-1 flex items-center gap-1 text-xs"><Star className="size-3.5 fill-amber-400 text-amber-400" /><b>{b.rating.avg?.toFixed(1)}</b><span className="text-muted-foreground">({b.rating.count})</span></p> : null}
         {b.offer ? <p className="mt-2 line-clamp-2 rounded-lg bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">🏷️ {b.offer}</p> : b.about ? <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{b.about}</p> : null}
         <div className="mt-auto flex items-center gap-2 pt-3">
           <span className="text-xs text-muted-foreground">{b.followers} {hi ? "फ़ॉलोअर्स" : "followers"}</span>
           <span className="ml-auto flex gap-1">
-            {b.phone ? <a href={telLink(b.phone)} aria-label={hi ? "कॉल" : "Call"} className="grid size-8 place-items-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground"><Phone className="size-4" /></a> : null}
-            {b.whatsapp || b.phone ? <a href={waLink(b.whatsapp || b.phone!)} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="grid size-8 place-items-center rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white dark:bg-emerald-950/40">✆</a> : null}
-            {b.map_url ? <a href={b.map_url} target="_blank" rel="noreferrer" aria-label={hi ? "नक्शा" : "Map"} className="grid size-8 place-items-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground"><MapPin className="size-4" /></a> : null}
+            {b.phone ? <a onClick={() => bizTrack(b.id, "call")} href={telLink(b.phone)} aria-label={hi ? "कॉल" : "Call"} className="grid size-8 place-items-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground"><Phone className="size-4" /></a> : null}
+            {b.whatsapp || b.phone ? <a onClick={() => bizTrack(b.id, "whatsapp")} href={waLink(b.whatsapp || b.phone!)} target="_blank" rel="noreferrer" aria-label="WhatsApp" className="grid size-8 place-items-center rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white dark:bg-emerald-950/40">✆</a> : null}
+            {b.map_url ? <a onClick={() => bizTrack(b.id, "map")} href={b.map_url} target="_blank" rel="noreferrer" aria-label={hi ? "नक्शा" : "Map"} className="grid size-8 place-items-center rounded-full bg-secondary hover:bg-primary hover:text-primary-foreground"><MapPin className="size-4" /></a> : null}
           </span>
         </div>
       </div>

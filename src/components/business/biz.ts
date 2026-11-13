@@ -12,6 +12,7 @@ export type BizPage = {
   services: Service[]; tier: "free" | "silver" | "gold"; tier_until: string | null; verified: boolean; status: "active" | "blocked"; admin_note: string | null;
   followers: number; posts: number; i_follow: boolean; mine: boolean; can_moderate: boolean; today_posts: number | null; daily_limit: number; created_at: string;
   pending_request?: { id: string; plan: string; period: string; amount: number; created_at: string } | null; sponsored_live?: number;
+  rating?: { avg: number | null; count: number }; my_review?: { rating: number; body: string | null } | null;
 };
 export type BizCardData = { id: string; slug: string; name: string; logo_url: string | null; category: string; city: string | null; verified: boolean; tier: string };
 
@@ -57,12 +58,12 @@ export function useBizFacets() {
 }
 export function useBizRefresh() {
   const qc = useQueryClient();
-  return () => Promise.all(["biz_my_pages", "biz_page", "biz_directory", "biz_facets", "feed", "biz_sponsor_status", "biz_subs_admin", "biz_page_subs"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
+  return () => Promise.all(["biz_my_pages", "biz_page", "biz_directory", "biz_facets", "feed", "biz_sponsor_status", "biz_subs_admin", "biz_page_subs", "biz_reviews", "biz_stats", "biz_boost_admin", "biz_page_boosts", "biz_revenue"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
 }
 
 /* ---- paid plans, paid offline (QR / UPI / bank / cash) and approved by an admin (migration cm_17) ---- */
 export type Plan = { key: "silver" | "gold"; name: string; name_hi: string; price_month: number; price_year: number; daily_posts: number; sponsored_per_month: number; sponsored_reach: number; sponsored_days: number; active: boolean; sort: number };
-export type PaySettings = { payee_name?: string | null; upi_id?: string | null; qr_url?: string | null; bank_text?: string | null; note?: string | null };
+export type PaySettings = { payee_name?: string | null; upi_id?: string | null; qr_url?: string | null; bank_text?: string | null; note?: string | null; boost_price?: number; boost_reach?: number; boost_days?: number };
 export type Sub = { id: string; page_id: string; plan: "silver" | "gold"; period: "month" | "year"; amount: number; pay_mode: "upi" | "bank" | "cash" | "grant"; pay_ref: string | null; pay_proof_url: string | null; paid_on: string | null; buyer_name: string | null; buyer_gstin: string | null; buyer_address: string | null; status: "pending" | "approved" | "rejected" | "cancelled"; admin_note: string | null; decided_at: string | null; starts_at: string | null; ends_at: string | null; created_at: string; page_name?: string; page_slug?: string; page_tier?: string; page_tier_until?: string | null; owner_name?: string; owner_phone?: string | null; decided_by_name?: string | null };
 export type SponsorStatus = { tier: string; limit: number; used: number; reach: number | null; days: number | null; active: { post_id: string; ends_at: string; delivered: number; reach_cap: number }[] };
 
@@ -81,3 +82,27 @@ export function useSponsorStatus(pageId: string | null) {
 }
 export const upiLink = (s: PaySettings, amount: number, note: string) =>
   s.upi_id ? `upi://pay?pa=${encodeURIComponent(s.upi_id)}&pn=${encodeURIComponent(s.payee_name ?? "")}&am=${amount}&cu=INR&tn=${encodeURIComponent(note.slice(0, 60))}` : null;
+
+/* ---- phase 4: stats, reviews, ₹99 boost, revenue (migration cm_18) ---- */
+export type BizStats = { days: number; events: Partial<Record<"view" | "call" | "whatsapp" | "map" | "website" | "share" | "email", number>>; daily: { day: string; views: number; contacts: number }[]; new_followers: number; followers: number; posts: number; likes: number; comments: number; shares: number; sponsored_reach: number; top_posts: { id: string; body: string; likes: number; comments: number; shares: number; created_at: string }[] };
+export type Review = { user_id: string; name: string; photo: string | null; rating: number; body: string | null; reply: string | null; replied_at: string | null; status: "active" | "hidden"; created_at: string; updated_at: string; mine: boolean };
+export type BoostOrder = { id: string; page_id: string; post_id: string; amount: number; reach: number; days: number; pay_mode: string; pay_ref: string | null; pay_proof_url: string | null; paid_on: string | null; status: string; admin_note: string | null; decided_at: string | null; created_at: string; page_name?: string; page_slug?: string; owner_name?: string; owner_phone?: string | null; post_body?: string; decided_by_name?: string | null };
+export type Revenue = { from: string; to: string; total: number; plans: number; boosts: number; count: number; pending_amount: number; active_paid_pages: number; free_grants: number; by_month: { month: string; plans: number; boosts: number; total: number }[]; rows: { kind: "plan" | "boost"; id: string; decided_at: string; amount: number; pay_mode: string; pay_ref: string | null; what: string; page: string; buyer_name: string | null; buyer_gstin: string | null; owner: string }[] };
+
+export function useBizStats(pageId: string | null, days: number) {
+  return useQuery({ queryKey: ["biz_stats", pageId, days], enabled: !!pageId, queryFn: () => call<BizStats | null>("biz_stats", { p_page: pageId, p_days: days }) });
+}
+export function useReviews(pageId: string | null) {
+  return useQuery({ queryKey: ["biz_reviews", pageId], enabled: !!pageId, queryFn: () => call<Review[]>("biz_reviews_list", { p_page: pageId, p_limit: 100 }) });
+}
+export function useBoostPrice() {
+  const tenant = useTenant();
+  return useQuery({ queryKey: ["biz_boost_price", tenant.organization_id], staleTime: 300_000, queryFn: () => call<{ price: number; reach: number; days: number }>("biz_boost_price", { p_org: tenant.organization_id }) });
+}
+const tracked = new Set<string>();
+/** Count a page view / contact click (once per kind per page per browser session; the server also de-duplicates). */
+export function bizTrack(pageId: string, kind: "view" | "call" | "whatsapp" | "map" | "website" | "share" | "email") {
+  const k = `${pageId}:${kind}`;
+  try { if (sessionStorage.getItem(`bt:${k}`)) return; sessionStorage.setItem(`bt:${k}`, "1"); } catch { if (tracked.has(k)) return; tracked.add(k); }
+  void call("biz_track", { p_page: pageId, p_kind: kind }).catch(() => undefined);
+}

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { AdSlot } from "@/components/site/Ads";
 import { Avatar, FollowButton } from "@/components/community/ChatBits";
 import { catLabel, CATEGORIES, useBizFacets, useMyPages, type BizCardData } from "@/components/business/biz";
+import { BoostDialog } from "@/components/business/BoostDialog";
 import { BizEditor, BizFollowButton, BizLogo, TierBadge, Verified } from "@/components/business/BizUI";
 import { useConsent } from "@/components/community/ConsentGate";
 import { Button } from "@/components/ui/button";
@@ -415,6 +416,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
   const [comments, setComments] = useState(p.comment_count);
   const [photo, setPhoto] = useState<number | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [boosting, setBoosting] = useState(false);
   const seenRef = useSeen(p.id, signedIn && !p.mine);
   useEffect(() => { setLiked(p.liked); setLikes(p.like_count); setComments(p.comment_count); }, [p.liked, p.like_count, p.comment_count]);
   const url = typeof window !== "undefined" ? `${window.location.origin}/community/${p.id}` : `/community/${p.id}`;
@@ -496,6 +498,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => void share("copy")}>{L ? "लिंक कॉपी करें" : "Copy link"}</DropdownMenuItem>
               {p.business && p.mine && p.business.tier !== "free" && !sponsored ? <DropdownMenuItem onClick={() => void sponsor()}>⭐ {L ? "प्रायोजित करें (सबको दिखाएँ)" : "Sponsor (show to everyone)"}</DropdownMenuItem> : null}
+              {p.business && p.mine && !sponsored && p.reach === "normal" ? <DropdownMenuItem onClick={() => setBoosting(true)}>🚀 {L ? "बूस्ट करें — ज़्यादा लोगों तक" : "Boost — reach more people"}</DropdownMenuItem> : null}
               {sponsored && !p.mine ? <DropdownMenuItem onClick={() => void hideBiz()}>{L ? "इस व्यापार के विज्ञापन न दिखाएँ" : "Hide ads from this business"}</DropdownMenuItem> : null}
               {p.can_moderate ? <><DropdownMenuItem onClick={() => void moderate(null, !p.pinned)}>{p.pinned ? (L ? "अनपिन करें" : "Unpin") : (L ? "ऊपर पिन करें" : "Pin to top")}</DropdownMenuItem><DropdownMenuItem onClick={() => void moderate("hidden", null)}>{L ? "छिपाएँ" : "Hide"}</DropdownMenuItem></> : null}
               {!p.mine ? <DropdownMenuItem onClick={() => void report()}>{L ? "रिपोर्ट करें" : "Report"}</DropdownMenuItem> : null}
@@ -535,6 +538,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
       </footer>
       {open ? <Comments post={p} L={L} signedIn={signedIn} onCount={setComments} /> : null}
       {photo !== null ? <Lightbox urls={urls} index={photo} onClose={() => setPhoto(null)} /> : null}
+      {boosting && p.business ? <BoostDialog postId={p.id} pageName={p.business.name} postText={p.body} hi={L} onClose={() => setBoosting(false)} /> : null}
       {sharing ? <ShareToWall p={p} L={L} onClose={() => setSharing(false)} onDone={() => { setSharing(false); onChange(); }} /> : null}
     </article>
   );

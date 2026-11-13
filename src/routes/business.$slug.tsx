@@ -3,11 +3,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, Globe, Mail, MapPin, Pencil, Phone, Share2, ShieldAlert, Store } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
-import { catOf, catLabel, inr, planName, telLink, useBizPage, useBizRefresh, useSponsorStatus, waLink, type BizPage } from "@/components/business/biz";
+import { bizTrack, catOf, catLabel, inr, planName, telLink, useBizPage, useBizRefresh, useSponsorStatus, waLink, type BizPage } from "@/components/business/biz";
 import { PlanDialog } from "@/components/business/PlanDialog";
+import { RatingLine, Reviews, StatsPanel } from "@/components/business/BizExtras";
 import { BizEditor, BizFollowButton, BizLogo, TierBadge, Verified } from "@/components/business/BizUI";
 import { CreatePost, PostCard, type Post } from "@/components/site/Feed";
 import { EmptyState } from "@/components/site/kit";
@@ -34,6 +35,9 @@ function BizPageView() {
   const b = q.data;
   const [editing, setEditing] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [tab, setTab] = useState<"posts" | "reviews" | "stats">("posts");
+  const { orgs } = useAuth();
+  useEffect(() => { if (q.data?.id && !q.data.mine) bizTrack(q.data.id, "view"); }, [q.data?.id, q.data?.mine]);
   const posts = useInfiniteQuery({
     queryKey: ["feed", "biz-page", b?.id ?? null],
     enabled: !!b,
@@ -46,9 +50,12 @@ function BizPageView() {
   const c = catOf(b.category);
   const left = Math.max(0, b.daily_limit - (b.today_posts ?? 0));
   const list = posts.data?.pages.flat() ?? [];
+  const tabs: ["posts" | "reviews" | "stats", string][] = [["posts", hi ? `पोस्ट (${b.posts})` : `Posts (${b.posts})`], ["reviews", hi ? `समीक्षा (${b.rating?.count ?? 0})` : `Reviews (${b.rating?.count ?? 0})`]];
+  if (b.mine || b.can_moderate) tabs.push(["stats", hi ? "आँकड़े" : "Insights"]);
   const wa = b.whatsapp || b.phone;
   async function share() {
     const url = `${window.location.origin}/business/${b!.slug}`;
+    bizTrack(b!.id, "share");
     try { if (typeof navigator.share === "function") await navigator.share({ title: b!.name, url }); else { await navigator.clipboard.writeText(url); toast.success(hi ? "लिंक कॉपी हुआ" : "Link copied"); } } catch { /* cancelled */ }
   }
   async function block(on: boolean) {
@@ -56,8 +63,8 @@ function BizPageView() {
     if (on && note === null) return;
     try { await call("biz_block_page", { p_page: b!.id, p_block: on, p_note: note || null }); await refresh(); toast.success(on ? (hi ? "पेज रोका गया" : "Page blocked") : (hi ? "पेज फिर चालू" : "Page unblocked")); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
   }
-  const Contact = ({ href, icon, label, tone }: { href: string; icon: ReactNode; label: string; tone: string }) => (
-    <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold shadow-sm transition hover:opacity-90 ${tone}`}>{icon}{label}</a>
+  const Contact = ({ href, icon, label, tone, kind }: { href: string; icon: ReactNode; label: string; tone: string; kind: "call" | "whatsapp" | "map" | "website" }) => (
+    <a onClick={() => bizTrack(b.id, kind)} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold shadow-sm transition hover:opacity-90 ${tone}`}>{icon}{label}</a>
   );
   return (
     <div className="min-h-[70vh] bg-secondary/50 pb-10">
@@ -71,6 +78,7 @@ function BizPageView() {
               <div className="relative z-10 -mt-12 sm:-mt-16"><BizLogo url={b.logo_url} name={b.name} className="size-24 border-4 border-card shadow-md sm:size-32" /></div>
               <div className="min-w-0 flex-1 sm:pb-2">
                 <h1 className="flex flex-wrap items-center gap-2 font-display text-2xl font-semibold leading-tight sm:text-3xl">{b.name}<Verified on={b.verified} className="size-6" /><TierBadge tier={b.tier} hi={hi} /></h1>
+                <button type="button" onClick={() => setTab("reviews")} className="mt-0.5 hover:underline"><RatingLine r={b.rating} hi={hi} /></button>
                 <p className="mt-1 text-sm text-muted-foreground">{c.icon} {catLabel(b.category, hi)}{b.city ? ` · ${b.city}` : ""}{b.district && b.district !== b.city ? `, ${b.district}` : ""} · <b className="text-foreground">{b.followers}</b> {hi ? "फ़ॉलोअर्स" : "followers"} · {b.posts} {hi ? "पोस्ट" : "posts"}</p>
                 <p className="text-xs text-muted-foreground">{hi ? "संचालक" : "Run by"}: <Link to="/u/$id" params={{ id: b.owner_id }} className="font-medium hover:underline">{b.owner_name}</Link></p>
               </div>
@@ -81,10 +89,10 @@ function BizPageView() {
             </div>
             {b.status === "blocked" ? <p className="mt-3 flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200"><ShieldAlert className="mt-0.5 size-4 shrink-0" />{hi ? "यह पेज एडमिन ने रोका है — यह सबको नहीं दिखता।" : "An admin has blocked this page — it is hidden from others."}{b.admin_note ? ` ${hi ? "कारण" : "Reason"}: ${b.admin_note}` : ""}</p> : null}
             <div className="mt-4 flex flex-wrap gap-2">
-              {b.phone ? <Contact href={telLink(b.phone)} icon={<Phone className="size-4" />} label={hi ? "कॉल करें" : "Call"} tone="bg-primary text-primary-foreground" /> : null}
-              {wa ? <Contact href={`${waLink(wa)}?text=${encodeURIComponent(hi ? `नमस्ते, मैंने आपका पेज कलचुरी वन पर देखा (${b.name})।` : `Hello, I saw your page ${b.name} on Kalchuri One.`)}`} icon={<span className="text-base leading-none">✆</span>} label="WhatsApp" tone="bg-emerald-600 text-white" /> : null}
-              {b.map_url ? <Contact href={b.map_url} icon={<MapPin className="size-4" />} label={hi ? "रास्ता देखें" : "Directions"} tone="bg-secondary" /> : null}
-              {b.website ? <Contact href={b.website} icon={<Globe className="size-4" />} label={hi ? "वेबसाइट" : "Website"} tone="bg-secondary" /> : null}
+              {b.phone ? <Contact href={telLink(b.phone)} icon={<Phone className="size-4" />} label={hi ? "कॉल करें" : "Call"} tone="bg-primary text-primary-foreground" kind="call" /> : null}
+              {wa ? <Contact href={`${waLink(wa)}?text=${encodeURIComponent(hi ? `नमस्ते, मैंने आपका पेज कलचुरी वन पर देखा (${b.name})।` : `Hello, I saw your page ${b.name} on Kalchuri One.`)}`} icon={<span className="text-base leading-none">✆</span>} label="WhatsApp" tone="bg-emerald-600 text-white" kind="whatsapp" /> : null}
+              {b.map_url ? <Contact href={b.map_url} icon={<MapPin className="size-4" />} label={hi ? "रास्ता देखें" : "Directions"} tone="bg-secondary" kind="map" /> : null}
+              {b.website ? <Contact href={b.website} icon={<Globe className="size-4" />} label={hi ? "वेबसाइट" : "Website"} tone="bg-secondary" kind="website" /> : null}
             </div>
           </div>
         </div>
@@ -120,10 +128,18 @@ function BizPageView() {
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${left ? "bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200" : "bg-secondary text-muted-foreground"}`}>{hi ? `आज ${left}/${b.daily_limit}` : `${left}/${b.daily_limit} today`}</span>
               </div>
             ) : null}
-            <h2 className="px-1 font-display text-lg font-semibold">{hi ? "पोस्ट" : "Posts"}</h2>
+            <div className="flex gap-1 rounded-2xl bg-card p-1 shadow-sm ring-1 ring-border/70" role="tablist">
+              {tabs.map(([k, label]) => (
+                <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${tab === k ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm" : "text-muted-foreground hover:bg-secondary"}`}>{label}</button>
+              ))}
+            </div>
+            {tab === "reviews" ? <Reviews b={b} hi={hi} member={orgs.length > 0} /> : null}
+            {tab === "stats" ? <StatsPanel b={b} hi={hi} /> : null}
+            {tab === "posts" ? <>
             {list.map((p) => <PostCard key={p.id} p={p} L={hi} signedIn={!!user} onChange={() => { void qc.invalidateQueries({ queryKey: ["feed"] }); void q.refetch(); }} />)}
             {posts.isSuccess && !list.length ? <div className="rounded-2xl bg-card px-6 py-10 text-center text-sm text-muted-foreground shadow-sm ring-1 ring-border/70">{b.mine ? (hi ? "पहली पोस्ट कीजिए — नया सामान, छूट या सेवा की जानकारी।" : "Make your first post — a new product, an offer or a service.") : (hi ? "अभी कोई पोस्ट नहीं।" : "No posts yet.")}</div> : null}
             {posts.hasNextPage ? <div className="text-center"><Button variant="outline" className="rounded-full bg-card" onClick={() => void posts.fetchNextPage()} disabled={posts.isFetchingNextPage}>{hi ? "और पोस्ट देखें" : "Load more"}</Button></div> : null}
+            </> : null}
           </main>
         </div>
       </div>

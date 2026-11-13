@@ -6,7 +6,7 @@ import { ImagePlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { inr, planName, usePaySettings, usePlans, type BizPage, type PaySettings, type Plan, type Sub } from "@/components/business/biz";
+import { inr, planName, usePaySettings, usePlans, type BizPage, type BoostOrder, type PaySettings, type Plan, type Revenue, type Sub } from "@/components/business/biz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,14 +18,14 @@ const STATUS: Record<string, string> = { pending: "मंज़ूरी बा�
 const d = (x: string | null | undefined) => (x ? new Date(x).toLocaleDateString("hi-IN", { day: "numeric", month: "short", year: "numeric" }) : "—");
 
 export function BizAdmin({ org }: { org: string }) {
-  const [tab, setTab] = useState<"requests" | "pay" | "plans" | "grant">("requests");
+  const [tab, setTab] = useState<"requests" | "boosts" | "pay" | "plans" | "grant" | "revenue">("requests");
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">व्यापार पेज के पेड पैकेज अभी ऑफ़लाइन भुगतान (QR / UPI / बैंक / नकद) से चलते हैं। सदस्य भुगतान करके UTR भरता है, आप भुगतान जाँचकर मंज़ूर करते हैं — पैकेज उसी समय चालू होता है और सदस्य को WhatsApp पर सूचना जाती है।</p>
       <div className="flex w-fit flex-wrap rounded-md border border-border p-0.5 text-xs">
-        {([["requests", "अनुरोध"], ["pay", "भुगतान की जानकारी"], ["plans", "पैकेज व कीमत"], ["grant", "मुफ़्त पैकेज दें"]] as const).map(([k, l]) => <button key={k} type="button" onClick={() => setTab(k)} className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`}>{l}</button>)}
+        {([["requests", "पैकेज अनुरोध"], ["boosts", "बूस्ट अनुरोध"], ["revenue", "कमाई रिपोर्ट"], ["pay", "भुगतान की जानकारी"], ["plans", "पैकेज व कीमत"], ["grant", "मुफ़्त पैकेज दें"]] as const).map(([k, l]) => <button key={k} type="button" onClick={() => setTab(k)} className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`}>{l}</button>)}
       </div>
-      {tab === "requests" ? <Requests org={org} /> : tab === "pay" ? <PayForm org={org} /> : tab === "plans" ? <PlansForm org={org} /> : <Grant org={org} />}
+      {tab === "requests" ? <Requests org={org} /> : tab === "boosts" ? <BoostRequests org={org} /> : tab === "revenue" ? <RevenueReport org={org} /> : tab === "pay" ? <PayForm org={org} /> : tab === "plans" ? <PlansForm org={org} /> : <Grant org={org} />}
     </div>
   );
 }
@@ -90,6 +90,12 @@ function PayForm({ org }: { org: string }) {
         <label className="block space-y-1"><span className="font-medium">किसके नाम भुगतान (Payee)</span><Input value={f.payee_name ?? ""} onChange={(e) => setF({ ...f, payee_name: e.target.value })} placeholder="Vivid Brandify" /></label>
         <label className="block space-y-1"><span className="font-medium">UPI ID</span><Input value={f.upi_id ?? ""} onChange={(e) => setF({ ...f, upi_id: e.target.value })} placeholder="vividbrandify@okhdfcbank" /></label>
         <label className="block space-y-1"><span className="font-medium">बैंक खाता (वैकल्पिक)</span><Textarea rows={3} value={f.bank_text ?? ""} onChange={(e) => setF({ ...f, bank_text: e.target.value })} placeholder={"खाता नाम: …\nखाता नंबर: …\nIFSC: …"} /></label>
+        <div className="grid grid-cols-3 gap-2 rounded-md bg-secondary/50 p-2">
+          <p className="col-span-3 text-xs font-semibold">🚀 एक पोस्ट बूस्ट (हर पेज के लिए, मुफ़्त वाले भी)</p>
+          <label className="space-y-1"><span className="text-xs">कीमत (₹)</span><Input type="number" value={String(f.boost_price ?? 99)} onChange={(e) => setF({ ...f, boost_price: Number(e.target.value) })} /></label>
+          <label className="space-y-1"><span className="text-xs">कितने लोगों तक</span><Input type="number" value={String(f.boost_reach ?? 1000)} onChange={(e) => setF({ ...f, boost_reach: Number(e.target.value) })} /></label>
+          <label className="space-y-1"><span className="text-xs">कितने दिन</span><Input type="number" value={String(f.boost_days ?? 3)} onChange={(e) => setF({ ...f, boost_days: Number(e.target.value) })} /></label>
+        </div>
         <label className="block space-y-1"><span className="font-medium">सदस्यों के लिए नोट</span><Input value={f.note ?? ""} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="भुगतान के 24 घंटे में पैकेज चालू होगा। GST बिल चाहिए तो GSTIN भरें।" /></label>
         <Button onClick={() => void save()} disabled={busy}>सहेजें</Button>
       </div>
@@ -156,6 +162,80 @@ function Grant({ org }: { org: string }) {
           <Button onClick={() => void go()}>पैकेज दें</Button>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function BoostRequests({ org }: { org: string }) {
+  const qc = useQueryClient();
+  const [status, setStatus] = useState("pending");
+  const q = useQuery({ queryKey: ["biz_boost_admin", org, status], queryFn: () => call<BoostOrder[]>("biz_boost_orders_admin", { p_org: org, p_status: status || null }) });
+  const [busy, setBusy] = useState<string | null>(null);
+  async function decide(o: BoostOrder, ok: boolean) {
+    const note = ok ? null : prompt("अस्वीकार करने का कारण (सदस्य को WhatsApp पर जाएगा)");
+    if (!ok && !note) return;
+    if (ok && !confirm(`${o.page_name} — बूस्ट ${inr(o.amount)}\nभुगतान ${o.pay_ref ? `UTR ${o.pay_ref}` : MODE[o.pay_mode]} मिल गया है? मंज़ूर करें?`)) return;
+    setBusy(o.id);
+    try { await call("biz_decide_boost", { p_id: o.id, p_approve: ok, p_note: note }); toast.success(ok ? "मंज़ूर — पोस्ट बूस्ट हो गई" : "अस्वीकार किया"); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+    finally { setBusy(null); void qc.invalidateQueries({ queryKey: ["biz_boost_admin"] }); }
+  }
+  const rows = q.data ?? [];
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2 text-xs">{["pending", "approved", "rejected", ""].map((x) => <button key={x} type="button" onClick={() => setStatus(x)} className={`rounded-full border px-3 py-1 ${status === x ? "border-primary bg-primary/10" : "border-border"}`}>{x ? STATUS[x] : "सभी"}</button>)}</div>
+      {rows.map((o) => (
+        <div key={o.id} className="flex flex-wrap items-start gap-3 rounded-lg border border-border bg-background p-3 text-sm">
+          {o.pay_proof_url ? <a href={o.pay_proof_url} target="_blank" rel="noreferrer"><img src={o.pay_proof_url} alt="" className="h-20 w-20 rounded-md object-cover ring-1 ring-border" /></a> : null}
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <p><Link to="/business/$slug" params={{ slug: o.page_slug ?? "" }} className="font-semibold hover:underline">{o.page_name}</Link> · {o.owner_name}{o.owner_phone ? ` · ${o.owner_phone}` : ""}</p>
+            <p>🚀 <b>{inr(o.amount)}</b> · {o.days} दिन · {o.reach.toLocaleString("en-IN")} लोग · {MODE[o.pay_mode]}{o.pay_ref ? <> · UTR <code className="rounded bg-secondary px-1">{o.pay_ref}</code></> : null} · भुगतान {d(o.paid_on)}</p>
+            {o.post_body ? <p className="line-clamp-1 text-xs text-muted-foreground">पोस्ट: {o.post_body}</p> : null}
+            <p className="text-xs text-muted-foreground">अनुरोध {d(o.created_at)} · {STATUS[o.status]}{o.decided_by_name ? ` (${o.decided_by_name}, ${d(o.decided_at)})` : ""}{o.admin_note ? ` · ${o.admin_note}` : ""}</p>
+          </div>
+          {o.status === "pending" ? <div className="flex gap-1"><Button size="sm" disabled={busy === o.id} onClick={() => void decide(o, true)}>भुगतान मिला — मंज़ूर करें</Button><Button size="sm" variant="outline" disabled={busy === o.id} onClick={() => void decide(o, false)}>अस्वीकार</Button></div> : null}
+        </div>
+      ))}
+      {q.isSuccess && !rows.length ? <p className="text-sm text-muted-foreground">कुछ नहीं।</p> : null}
+    </div>
+  );
+}
+
+function RevenueReport({ org }: { org: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [from, setFrom] = useState(() => `${today.slice(0, 4)}-04-01` <= today ? `${today.slice(0, 4)}-04-01` : `${Number(today.slice(0, 4)) - 1}-04-01`);
+  const [to, setTo] = useState(today);
+  const q = useQuery({ queryKey: ["biz_revenue", org, from, to], queryFn: () => call<Revenue | null>("biz_revenue", { p_org: org, p_from: from, p_to: to }) });
+  const r = q.data;
+  function csv() {
+    if (!r) return;
+    const head = ["तारीख़", "प्रकार", "व्यापार", "मालिक", "विवरण", "राशि", "भुगतान", "UTR", "बिल नाम", "GSTIN"];
+    const lines = r.rows.map((x) => [d(x.decided_at), x.kind === "plan" ? "पैकेज" : "बूस्ट", x.page, x.owner, x.what, x.amount, x.pay_mode, x.pay_ref ?? "", x.buyer_name ?? "", x.buyer_gstin ?? ""]);
+    const text = [head, ...lines].map((l) => l.map((c) => `"${String(c).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["\ufeff" + text], { type: "text/csv;charset=utf-8" })); a.download = `business-revenue-${from}-to-${to}.csv`; a.click();
+  }
+  const Tile = ({ label, value }: { label: string; value: string }) => <div className="rounded-lg border border-border bg-background p-3"><p className="text-xs text-muted-foreground">{label}</p><p className="font-display text-xl font-bold">{value}</p></div>;
+  return (
+    <div className="max-w-4xl space-y-4 text-sm">
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="space-y-1"><span className="text-xs">से</span><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
+        <label className="space-y-1"><span className="text-xs">तक</span><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></label>
+        <Button variant="outline" onClick={csv} disabled={!r?.rows.length}>CSV डाउनलोड (Excel)</Button>
+      </div>
+      {r ? (
+        <>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Tile label="कुल कमाई" value={inr(r.total)} /><Tile label="पैकेज से" value={inr(r.plans)} /><Tile label="बूस्ट से" value={inr(r.boosts)} /><Tile label="मंज़ूरी बाकी (राशि)" value={inr(r.pending_amount)} />
+            <Tile label="भुगतान (संख्या)" value={String(r.count)} /><Tile label="अभी चल रहे पेड पेज" value={String(r.active_paid_pages)} /><Tile label="मुफ़्त दिए पैकेज" value={String(r.free_grants)} />
+          </div>
+          <table className="w-full overflow-hidden rounded-lg border border-border bg-background text-left">
+            <thead className="bg-secondary/60 text-xs"><tr><th className="p-2">महीना</th><th className="p-2 text-right">पैकेज</th><th className="p-2 text-right">बूस्ट</th><th className="p-2 text-right">कुल</th></tr></thead>
+            <tbody>{r.by_month.map((m) => <tr key={m.month} className="border-t border-border"><td className="p-2">{m.month}</td><td className="p-2 text-right">{inr(m.plans)}</td><td className="p-2 text-right">{inr(m.boosts)}</td><td className="p-2 text-right font-semibold">{inr(m.total)}</td></tr>)}
+              {!r.by_month.length ? <tr><td colSpan={4} className="p-3 text-center text-muted-foreground">इस अवधि में कोई भुगतान नहीं।</td></tr> : null}</tbody>
+          </table>
+          <p className="text-xs text-muted-foreground">सिर्फ़ मंज़ूर किए गए भुगतान गिने जाते हैं (मुफ़्त दिए पैकेज ₹0 हैं, कमाई में नहीं)। CSV में हर भुगतान की पंक्ति, UTR और GSTIN है — Vivid Brandify के GST बिल बनाने में काम आएगी।</p>
+        </>
+      ) : q.isLoading ? <div className="h-32 animate-pulse rounded-lg bg-muted" /> : <p className="text-muted-foreground">रिपोर्ट सिर्फ़ एडमिन देख सकते हैं।</p>}
     </div>
   );
 }

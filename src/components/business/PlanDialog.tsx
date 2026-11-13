@@ -24,7 +24,6 @@ export function PlanDialog({ page, hi, onClose }: { page: BizPage; hi: boolean; 
   const tenant = useTenant();
   const { user } = useAuth();
   const plans = usePlans();
-  const pay = usePaySettings();
   const refresh = useBizRefresh();
   const list = (plans.data ?? []).filter((p) => p.active);
   const [step, setStep] = useState<1 | 2>(1);
@@ -38,9 +37,7 @@ export function PlanDialog({ page, hi, onClose }: { page: BizPage; hi: boolean; 
   const [busy, setBusy] = useState<string | null>(null);
   const plan = list.find((p) => p.key === key);
   const amount = plan ? (period === "year" ? plan.price_year : plan.price_month) : 0;
-  const s = pay.data ?? {};
   const note = `${page.name} ${planName(key, false)} ${period}`;
-  const upi = upiLink(s, amount, note);
   const L = (h: string, e: string) => (hi ? h : e);
   async function upload(f: File | undefined) {
     if (!f || !user) return; setBusy("proof");
@@ -56,7 +53,6 @@ export function PlanDialog({ page, hi, onClose }: { page: BizPage; hi: boolean; 
       onClose();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(null); }
   }
-  const copy = (t: string) => { void navigator.clipboard.writeText(t).then(() => toast.success(L("कॉपी हुआ", "Copied"))); };
   return (
     <Dialog open onOpenChange={(o) => { if (!o && !busy) onClose(); }}>
       <DialogContent className="max-h-[92vh] max-w-2xl gap-0 overflow-y-auto p-0">
@@ -82,19 +78,7 @@ export function PlanDialog({ page, hi, onClose }: { page: BizPage; hi: boolean; 
           </div>
         ) : (
           <div className="space-y-4 p-5">
-            <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 ring-1 ring-emerald-200 dark:from-emerald-950/30 dark:to-teal-950/20 dark:ring-emerald-900">
-              <p className="text-sm">{L("भुगतान करें", "Pay")} <b className="font-display text-2xl">{inr(amount)}</b> {L("इन्हें", "to")} <b>{s.payee_name || "—"}</b></p>
-              <div className="mt-3 flex flex-col gap-4 sm:flex-row">
-                {s.qr_url ? <img src={s.qr_url} alt="QR" className="mx-auto size-48 shrink-0 rounded-xl bg-white object-contain p-2 ring-1 ring-border sm:mx-0" /> : <span className="mx-auto grid size-48 shrink-0 place-items-center rounded-xl bg-white/60 text-center text-xs text-muted-foreground ring-1 ring-border sm:mx-0"><QrCode className="mx-auto mb-1 size-8 opacity-50" />{L("QR अभी नहीं लगा", "No QR yet")}</span>}
-                <div className="min-w-0 flex-1 space-y-2 text-sm">
-                  {s.upi_id ? <p className="flex items-center gap-2">UPI: <b className="break-all">{s.upi_id}</b><button type="button" onClick={() => copy(s.upi_id!)} aria-label="copy" className="rounded p-1 hover:bg-background"><Copy className="size-4" /></button></p> : null}
-                  {upi ? <a href={upi} className="inline-flex h-10 items-center rounded-full bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 sm:hidden">{L("UPI ऐप से भुगतान करें", "Pay with a UPI app")}</a> : null}
-                  {s.bank_text ? <div><p className="text-xs font-semibold text-muted-foreground">{L("बैंक खाता", "Bank account")}</p><p className="whitespace-pre-wrap">{s.bank_text}</p></div> : null}
-                  {s.note ? <p className="text-xs text-muted-foreground">{s.note}</p> : null}
-                  {!s.upi_id && !s.qr_url && !s.bank_text ? <p className="text-amber-800 dark:text-amber-300">{L("भुगतान की जानकारी अभी एडमिन ने नहीं भरी — नकद या एडमिन से पूछकर भुगतान करें।", "Payment details are not set yet — pay in cash or ask the admin.")}</p> : null}
-                </div>
-              </div>
-            </div>
+            <PayInfo amount={amount} note={note} hi={hi} />
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1 text-sm"><span className="font-medium">{L("कैसे भुगतान किया", "Paid by")}</span>
                 <select className="h-9 w-full rounded-md border border-input bg-background px-2" value={mode} onChange={(e) => setMode(e.target.value as typeof mode)}>
@@ -118,5 +102,29 @@ export function PlanDialog({ page, hi, onClose }: { page: BizPage; hi: boolean; 
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Where and how much to pay: QR, UPI ID (copy + UPI-app button on phones), bank account, note. */
+export function PayInfo({ amount, note, hi }: { amount: number; note: string; hi: boolean }) {
+  const pay = usePaySettings();
+  const s = pay.data ?? {};
+  const upi = upiLink(s, amount, note);
+  const L = (h: string, e: string) => (hi ? h : e);
+  const copy = (t: string) => { void navigator.clipboard.writeText(t).then(() => toast.success(L("कॉपी हुआ", "Copied"))); };
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-4 ring-1 ring-emerald-200 dark:from-emerald-950/30 dark:to-teal-950/20 dark:ring-emerald-900">
+              <p className="text-sm">{L("भुगतान करें", "Pay")} <b className="font-display text-2xl">{inr(amount)}</b> {L("इन्हें", "to")} <b>{s.payee_name || "—"}</b></p>
+              <div className="mt-3 flex flex-col gap-4 sm:flex-row">
+                {s.qr_url ? <img src={s.qr_url} alt="QR" className="mx-auto size-48 shrink-0 rounded-xl bg-white object-contain p-2 ring-1 ring-border sm:mx-0" /> : <span className="mx-auto grid size-48 shrink-0 place-items-center rounded-xl bg-white/60 text-center text-xs text-muted-foreground ring-1 ring-border sm:mx-0"><QrCode className="mx-auto mb-1 size-8 opacity-50" />{L("QR अभी नहीं लगा", "No QR yet")}</span>}
+                <div className="min-w-0 flex-1 space-y-2 text-sm">
+                  {s.upi_id ? <p className="flex items-center gap-2">UPI: <b className="break-all">{s.upi_id}</b><button type="button" onClick={() => copy(s.upi_id!)} aria-label="copy" className="rounded p-1 hover:bg-background"><Copy className="size-4" /></button></p> : null}
+                  {upi ? <a href={upi} className="inline-flex h-10 items-center rounded-full bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 sm:hidden">{L("UPI ऐप से भुगतान करें", "Pay with a UPI app")}</a> : null}
+                  {s.bank_text ? <div><p className="text-xs font-semibold text-muted-foreground">{L("बैंक खाता", "Bank account")}</p><p className="whitespace-pre-wrap">{s.bank_text}</p></div> : null}
+                  {s.note ? <p className="text-xs text-muted-foreground">{s.note}</p> : null}
+                  {!s.upi_id && !s.qr_url && !s.bank_text ? <p className="text-amber-800 dark:text-amber-300">{L("भुगतान की जानकारी अभी एडमिन ने नहीं भरी — नकद या एडमिन से पूछकर भुगतान करें।", "Payment details are not set yet — pay in cash or ask the admin.")}</p> : null}
+                </div>
+              </div>
+            </div>
   );
 }
