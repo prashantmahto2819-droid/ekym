@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-14 — Filters: blood, matrimony, exams (cm_22)
+- /blood: donor count per group (green = can give today), group chips with counts, "मेरा ग्रुप" (shows only requirements my group can give to, with the compatibility line), district/city and urgency filters, most urgent and soonest first, Hindi headings.
+- /matrimony (browse): search (name, work, city, native place), age from–to, city/district, education, "यह गोत्र छोड़ें", only with photo, sort (newest / youngest / oldest), x / y shown, clear. Runs on the verified cards the server already returns.
+- /exams: status chips with counts (खुला / चल रही / परिणाम / बंद), search, type and organizer selects, running and open first, "पंजीयन x दिन में बंद" badge.
+- DB (applied): `k1_blood_donor_counts(org)` — totals per group only (anon allowed).
+
 ## 2026-11-14 — Team, About, Contact pages (cm_21)
 - /team: committee chips with counts, search (name / post / city), the top post-holder of each committee as a wide card, call / WhatsApp / e-mail buttons on every card, popup with full introduction.
 - /about: fully Hindi (values too), numbers strip that counts up (members, families, people in family trees, events, seva projects, blood donors — only the non-zero ones), seva project cards, social links, "हमारी टीम" button, sticky side card.

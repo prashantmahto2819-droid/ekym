@@ -40,6 +40,7 @@ function MatrimonyPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<"browse" | "inbox" | "mine">("browse");
   const [gender, setGender] = useState("");
+  const [mf, setMf] = useState({ q: "", ageMin: "", ageMax: "", place: "", edu: "", notGotra: "", photo: false, sort: "new" });
   const member = useQuery({ queryKey: ["is_member", org], queryFn: () => rpc<boolean>("k1_is_member", { p_org: org }) });
   const mine = useQuery({ queryKey: ["matri_mine", org], queryFn: async () => { const { data } = await supabase.from("cm_matrimony_profiles").select("id,display_name,gender,birth_year,created_for,status,verified_at,city").eq("organization_id", org).eq("user_id", user!.id); return (data ?? []) as Mine[]; } });
   const cards = useQuery({ queryKey: ["matri_browse", org, gender], enabled: member.data === true, queryFn: () => rpc<Card[]>("k1_matrimony_browse", { p_org: org, p_gender: gender || null }) });
@@ -50,6 +51,21 @@ function MatrimonyPage() {
   const allPaths = (cards.data ?? []).flatMap((c) => [c.photo_path, ...(c.photos ?? [])]).filter((x): x is string => !!x);
   const urls = useQuery({ queryKey: ["matri_urls", allPaths.join("|")], enabled: allPaths.length > 0, staleTime: 50 * 60_000, queryFn: () => signedUrls("matrimony", allPaths) });
   const photoUrl = (p: string | null) => (p ? urls.data?.[p] ?? "" : "");
+  // filters run in the browser on the verified cards the server already allowed
+  const allCards = cards.data ?? [];
+  const placeOpts = Array.from(new Set(allCards.flatMap((c) => [c.district, c.city]).filter((x): x is string => !!x))).sort();
+  const eduOpts = Array.from(new Set(allCards.map((c) => c.education).filter((x): x is string => !!x))).sort();
+  const low = (x: string | null | undefined) => (x ?? "").toLowerCase();
+  const shownCards = allCards
+    .filter((c) => !mf.ageMin || c.age >= Number(mf.ageMin))
+    .filter((c) => !mf.ageMax || c.age <= Number(mf.ageMax))
+    .filter((c) => !mf.place || c.city === mf.place || c.district === mf.place)
+    .filter((c) => !mf.edu || c.education === mf.edu)
+    .filter((c) => !mf.notGotra.trim() || low(c.gotra) !== low(mf.notGotra.trim()))
+    .filter((c) => !mf.photo || !!c.photo_path || (c.photos ?? []).length > 0)
+    .filter((c) => { const k = low(mf.q.trim()); return !k || [c.display_name, c.profession, c.education, c.city, c.district, c.native_place, c.gotra, c.about].some((x) => low(x).includes(k)); })
+    .sort((a, b) => (mf.sort === "young" ? a.age - b.age : mf.sort === "old" ? b.age - a.age : 0));
+  const anyFilter = !!(mf.q || mf.ageMin || mf.ageMax || mf.place || mf.edu || mf.notGotra || mf.photo);
 
   async function interest(to: string) {
     if (!myActive) { toast.error(L ? "पहले अपना प्रोफ़ाइल बनाएँ और सत्यापित कराएँ।" : "Create and verify your own profile first."); return; }
@@ -67,9 +83,22 @@ function MatrimonyPage() {
           <div className="flex rounded-md border border-border p-0.5 text-xs">{([["browse", L ? "परिचय देखें" : "Browse"], ["inbox", L ? "रुचियाँ" : "Interests"], ["mine", L ? "मेरे प्रोफ़ाइल" : "My profiles"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
           {tab === "browse" ? <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={gender} onChange={(e) => setGender(e.target.value)}><option value="">{L ? "सभी" : "All"}</option><option value="male">{L ? "वर" : "Grooms"}</option><option value="female">{L ? "वधू" : "Brides"}</option></select> : null}
         </div>
+        {tab === "browse" && allCards.length ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm">
+            <Input value={mf.q} onChange={(e) => setMf({ ...mf, q: e.target.value })} placeholder={L ? "नाम, काम, शहर, मूल गाँव खोजें" : "Search name, work, city, native place"} className="h-9 w-full sm:w-64" />
+            <span className="flex items-center gap-1">{L ? "आयु" : "Age"} <Input type="number" min={18} max={80} value={mf.ageMin} onChange={(e) => setMf({ ...mf, ageMin: e.target.value })} placeholder={L ? "से" : "from"} className="h-9 w-16" />–<Input type="number" min={18} max={80} value={mf.ageMax} onChange={(e) => setMf({ ...mf, ageMax: e.target.value })} placeholder={L ? "तक" : "to"} className="h-9 w-16" /></span>
+            <select className="h-9 rounded-md border border-input bg-background px-2" value={mf.place} onChange={(e) => setMf({ ...mf, place: e.target.value })}><option value="">{L ? "सभी शहर / ज़िले" : "All cities / districts"}</option>{placeOpts.map((x) => <option key={x} value={x}>{x}</option>)}</select>
+            {eduOpts.length ? <select className="h-9 max-w-[180px] rounded-md border border-input bg-background px-2" value={mf.edu} onChange={(e) => setMf({ ...mf, edu: e.target.value })}><option value="">{L ? "कोई भी शिक्षा" : "Any education"}</option>{eduOpts.map((x) => <option key={x} value={x}>{x}</option>)}</select> : null}
+            <Input value={mf.notGotra} onChange={(e) => setMf({ ...mf, notGotra: e.target.value })} placeholder={L ? "यह गोत्र छोड़ें" : "Exclude gotra"} className="h-9 w-36" title={L ? "अपना गोत्र लिखें, उस गोत्र के परिचय नहीं दिखेंगे" : "Type your gotra to hide profiles of the same gotra"} />
+            <label className="flex items-center gap-1"><input type="checkbox" checked={mf.photo} onChange={(e) => setMf({ ...mf, photo: e.target.checked })} /> {L ? "फोटो वाले" : "With photo"}</label>
+            <select className="h-9 rounded-md border border-input bg-background px-2" value={mf.sort} onChange={(e) => setMf({ ...mf, sort: e.target.value })}><option value="new">{L ? "नए पहले" : "Newest"}</option><option value="young">{L ? "कम आयु पहले" : "Youngest first"}</option><option value="old">{L ? "अधिक आयु पहले" : "Oldest first"}</option></select>
+            <span className="ml-auto text-xs text-muted-foreground">{shownCards.length} / {allCards.length}</span>
+            {anyFilter ? <Button size="sm" variant="ghost" onClick={() => setMf({ q: "", ageMin: "", ageMax: "", place: "", edu: "", notGotra: "", photo: false, sort: mf.sort })}>{L ? "फ़िल्टर हटाएँ" : "Clear"}</Button> : null}
+          </div>
+        ) : null}
         {tab === "browse" ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(cards.data ?? []).map((c) => (
+            {shownCards.map((c) => (
               <article key={c.id} className="surface-card p-4 text-sm">
                 <Gallery paths={[c.photo_path, ...(c.photos ?? [])].filter((x): x is string => !!x)} url={photoUrl} />
                 <h3 className="font-display text-lg font-semibold">{c.display_name} <span className="text-sm font-normal text-muted-foreground">· {c.age} {L ? "वर्ष" : "yrs"}</span></h3>
@@ -89,6 +118,7 @@ function MatrimonyPage() {
               </article>
             ))}
             {cards.isSuccess && !cards.data.length ? <p className="text-muted-foreground">{L ? "अभी कोई सत्यापित परिचय नहीं।" : "No verified profiles yet."}</p> : null}
+            {cards.isSuccess && cards.data.length > 0 && !shownCards.length ? <p className="text-muted-foreground">{L ? "इन फ़िल्टर से कोई परिचय नहीं मिला।" : "No profile matches these filters."}</p> : null}
           </div>
         ) : null}
         {tab === "inbox" ? (
