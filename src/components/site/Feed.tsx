@@ -232,7 +232,7 @@ const VIS = (L: boolean) => [
 ];
 
 /** Composer card ("What's on your mind?") that opens a "Create post" popup. */
-function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: boolean }) {
+export function Composer({ org, onPosted, L }: { org: string; onPosted: () => void; L: boolean }) {
   const { me } = useMe();
   const [open, setOpen] = useState<null | "text" | "photo" | "link">(null);
   const first = (me?.name ?? "").split(" ")[0] || "";
@@ -390,7 +390,7 @@ function PhotoGrid({ urls, onOpen }: { urls: string[]; onOpen: (i: number) => vo
   );
 }
 
-function Lightbox({ urls, index, onClose }: { urls: string[]; index: number; onClose: () => void }) {
+export function Lightbox({ urls, index, onClose }: { urls: string[]; index: number; onClose: () => void }) {
   const [i, setI] = useState(index);
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); if (e.key === "ArrowRight") setI((x) => Math.min(urls.length - 1, x + 1)); if (e.key === "ArrowLeft") setI((x) => Math.max(0, x - 1)); };
