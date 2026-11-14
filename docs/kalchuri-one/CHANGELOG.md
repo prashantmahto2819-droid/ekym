@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-14 — संपर्क सूची (contact list, shok_11) + welcome-name fix (shok_10) + db-check workflow
+- Contact-only households (disputed relations etc.): `families.kind = 'contact'`, one member, no relation/father shown. They get शोक पत्र and सूचना / आमंत्रण, but are hidden from every tree, browse/suggest list, similar-name hints, empty-tree list and the Kalchuri One family list. Added by the super admin or "पूरी पहुँच" admins; owner shown as the super admin; private note + who added only for the super admin; "वंश वृक्ष में रखें" moves the person into a tree later. UI in the शोक पत्र app → एडमिन → संपर्क सूची.
+- Welcome WhatsApp greets the person (member with that number / living head / contact name), never the family name; contacts get a neutral "संपर्क सूची" text.
+- New `.github/workflows/db-check.yml`: runs a script from `supabase/checks/` against the live DB inside a transaction that is always rolled back (results in the run log / summary).
+
 ## 2026-11-14 — स्वतंत्र महिला मुखिया (shok_09)
 - For divorced / separated / unmarried women: "+ महिला मुखिया" → Cancel at "पति का नाम जोड़ना है?" adds her as `member_kind 'woman'` at the top of the tree with NO husband row; her sons/daughters go under her; no "+ पत्नी" / "पूर्वज जोड़ें" on her.
 - Letters for her children carry no father name (trigger on `letter_recipients`), and the send picker shows no "पिता:" (`directory_members`). DB applied by the GitHub workflow. Same in the शोक पत्र app (third choice "महिला — स्वतंत्र").
