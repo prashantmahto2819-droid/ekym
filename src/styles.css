@@ -329,3 +329,98 @@
   background-position: 0 0, 11px 11px;
 }
 .dark .chat-wall { background-color: #0b141a; background-image: radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1.2px); background-size: 22px 22px; }
+
+/* Dark mode for the light tints used across pages (bg-amber-50, text-emerald-900 …): in .dark the 50/100 shades become
+   deep tints of the colour and 800/900 become light ones, so badges and notes stay readable without dark: variants.
+   (Use 200/300/700/950 in dark: variants — those are not remapped.) */
+.dark {
+  --color-amber-50: color-mix(in oklab, var(--color-amber-500) 12%, var(--card));
+  --color-amber-100: color-mix(in oklab, var(--color-amber-500) 20%, var(--card));
+  --color-amber-800: color-mix(in oklab, var(--color-amber-400) 70%, white);
+  --color-amber-900: color-mix(in oklab, var(--color-amber-300) 75%, white);
+  --color-emerald-50: color-mix(in oklab, var(--color-emerald-500) 12%, var(--card));
+  --color-emerald-100: color-mix(in oklab, var(--color-emerald-500) 20%, var(--card));
+  --color-emerald-800: color-mix(in oklab, var(--color-emerald-400) 70%, white);
+  --color-emerald-900: color-mix(in oklab, var(--color-emerald-300) 75%, white);
+  --color-sky-50: color-mix(in oklab, var(--color-sky-500) 12%, var(--card));
+  --color-sky-100: color-mix(in oklab, var(--color-sky-500) 20%, var(--card));
+  --color-sky-800: color-mix(in oklab, var(--color-sky-400) 70%, white);
+  --color-sky-900: color-mix(in oklab, var(--color-sky-300) 75%, white);
+  --color-rose-50: color-mix(in oklab, var(--color-rose-500) 12%, var(--card));
+  --color-rose-100: color-mix(in oklab, var(--color-rose-500) 20%, var(--card));
+  --color-rose-800: color-mix(in oklab, var(--color-rose-400) 70%, white);
+  --color-rose-900: color-mix(in oklab, var(--color-rose-300) 75%, white);
+  --color-red-50: color-mix(in oklab, var(--color-red-500) 12%, var(--card));
+  --color-red-100: color-mix(in oklab, var(--color-red-500) 20%, var(--card));
+  --color-red-800: color-mix(in oklab, var(--color-red-400) 70%, white);
+  --color-red-900: color-mix(in oklab, var(--color-red-300) 75%, white);
+  --color-orange-50: color-mix(in oklab, var(--color-orange-500) 12%, var(--card));
+  --color-orange-100: color-mix(in oklab, var(--color-orange-500) 20%, var(--card));
+  --color-orange-800: color-mix(in oklab, var(--color-orange-400) 70%, white);
+  --color-orange-900: color-mix(in oklab, var(--color-orange-300) 75%, white);
+  --color-yellow-50: color-mix(in oklab, var(--color-yellow-500) 12%, var(--card));
+  --color-yellow-100: color-mix(in oklab, var(--color-yellow-500) 20%, var(--card));
+  --color-yellow-800: color-mix(in oklab, var(--color-yellow-400) 70%, white);
+  --color-yellow-900: color-mix(in oklab, var(--color-yellow-300) 75%, white);
+  --color-green-50: color-mix(in oklab, var(--color-green-500) 12%, var(--card));
+  --color-green-100: color-mix(in oklab, var(--color-green-500) 20%, var(--card));
+  --color-green-800: color-mix(in oklab, var(--color-green-400) 70%, white);
+  --color-green-900: color-mix(in oklab, var(--color-green-300) 75%, white);
+  --color-blue-50: color-mix(in oklab, var(--color-blue-500) 12%, var(--card));
+  --color-blue-100: color-mix(in oklab, var(--color-blue-500) 20%, var(--card));
+  --color-blue-800: color-mix(in oklab, var(--color-blue-400) 70%, white);
+  --color-blue-900: color-mix(in oklab, var(--color-blue-300) 75%, white);
+  --color-teal-50: color-mix(in oklab, var(--color-teal-500) 12%, var(--card));
+  --color-teal-100: color-mix(in oklab, var(--color-teal-500) 20%, var(--card));
+  --color-teal-800: color-mix(in oklab, var(--color-teal-400) 70%, white);
+  --color-teal-900: color-mix(in oklab, var(--color-teal-300) 75%, white);
+  --color-slate-50: color-mix(in oklab, var(--color-slate-500) 12%, var(--card));
+  --color-slate-100: color-mix(in oklab, var(--color-slate-500) 20%, var(--card));
+  --color-slate-800: color-mix(in oklab, var(--color-slate-400) 70%, white);
+  --color-slate-900: color-mix(in oklab, var(--color-slate-300) 75%, white);
+  --color-gray-50: color-mix(in oklab, var(--color-gray-500) 12%, var(--card));
+  --color-gray-100: color-mix(in oklab, var(--color-gray-500) 20%, var(--card));
+  --color-gray-800: color-mix(in oklab, var(--color-gray-400) 70%, white);
+  --color-gray-900: color-mix(in oklab, var(--color-gray-300) 75%, white);
+  --color-violet-50: color-mix(in oklab, var(--color-violet-500) 12%, var(--card));
+  --color-violet-100: color-mix(in oklab, var(--color-violet-500) 20%, var(--card));
+  --color-violet-800: color-mix(in oklab, var(--color-violet-400) 70%, white);
+  --color-violet-900: color-mix(in oklab, var(--color-violet-300) 75%, white);
+  --color-indigo-50: color-mix(in oklab, var(--color-indigo-500) 12%, var(--card));
+  --color-indigo-100: color-mix(in oklab, var(--color-indigo-500) 20%, var(--card));
+  --color-indigo-800: color-mix(in oklab, var(--color-indigo-400) 70%, white);
+  --color-indigo-900: color-mix(in oklab, var(--color-indigo-300) 75%, white);
+  --color-pink-50: color-mix(in oklab, var(--color-pink-500) 12%, var(--card));
+  --color-pink-100: color-mix(in oklab, var(--color-pink-500) 20%, var(--card));
+  --color-pink-800: color-mix(in oklab, var(--color-pink-400) 70%, white);
+  --color-pink-900: color-mix(in oklab, var(--color-pink-300) 75%, white);
+  --color-purple-50: color-mix(in oklab, var(--color-purple-500) 12%, var(--card));
+  --color-purple-100: color-mix(in oklab, var(--color-purple-500) 20%, var(--card));
+  --color-purple-800: color-mix(in oklab, var(--color-purple-400) 70%, white);
+  --color-purple-900: color-mix(in oklab, var(--color-purple-300) 75%, white);
+  --color-lime-50: color-mix(in oklab, var(--color-lime-500) 12%, var(--card));
+  --color-lime-100: color-mix(in oklab, var(--color-lime-500) 20%, var(--card));
+  --color-lime-800: color-mix(in oklab, var(--color-lime-400) 70%, white);
+  --color-lime-900: color-mix(in oklab, var(--color-lime-300) 75%, white);
+  --color-cyan-50: color-mix(in oklab, var(--color-cyan-500) 12%, var(--card));
+  --color-cyan-100: color-mix(in oklab, var(--color-cyan-500) 20%, var(--card));
+  --color-cyan-800: color-mix(in oklab, var(--color-cyan-400) 70%, white);
+  --color-cyan-900: color-mix(in oklab, var(--color-cyan-300) 75%, white);
+  --color-fuchsia-50: color-mix(in oklab, var(--color-fuchsia-500) 12%, var(--card));
+  --color-fuchsia-100: color-mix(in oklab, var(--color-fuchsia-500) 20%, var(--card));
+  --color-fuchsia-800: color-mix(in oklab, var(--color-fuchsia-400) 70%, white);
+  --color-fuchsia-900: color-mix(in oklab, var(--color-fuchsia-300) 75%, white);
+  --color-zinc-50: color-mix(in oklab, var(--color-zinc-500) 12%, var(--card));
+  --color-zinc-100: color-mix(in oklab, var(--color-zinc-500) 20%, var(--card));
+  --color-zinc-800: color-mix(in oklab, var(--color-zinc-400) 70%, white);
+  --color-zinc-900: color-mix(in oklab, var(--color-zinc-300) 75%, white);
+  --color-stone-50: color-mix(in oklab, var(--color-stone-500) 12%, var(--card));
+  --color-stone-100: color-mix(in oklab, var(--color-stone-500) 20%, var(--card));
+  --color-stone-800: color-mix(in oklab, var(--color-stone-400) 70%, white);
+  --color-stone-900: color-mix(in oklab, var(--color-stone-300) 75%, white);
+  --color-neutral-50: color-mix(in oklab, var(--color-neutral-500) 12%, var(--card));
+  --color-neutral-100: color-mix(in oklab, var(--color-neutral-500) 20%, var(--card));
+  --color-neutral-800: color-mix(in oklab, var(--color-neutral-400) 70%, white);
+  --color-neutral-900: color-mix(in oklab, var(--color-neutral-300) 75%, white);
+  color-scheme: dark;
+}

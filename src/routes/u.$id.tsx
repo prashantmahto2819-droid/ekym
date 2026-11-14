@@ -2,6 +2,7 @@
 // faces, action buttons, then tabs — Posts (intro + photos + friends on the left, posts on the right), About, Friends, Photos.
 // Keeps the member's own theme (cover preset, colours, "centered" layout, stickers). Members only (signed in).
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { PostSkeleton } from "@/components/site/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { Briefcase, Cake, Heart, Home, Images, Info, Link2, Mail, MoreHorizontal, Network, Pencil, Phone, Send, Users } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
@@ -133,7 +134,7 @@ function ProfilePage() {
               <WishesWall userId={id} name={d.name} L={L} mine={d.mine} birthday={occ.data?.birthday ?? null} anniversary={occ.data?.anniversary ?? null} />
               <h2 className={`${box} py-3 font-display text-lg font-semibold`}>{L ? "पोस्ट" : "Posts"} <span className="text-sm font-normal text-muted-foreground">({d.posts})</span></h2>
               {(posts.data ?? []).map((x) => <PostCard key={x.id} p={x} L={L} signedIn={!!user} onChange={() => void posts.refetch()} />)}
-              {posts.isLoading ? <div className="h-40 animate-pulse rounded-2xl bg-muted" /> : null}
+              {posts.isLoading ? <><PostSkeleton /><PostSkeleton photo={false} /></> : null}
               {posts.isSuccess && !posts.data?.length ? <p className={`${box} py-10 text-center text-sm text-muted-foreground`}>{L ? "अभी कोई पोस्ट नहीं।" : "No posts yet."}</p> : null}
             </main>
           </div>

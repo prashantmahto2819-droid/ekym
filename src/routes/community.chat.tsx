@@ -1,6 +1,7 @@
 // समुदाय चैट — channels by category (this organization + the whole Kalchuri community), private groups, 1:1 messages,
 // who is online, people directory across organizations, profile card. Members only.
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ListSkeleton } from "@/components/site/Skeletons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowLeft, Bell, BellOff, Check, CheckCheck, Copy, Hash, Image as ImageIcon, Lock, MessageCircle, Pencil, Plus, Reply, Search, Send, Smile, Trash2, Users, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -77,7 +78,7 @@ function ChatPage() {
         <Button size="icon" variant="ghost" title={L ? "नया समूह / चैनल" : "New group / channel"} onClick={() => setNewRoom(true)}><Plus className="size-4" /></Button>
       </div>
       {pane === "rooms" ? (
-        <ChatList L={L} list={list} flags={flags.data ?? []} online={online} activeId={roomId} onOpen={openRoom} onProfile={(uid) => setProfileOf(uid)} />
+        rooms.isLoading ? <ListSkeleton n={7} /> : <ChatList L={L} list={list} flags={flags.data ?? []} online={online} activeId={roomId} onOpen={openRoom} onProfile={(uid) => setProfileOf(uid)} />
       ) : <PeoplePane L={L} online={online} onOpen={(uid) => setProfileOf(uid)} onDm={openDm} />}
     </aside>
   );
@@ -93,7 +94,7 @@ function ChatPage() {
         <div className={`${roomId ? "hidden lg:flex" : "flex"} min-h-0 flex-col`}>{sidebar}</div>
         <div className={`${roomId ? "flex" : "hidden lg:flex"} min-h-0 flex-col`}>
           {room ? <RoomView key={room.id} room={room} L={L} online={online} me={me} muted={!!flags.data?.find((f) => f.room_id === room.id)?.muted} onBack={() => { setRoomId(null); void navigate({ to: "/community/chat", search: {}, replace: true }); }} onProfile={(uid) => setProfileOf(uid)} />
-            : roomId && rooms.isLoading ? <p className="p-6 text-sm text-muted-foreground">…</p>
+            : roomId && rooms.isLoading ? <ListSkeleton n={8} />
             : <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4"><StoriesStrip L={L} enabled /><div className="grid flex-1 place-items-center text-center text-sm text-muted-foreground"><div><MessageCircle className="mx-auto mb-2 size-8 opacity-40" />{L ? "बाईं ओर कोई चैनल चुनिए, या \"लोग\" में से किसी को संदेश भेजिए।" : "Pick a channel on the left, or message someone under People."}</div></div></div>}
         </div>
       </div>
@@ -325,7 +326,8 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
       <div className="relative flex min-h-0 flex-1">
         <div ref={ref} onScroll={onScroll} onClick={() => setMenu(null)} className="chat-wall min-h-0 flex-1 overflow-y-auto px-2 py-2 sm:px-6">
           {list.length >= 50 ? <div className="mb-2 text-center"><Button size="sm" variant="secondary" className="rounded-full shadow-sm" onClick={() => void msgs.loadOlder()}>{L ? "पुराने संदेश" : "Older messages"}</Button></div> : null}
-          {msgs.isSuccess && !list.length ? <div className="mx-auto mt-10 max-w-xs rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-amber-900 shadow-sm dark:bg-amber-950 dark:text-amber-100">{L ? "अभी कोई संदेश नहीं — पहला संदेश आप लिखिए। 🙏" : "No messages yet — say hello. 🙏"}</div> : null}
+          {msgs.isLoading ? <div className="space-y-3 pt-2">{[60, 40, 70, 35, 55].map((w, i) => <div key={i} className={`flex ${i % 2 ? "justify-end" : ""}`}><div className="h-9 animate-pulse rounded-lg bg-card/80" style={{ width: `${w}%` }} /></div>)}</div> : null}
+          {msgs.isSuccess && !list.length ? <div className="mx-auto mt-10 max-w-xs rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-amber-900 shadow-sm dark:bg-amber-950">{L ? "अभी कोई संदेश नहीं — पहला संदेश आप लिखिए। 🙏" : "No messages yet — say hello. 🙏"}</div> : null}
           {list.map((m, idx) => {
             const prev = list[idx - 1]; const next = list[idx + 1];
             const day = new Date(m.created_at).toDateString();
@@ -367,7 +369,7 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
                     ) : null}
                     {menu === m.id ? (
                       <div onClick={(e) => e.stopPropagation()} className={`absolute z-20 mt-1 w-56 rounded-xl border border-border bg-popover p-1.5 shadow-xl ${m.mine ? "right-0" : "left-0"}`}>
-                        <div className="mb-1 flex justify-between border-b border-border pb-1.5">{QUICK.map((e) => <button key={e} type="button" onClick={() => void react(m, e)} className={`grid size-8 place-items-center rounded-full text-lg transition hover:scale-125 ${m.reactions?.some((r) => r.mine && r.e === e) ? "bg-emerald-100 dark:bg-emerald-900" : ""}`}>{e}</button>)}</div>
+                        <div className="mb-1 flex justify-between border-b border-border pb-1.5">{QUICK.map((e) => <button key={e} type="button" onClick={() => void react(m, e)} className={`grid size-8 place-items-center rounded-full text-lg transition hover:scale-125 ${m.reactions?.some((r) => r.mine && r.e === e) ? "bg-emerald-100" : ""}`}>{e}</button>)}</div>
                         <MenuItem icon={<Reply className="size-4" />} label={L ? "जवाब दें" : "Reply"} onClick={() => { setReply(m); setEditing(null); setMenu(null); taRef.current?.focus(); }} />
                         {m.body ? <MenuItem icon={<Copy className="size-4" />} label={L ? "कॉपी करें" : "Copy"} onClick={() => { void navigator.clipboard?.writeText(m.body ?? ""); setMenu(null); toast.success(L ? "कॉपी हुआ" : "Copied"); }} /> : null}
                         {canEdit(m) ? <MenuItem icon={<Pencil className="size-4" />} label={L ? "बदलें (15 मिनट तक)" : "Edit (15 min)"} onClick={() => { setEditing(m); setReply(null); setText(m.body ?? ""); setMenu(null); taRef.current?.focus(); }} /> : null}

@@ -257,7 +257,7 @@ export function MergeLeftovers({ rows, L, onChanged }: { rows: Leftover[]; L: bo
     try { await rpc("restore_family", { p_id: f.family_id }); toast.success(L ? "वापस आ गया।" : "Restored"); await refresh(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(null); }
   };
   return (
-    <section className="rounded-lg border border-rose-300/60 bg-rose-50/50 p-3 text-sm dark:border-rose-800/40 dark:bg-rose-950/20">
+    <section className="rounded-lg border border-rose-300/60 bg-rose-50/50 p-3 text-sm dark:bg-rose-950/20">
       <h2 className="font-display font-semibold">{L ? "पहले मिलाए गए परिवारों में पीछे छूटे लोग" : "People left behind by earlier merges"} <span className="font-normal text-muted-foreground">({rows.length})</span></h2>
       <p className="mt-1 text-xs text-muted-foreground">{L ? "पुराने तरीके से मिलाने पर सिर्फ़ नीचे की शाखा गई थी; ये परिवार कचरे में हैं पर इनमें अभी लोग (पिता, भाई…) हैं। \"बाकी भी मिलाएँ\" से वे सही वृक्ष में ऊपर/बगल में जुड़ जाएँगे, या \"वापस लाएँ\" से परिवार अलग से लौट आएगा।" : "The old merge moved only the branch below; these trashed families still hold people. Merge the rest into the right tree, or restore the family."}</p>
       <ul className="mt-2 divide-y divide-border/60">

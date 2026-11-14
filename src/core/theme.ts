@@ -21,5 +21,10 @@ export function themeCss(b: Branding | null | undefined): string {
   if (b.font_display && FONT_STACKS[b.font_display]) vars.push(`--font-display:${FONT_STACKS[b.font_display]}`);
   if (b.font_body && FONT_STACKS[b.font_body]) vars.push(`--font-sans:${FONT_STACKS[b.font_body]}`);
   if (b.radius && /^\d+(\.\d+)?(rem|px)$/.test(b.radius)) vars.push(`--radius:${b.radius}`);
-  return vars.length ? `:root{${vars.join(";")}}` : "";
+  if (!vars.length) return "";
+  // dark mode keeps the brand colour but its soft tints must be dark, not white-mixed
+  const dark: string[] = [];
+  if (p) dark.push(`--primary-soft:color-mix(in oklab, ${p} 22%, black)`, `--primary:color-mix(in oklab, ${p} 70%, white)`, `--ring:color-mix(in oklab, ${p} 70%, white)`, `--primary-foreground:#0b141a`);
+  if (a) dark.push(`--accent-soft:color-mix(in oklab, ${a} 24%, black)`);
+  return `:root{${vars.join(";")}}${dark.length ? `.dark{${dark.join(";")}}` : ""}`;
 }

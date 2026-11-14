@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { ThemeToggle } from "@/core/theme-mode";
 import { ChevronDown, ExternalLink, Languages, LogOut, Menu, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -66,9 +67,12 @@ function AdminLayout() {
   }
 
   const langBtn = (
-    <Button size="sm" variant="ghost" onClick={() => setLang(L ? "en" : "hi")} title={L ? "Switch to English" : "हिंदी में बदलें"} className="gap-1 px-2">
-      <Languages className="size-4" /><span className="text-xs font-semibold">{L ? "English" : "हिंदी"}</span>
-    </Button>
+    <span className="inline-flex items-center">
+      <Button size="sm" variant="ghost" onClick={() => setLang(L ? "en" : "hi")} title={L ? "Switch to English" : "हिंदी में बदलें"} className="gap-1 px-2">
+        <Languages className="size-4" /><span className="text-xs font-semibold">{L ? "English" : "हिंदी"}</span>
+      </Button>
+      <ThemeToggle L={L} className="size-8" />
+    </span>
   );
 
   return (

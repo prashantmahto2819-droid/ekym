@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-14 — Dark mode, loading placeholders, phone tab bar
+- Dark mode: one button in the header (and in the phone menu, and the admin top bar) cycles दिन → रात → फोन के अनुसार; choice kept in localStorage `k1_theme`, applied by a tiny script in <head> before paint (no white flash). The 50/100 and 800/900 shades of every Tailwind colour are re-pointed in `.dark` (styles.css), so all light badges / notes turn into deep tints with light text without per-file `dark:` classes (stale `dark:*-50/100/800/900` classes removed). Organization brand colours get dark-friendly variants too (`themeCss`).
+- Loading placeholders: `components/site/Skeletons.tsx` (PageSkeleton, CardGridSkeleton, PostSkeleton, ListSkeleton). The router shows PageSkeleton when a page takes >400 ms; chat list / messages, exams, matrimony and profile posts show grey outlines instead of "…".
+- Phone tab bar (`components/site/BottomTabs.tsx`, below lg): होम · चौपाल · चैट (unread count) · आयोजन · मैं / लॉग इन; hidden on admin, sign-in and the chat page; safe-area aware; cookie banner moved above it.
+
 ## 2026-11-14 — Admin charts and one-language admin text (cm_23)
 - Admin dashboard: "गतिविधि" card — 7 / 30 / 90 days, six totals (नए आवेदन, मंज़ूर सदस्य, चौपाल पोस्ट, चैट संदेश, दान ₹, रक्त अनुरोध); click one to see its daily bars (hover/tap a day), daily average and peak. Side cards: membership status split, members by district (top 10).
 - DB (applied): `k1_admin_trends(org, days)` — org team / platform admin only.

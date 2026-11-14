@@ -85,7 +85,7 @@ function CampaignDetail() {
               </p>
             ) : null}
             {daysLeft !== null ? (
-              <p className={`mt-2 rounded-md px-2 py-1 text-center text-sm font-medium ${daysLeft > 0 ? "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100" : "bg-secondary text-muted-foreground"}`}>
+              <p className={`mt-2 rounded-md px-2 py-1 text-center text-sm font-medium ${daysLeft > 0 ? "bg-amber-100 text-amber-900 dark:bg-amber-950" : "bg-secondary text-muted-foreground"}`}>
                 {daysLeft > 0 ? (L ? `⏳ ${daysLeft} दिन बाकी` : `⏳ ${daysLeft} days left`) : (L ? "अभियान पूरा हुआ" : "Campaign ended")}
               </p>
             ) : null}

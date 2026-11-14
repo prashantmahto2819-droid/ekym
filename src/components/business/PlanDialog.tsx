@@ -65,7 +65,7 @@ export function PlanDialog({ page, hi, onClose }: { page: BizPage; hi: boolean; 
             {plans.isLoading ? <div className="h-40 animate-pulse rounded-2xl bg-muted" /> : null}
             <div className="grid gap-3 sm:grid-cols-2">
               {list.map((p) => (
-                <button key={p.key} type="button" onClick={() => setKey(p.key)} className={`relative rounded-2xl p-4 text-left ring-2 transition ${key === p.key ? (p.key === "gold" ? "bg-amber-50 ring-amber-500 dark:bg-amber-950/30" : "bg-slate-50 ring-slate-500 dark:bg-slate-900/40") : "bg-card ring-border hover:ring-primary/40"}`}>
+                <button key={p.key} type="button" onClick={() => setKey(p.key)} className={`relative rounded-2xl p-4 text-left ring-2 transition ${key === p.key ? (p.key === "gold" ? "bg-amber-50 ring-amber-500 dark:bg-amber-950/30" : "bg-slate-50 ring-slate-500") : "bg-card ring-border hover:ring-primary/40"}`}>
                   {p.key === "gold" ? <span className="absolute right-3 top-3 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">{L("सबसे ज़्यादा पहुँच", "Most reach")}</span> : null}
                   <p className="font-display text-lg font-semibold">{hi ? p.name_hi : p.name}</p>
                   <p className="mt-1"><span className="font-display text-3xl font-bold">{inr(period === "year" ? p.price_year : p.price_month)}</span><span className="text-sm text-muted-foreground">/{period === "year" ? L("साल", "year") : L("महीना", "month")}</span></p>

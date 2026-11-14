@@ -9,7 +9,7 @@ export const PRESETS: { id: string; name: string; name_hi: string; cover: string
   { id: "royal", name: "Royal", name_hi: "शाही", cover: "from-indigo-700 via-purple-600 to-fuchsia-500", accent: "text-indigo-700", card: "bg-indigo-50/60 dark:bg-indigo-950/20", ring: "border-indigo-100" },
   { id: "forest", name: "Forest", name_hi: "हरियाली", cover: "from-emerald-700 via-green-500 to-lime-300", accent: "text-emerald-700", card: "bg-emerald-50/60 dark:bg-emerald-950/20", ring: "border-emerald-100" },
   { id: "rose", name: "Rose", name_hi: "गुलाबी", cover: "from-rose-500 via-pink-400 to-orange-200", accent: "text-rose-700", card: "bg-rose-50/60 dark:bg-rose-950/20", ring: "border-rose-100" },
-  { id: "night", name: "Night", name_hi: "रात", cover: "from-slate-900 via-slate-700 to-sky-700", accent: "text-sky-700", card: "bg-slate-50/80 dark:bg-slate-900/40", ring: "border-slate-200" },
+  { id: "night", name: "Night", name_hi: "रात", cover: "from-slate-900 via-slate-700 to-sky-700", accent: "text-sky-700", card: "bg-slate-50/80", ring: "border-slate-200" },
 ];
 export const LAYOUTS: { id: string; name_hi: string; name: string }[] = [
   { id: "classic", name_hi: "क्लासिक (बाएँ फोटो)", name: "Classic (photo left)" },

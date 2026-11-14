@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { PageSkeleton } from "@/components/site/Skeletons";
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
@@ -21,6 +22,10 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // a grey page outline instead of a frozen screen when a page takes a moment to load
+    defaultPendingComponent: PageSkeleton,
+    defaultPendingMs: 400,
+    defaultPendingMinMs: 300,
   });
 
   return router;

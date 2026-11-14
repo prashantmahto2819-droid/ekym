@@ -1,5 +1,6 @@
 // परीक्षा / प्रतियोगिता — list of platform-wide (Kalchuri One) and this organization's exams; my registrations for signed-in users.
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { CardGridSkeleton } from "@/components/site/Skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,7 @@ function ExamsPage() {
               </div>
             </div>
           ) : null}
+          {list.isLoading ? <CardGridSkeleton n={3} /> : null}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((e) => (
               <Link key={e.id} to="/exams/$slug" params={{ slug: e.slug }} className="surface-card lift-on-hover overflow-hidden">
@@ -100,7 +102,7 @@ function ExamsPage() {
                   <div className="flex items-center justify-between gap-2"><p className="text-xs uppercase tracking-wide text-primary">{e.org_name}</p><Badge variant={e.status === "running" ? "default" : "secondary"}>{(STATUS_HI[e.status] ?? ["", ""])[hi ? 1 : 0]}</Badge></div>
                   <h3 className="mt-1 font-display text-lg font-semibold leading-tight">{(hi && e.title_hi) || e.title}</h3>
                   {(hi && e.summary_hi) || e.summary ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{(hi && e.summary_hi) || e.summary}</p> : null}
-                  {e.status === "open" && e.reg_closes_at && Date.parse(e.reg_closes_at) > now ? <p className="mt-2 inline-block rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-100">⏳ {hi ? `पंजीयन ${Math.max(1, Math.ceil((Date.parse(e.reg_closes_at) - now) / 86400000))} दिन में बंद` : `Registration closes in ${Math.max(1, Math.ceil((Date.parse(e.reg_closes_at) - now) / 86400000))} days`}</p> : null}
+                  {e.status === "open" && e.reg_closes_at && Date.parse(e.reg_closes_at) > now ? <p className="mt-2 inline-block rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-950">⏳ {hi ? `पंजीयन ${Math.max(1, Math.ceil((Date.parse(e.reg_closes_at) - now) / 86400000))} दिन में बंद` : `Registration closes in ${Math.max(1, Math.ceil((Date.parse(e.reg_closes_at) - now) / 86400000))} days`}</p> : null}
                   <p className="mt-2 text-xs text-muted-foreground">{hi ? "परीक्षा" : "Exam"}: {dt(e.starts_at, hi)} · {e.duration_minutes} {hi ? "मिनट" : "min"} · {e.registrations} {hi ? "पंजीकृत" : "registered"}</p>
                 </div>
               </Link>

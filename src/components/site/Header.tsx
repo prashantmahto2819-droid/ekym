@@ -1,4 +1,5 @@
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { ThemeToggle } from "@/core/theme-mode";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, HeartHandshake, Menu, MessageCircle, Phone, ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -146,6 +147,7 @@ export function Header() {
           >
             {t("switch_lang")}
           </Button>
+          <ThemeToggle L={lang === "hi"} className="hidden sm:inline-flex" />
           {moduleOn(tenant.branding, "donate") ? <Button asChild variant="default" size="sm" className="hidden sm:inline-flex">
             <Link to="/donate">{t("donate")}</Link>
           </Button> : null}
@@ -205,6 +207,7 @@ export function Header() {
                 </Button> : null}
                 {chatOn ? <Link to="/community/chat" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">💬 {lang === "hi" ? "समुदाय चैट" : "Community chat"}{(unread.data ?? 0) > 0 ? ` (${unread.data})` : ""}</Link> : null}
                 {user ? <Link to="/me/profile" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">{lang === "hi" ? "मेरी प्रोफ़ाइल" : "My profile"}</Link> : null}
+                <div className="flex items-center justify-between rounded-md px-3 py-1 text-sm"><span>{lang === "hi" ? "रंग (दिन / रात)" : "Theme (light / dark)"}</span><ThemeToggle L={lang === "hi"} /></div>
                 {user ? <Link to="/me/notifications" onClick={() => setOpen(false)} className="rounded-md px-3 py-2 text-sm hover:bg-secondary">{lang === "hi" ? "सूचना सेटिंग" : "Notification settings"}</Link> : null}
                 <Button asChild variant="outline" className="mt-2">
                   <Link to={user ? (isStaff ? "/admin" : "/account") : "/auth"} onClick={() => setOpen(false)}>

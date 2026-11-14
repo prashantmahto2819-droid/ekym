@@ -163,7 +163,7 @@ function PlanPanel({ b, hi, onChanged }: { b: BizPage; hi: boolean; onChanged: (
     try { await call("biz_cancel_request", { p_id: b.pending_request.id }); onChanged(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
   }
   return (
-    <section className={`space-y-3 rounded-2xl p-4 text-sm shadow-sm ring-1 ${b.tier === "gold" ? "bg-amber-50 ring-amber-300 dark:bg-amber-950/30" : paid ? "bg-slate-50 ring-slate-300 dark:bg-slate-900/40" : "bg-card ring-border/70"}`}>
+    <section className={`space-y-3 rounded-2xl p-4 text-sm shadow-sm ring-1 ${b.tier === "gold" ? "bg-amber-50 ring-amber-300 dark:bg-amber-950/30" : paid ? "bg-slate-50 ring-slate-300" : "bg-card ring-border/70"}`}>
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-display text-lg font-semibold">{hi ? "पैकेज" : "Plan"}: {planName(b.tier, hi)}</h2>
         {paid && days !== null ? <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${days <= 7 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"}`}>{hi ? `${days} दिन बाकी` : `${days} days left`}</span> : null}

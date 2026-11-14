@@ -22,7 +22,9 @@ import { ConsentProvider } from "@/components/community/ConsentGate";
 import { LangProvider, type Lang } from "@/core/i18n";
 import type { Tenant } from "@/core/tenant.server";
 import { themeCss, type Branding } from "@/core/theme";
+import { THEME_SCRIPT } from "@/core/theme-mode";
 import { AdSlot, ConsentBanner } from "@/components/site/Ads";
+import { BottomTabs } from "@/components/site/BottomTabs";
 
 import appCss from "../styles.css?url";
 
@@ -128,8 +130,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   const data = Route.useLoaderData();
   return (
-    <html lang={data?.lang ?? "en"}>
+    <html lang={data?.lang ?? "en"} suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />
         {themeCss(data?.tenant?.branding as Branding) ? <style dangerouslySetInnerHTML={{ __html: themeCss(data?.tenant?.branding as Branding) }} /> : null}
       </head>
@@ -182,6 +185,7 @@ function RootComponent() {
             {chromeless ? null : <AdSlot slot="footer" className="container-page my-2" />}
             {chromeless ? null : <Footer />}
             {chromeless ? null : <ConsentBanner />}
+            {chromeless ? null : <BottomTabs />}
           </div>
           </ConsentProvider>
           <Toaster richColors position="top-center" />

@@ -143,7 +143,7 @@ function ExamPage() {
                     <Lbl t={hi ? "मोबाइल (WhatsApp)" : "Mobile (WhatsApp)"}><Input type="tel" inputMode="numeric" maxLength={13} autoComplete="tel" value={f.mobile} onChange={(ev) => setF({ ...f, mobile: ev.target.value })} placeholder="98XXXXXXXX" /></Lbl>
                   </div>
                   {minor ? (
-                    <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                    <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-amber-900 dark:bg-amber-950/30">
                       <p className="text-xs font-semibold">{hi ? "18 वर्ष से कम — अभिभावक की जानकारी ज़रूरी" : "Under 18 — parent/guardian details required"}</p>
                       <Lbl t={hi ? "अभिभावक का नाम" : "Parent / guardian name"} req><Input value={f.parent_name} onChange={(ev) => setF({ ...f, parent_name: ev.target.value })} /></Lbl>
                       <Lbl t={hi ? "अभिभावक का मोबाइल (WhatsApp)" : "Parent mobile (WhatsApp)"} req><Input type="tel" inputMode="numeric" maxLength={13} value={f.parent_mobile} onChange={(ev) => setF({ ...f, parent_mobile: ev.target.value })} placeholder="98XXXXXXXX" /></Lbl>

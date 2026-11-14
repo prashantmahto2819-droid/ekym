@@ -68,7 +68,7 @@ export function ConsentBanner() {
   const text = lang === "hi" ? (conf.consent_text_hi || "यह साइट विज्ञापन और आँकड़ों के लिए cookies का उपयोग करती है।") : (conf.consent_text || "This site uses cookies for advertising and analytics.");
   const set = (v: "yes" | "no") => { try { localStorage.setItem(CONSENT_KEY, v); } catch { /* ignore */ } setState(v); if (v === "yes") window.location.reload(); };
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 p-3 text-sm shadow-lg backdrop-blur">
+    <div className="fixed inset-x-0 bottom-16 z-50 border-t border-border bg-background/95 p-3 text-sm shadow-lg backdrop-blur lg:bottom-0">
       <div className="container-page flex flex-wrap items-center justify-between gap-2">
         <p>{text}</p>
         <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => set("no")}>{lang === "hi" ? "नहीं" : "No thanks"}</Button><Button size="sm" onClick={() => set("yes")}>{lang === "hi" ? "ठीक है" : "Accept"}</Button></div>

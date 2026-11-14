@@ -98,6 +98,7 @@ function MatrimonyPage() {
         ) : null}
         {tab === "browse" ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {cards.isLoading ? [0, 1, 2].map((i) => <div key={i} className="h-80 animate-pulse rounded-xl bg-muted" />) : null}
             {shownCards.map((c) => (
               <article key={c.id} className="surface-card p-4 text-sm">
                 <Gallery paths={[c.photo_path, ...(c.photos ?? [])].filter((x): x is string => !!x)} url={photoUrl} />
