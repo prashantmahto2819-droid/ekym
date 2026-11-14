@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-14 — Team, About, Contact pages (cm_21)
+- /team: committee chips with counts, search (name / post / city), the top post-holder of each committee as a wide card, call / WhatsApp / e-mail buttons on every card, popup with full introduction.
+- /about: fully Hindi (values too), numbers strip that counts up (members, families, people in family trees, events, seva projects, blood donors — only the non-zero ones), seva project cards, social links, "हमारी टीम" button, sticky side card.
+- /contact: Hindi labels and messages, big tiles (WhatsApp / call / e-mail), copy address, reply-time note, map with directions.
+- DB (applied): `k1_public_counts(org)` — totals only, no names (anon allowed).
+
 ## 2026-11-14 — Gallery, with a full-screen photo viewer
 - /gallery: Hindi heading, album chips (cover thumbnail + photo count), album info (date, place, description), masonry grid (2 / 3 / 4 columns), caption + album on hover.
 - Viewer: full screen, "2 / 7", arrows and ← → keys, swipe left/right on phones (swipe down closes), slideshow (Space, 3.5 s), thumbnail strip, download, share (phone share sheet or WhatsApp), tap to hide controls, preloads neighbours.

@@ -2,8 +2,9 @@ import { useTenant } from "@/core/tenant-context";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Clock, Copy, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { MapCard } from "@/components/site/DetailExtras";
 import { toast } from "sonner";
 import { pageMeta } from "@/core/seo";
 import { useLang } from "@/core/i18n";
@@ -30,6 +31,7 @@ function ContactPage() {
   const { data: org } = useSuspenseQuery(organizationQuery());
   const { lang } = useLang();
   const hi = lang === "hi";
+  const name = (hi && (org?.organization_name_hi || tenant.name_hi)) || org?.organization_name || tenant.name;
   const targets = useQuery({ queryKey: ["contact_targets", tenant.organization_id], queryFn: async () => { const { data } = await supabase.rpc("k1_contact_targets", { p_org: tenant.organization_id } as never); return (data ?? []) as unknown as { id: string; name: string; name_hi: string | null }[]; } });
   const [sent, setSent] = useState(false);
   const form = useForm<ContactInput>();
@@ -45,9 +47,9 @@ function ContactPage() {
     try {
       await submitContact({ data: values });
       setSent(true);
-      toast.success("Message sent. We'll get back to you soon.");
+      toast.success(hi ? "संदेश भेज दिया गया। हम जल्द जवाब देंगे।" : "Message sent. We'll get back to you soon.");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Could not send your message";
+      const msg = e instanceof Error ? e.message : (hi ? "संदेश नहीं गया" : "Could not send your message");
       setFormError(msg);
       toast.error(msg);
     }
@@ -56,66 +58,43 @@ function ContactPage() {
   return (
     <>
       <PageHeader
-        title="Contact us"
-        description="Questions, requirements, partnerships or press — write to us."
-        crumbs={[{ label: "Contact" }]}
+        title={hi ? "संपर्क करें" : "Contact us"}
+        description={hi ? "सदस्यता, वंश वृक्ष, शोक संदेश, आयोजन या कोई भी बात — हमें लिखिए।" : "Membership, family tree, events or anything else — write to us."}
+        crumbs={[{ label: hi ? "संपर्क" : "Contact" }]}
       />
       <section className="section-y">
         <div className="container-page grid gap-10 lg:grid-cols-[1fr_1.2fr]">
           <div className="space-y-4">
-            <div className="surface-card space-y-3 p-6 text-sm">
-              {org?.phone ? (
-                <p className="flex items-center gap-2">
-                  <Phone className="size-4 text-primary" />
-                  <a href={telHref(org.phone)} className="hover:underline">
-                    {org.phone}
-                  </a>
-                </p>
-              ) : null}
-              {org?.whatsapp ? (
-                <p className="flex items-center gap-2">
-                  <MessageCircle className="size-4 text-primary" />
-                  <a
-                    href={whatsappHref(org.whatsapp, `Hello ${tenant.name},`)}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="hover:underline"
-                  >
-                    WhatsApp us
-                  </a>
-                </p>
-              ) : null}
-              {org?.email ? (
-                <p className="flex items-center gap-2">
-                  <Mail className="size-4 text-primary" />
-                  <a href={`mailto:${org.email}`} className="hover:underline">
-                    {org.email}
-                  </a>
-                </p>
-              ) : null}
-              {org?.address ? (
-                <p className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 size-4 text-primary" />
-                  <span>{[org.address, org.city, org.district, org.state, org.pincode].filter(Boolean).join(", ")}</span>
-                </p>
-              ) : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {org?.whatsapp ? <Tile href={whatsappHref(org.whatsapp, hi ? `नमस्ते ${name},` : `Hello ${name},`)} external icon={<MessageCircle className="size-5" />} title="WhatsApp" text={hi ? "सबसे जल्दी जवाब" : "Fastest reply"} tone="bg-[#25D366] text-white" /> : null}
+              {org?.phone ? <Tile href={telHref(org.phone)} icon={<Phone className="size-5" />} title={hi ? "कॉल करें" : "Call"} text={org.phone} tone="bg-primary text-primary-foreground" /> : null}
+              {org?.email ? <Tile href={`mailto:${org.email}`} icon={<Mail className="size-5" />} title={hi ? "ईमेल" : "E-mail"} text={org.email} tone="bg-sky-600 text-white" /> : null}
             </div>
+            {org?.address ? (
+              <div className="surface-card space-y-3 p-5 text-sm">
+                <p className="flex items-start gap-2"><MapPin className="mt-0.5 size-4 shrink-0 text-primary" /><span className="flex-1">{[org?.address, org?.city, org?.district, org?.state, org?.pincode].filter(Boolean).join(", ")}</span>
+                  <button type="button" className="text-muted-foreground hover:text-foreground" title={hi ? "पता कॉपी करें" : "Copy address"} onClick={() => { void navigator.clipboard?.writeText([org?.address, org?.city, org?.district, org?.state, org?.pincode].filter(Boolean).join(", ")).then(() => toast.success(hi ? "पता कॉपी हुआ" : "Address copied")); }}><Copy className="size-4" /></button>
+                </p>
+                <p className="flex items-center gap-2 text-muted-foreground"><Clock className="size-4 shrink-0 text-primary" /> {hi ? "हम आमतौर पर दो कार्य-दिवस में जवाब देते हैं।" : "We usually reply within two working days."}</p>
+              </div>
+            ) : null}
+            {org?.address ? <MapCard place={[org?.address, org?.city, org?.district, org?.state, org?.pincode].filter(Boolean).join(", ")} L={hi} /> : null}
           </div>
 
           {sent ? (
             <FormSuccess
-              title="Thank you for writing to us"
-              text="Our team reads every message. If it needs a reply, we usually respond within two working days."
+              title={hi ? "लिखने के लिए धन्यवाद" : "Thank you for writing to us"}
+              text={hi ? "हमारी टीम हर संदेश पढ़ती है। जवाब ज़रूरी हो तो आमतौर पर दो कार्य-दिवस में देते हैं।" : "Our team reads every message. If it needs a reply, we usually respond within two working days."}
             />
           ) : (
             <form onSubmit={onSubmit} className="surface-card grid gap-4 p-6 sm:grid-cols-2">
-              <Field label="Your name" required error={errors.name?.message}>
-                <Input {...register("name", { required: "Please enter your name" })} />
+              <Field label={hi ? "आपका नाम" : "Your name"} required error={errors.name?.message}>
+                <Input {...register("name", { required: hi ? "अपना नाम लिखिए" : "Please enter your name" })} />
               </Field>
-              <Field label="Mobile" error={errors.mobile?.message}>
+              <Field label={hi ? "मोबाइल" : "Mobile"} error={errors.mobile?.message}>
                 <Input type="tel" {...register("mobile")} />
               </Field>
-              <Field label="Email" error={errors.email?.message}>
+              <Field label={hi ? "ईमेल" : "Email"} error={errors.email?.message}>
                 <Input type="email" {...register("email")} />
               </Field>
               <LocationFields form={form} includeDistrict={false} />
@@ -131,23 +110,23 @@ function ContactPage() {
                   </select>
                 </Field>
               ) : null}
-              <Field label="Subject" className="sm:col-span-2" error={errors.subject?.message}>
+              <Field label={hi ? "शीर्षक" : "Subject"} className="sm:col-span-2" error={errors.subject?.message}>
                 <Input {...register("subject")} />
               </Field>
-              <Field label="Message" required className="sm:col-span-2" error={errors.message?.message}>
+              <Field label={hi ? "संदेश" : "Message"} required className="sm:col-span-2" error={errors.message?.message}>
                 <Textarea
                   rows={5}
-                  {...register("message", { required: "Please write your message", minLength: { value: 10, message: "Please write at least 10 characters" } })}
+                  {...register("message", { required: hi ? "अपना संदेश लिखिए" : "Please write your message", minLength: { value: 10, message: hi ? "कम से कम 10 अक्षर लिखिए" : "Please write at least 10 characters" } })}
                 />
               </Field>
               <div className="sm:col-span-2">
                 <FormError
-                  message={formError ?? (Object.keys(errors).length ? "Please fill the required fields highlighted above and try again." : null)}
+                  message={formError ?? (Object.keys(errors).length ? (hi ? "ऊपर लाल दिखे ज़रूरी खाने भरकर फिर भेजिए।" : "Please fill the required fields highlighted above and try again.") : null)}
                 />
               </div>
               <div className="sm:col-span-2">
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending…" : "Send message"}
+                  {isSubmitting ? (hi ? "भेज रहे हैं…" : "Sending…") : (hi ? "संदेश भेजें" : "Send message")}
                 </Button>
               </div>
             </form>
@@ -155,5 +134,14 @@ function ContactPage() {
         </div>
       </section>
     </>
+  );
+}
+
+function Tile({ href, icon, title, text, tone, external }: { href: string | undefined; icon: ReactNode; title: string; text: string; tone: string; external?: boolean }) {
+  return (
+    <a href={href} {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})} className={`flex items-center gap-3 rounded-xl p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${tone}`}>
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white/20">{icon}</span>
+      <span className="min-w-0"><span className="block font-semibold">{title}</span><span className="block truncate text-sm opacity-90">{text}</span></span>
+    </a>
   );
 }
