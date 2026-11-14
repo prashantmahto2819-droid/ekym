@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { placeLine } from "@/lib/places";
 
 export const Route = createFileRoute("/_authenticated/admin/organizations")({ component: Orgs });
 
@@ -30,7 +31,7 @@ function Orgs() {
         <tbody>{rows.map((o) => <tr key={o.id} className={`border-t border-border ${o.status === "pending" ? "bg-amber-50/60 dark:bg-amber-950/20" : ""}`}>
           <td className="p-2"><b>{o.name}</b>{o.name_hi ? <span className="block text-xs text-muted-foreground">{o.name_hi}</span> : null}{o.parent_name ? <span className="block text-[11px] text-muted-foreground">↳ under {o.parent_name}</span> : null}</td>
           <td className="p-2 text-xs">{o.kind} · {o.level}</td>
-          <td className="p-2 text-xs">{[o.city, o.district, o.state].filter(Boolean).join(", ")}</td>
+          <td className="p-2 text-xs">{placeLine([o.city, o.district, o.state], false)}</td>
           <td className="p-2"><Badge variant={o.status === "active" ? "default" : o.status === "pending" ? "secondary" : "destructive"}>{o.status}</Badge></td>
           <td className="p-2 text-xs">{o.hostname ? <a className="underline" href={`https://${o.hostname}`} target="_blank" rel="noreferrer">{o.hostname}</a> : <span className="text-muted-foreground">{o.slug}.kalchuri.org (on approval)</span>}</td>
           <td className="p-2 text-right">{o.members}</td>

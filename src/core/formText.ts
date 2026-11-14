@@ -102,7 +102,7 @@ export const PLACE_HI: Record<string, string> = {
   Meghalaya: "मेघालय", Mizoram: "मिज़ोरम", Nagaland: "नागालैंड", Odisha: "ओडिशा", Punjab: "पंजाब", Rajasthan: "राजस्थान", Sikkim: "सिक्किम", "Tamil Nadu": "तमिलनाडु",
   Telangana: "तेलंगाना", Tripura: "त्रिपुरा", "Uttar Pradesh": "उत्तर प्रदेश", Uttarakhand: "उत्तराखंड", "West Bengal": "पश्चिम बंगाल", "Andaman and Nicobar Islands": "अंडमान और निकोबार द्वीपसमूह",
   Chandigarh: "चंडीगढ़", "Dadra and Nagar Haveli and Daman and Diu": "दादरा और नगर हवेली तथा दमन और दीव", Delhi: "दिल्ली", "Jammu and Kashmir": "जम्मू और कश्मीर", Ladakh: "लद्दाख",
-  Lakshadweep: "लक्षद्वीप", Puducherry: "पुदुच्चेरी",
+  Lakshadweep: "लक्षद्वीप", Puducherry: "पुडुचेरी",
   Balod: "बालोद", "Baloda Bazar": "बलौदाबाज़ार", "Balrampur-Ramanujganj": "बलरामपुर-रामानुजगंज", Bastar: "बस्तर", Bemetara: "बेमेतरा", Bijapur: "बीजापुर", Bilaspur: "बिलासपुर",
   Dantewada: "दंतेवाड़ा", Dhamtari: "धमतरी", Durg: "दुर्ग", Gariaband: "गरियाबंद", "Gaurela-Pendra-Marwahi": "गौरेला-पेंड्रा-मरवाही", "Janjgir-Champa": "जांजगीर-चांपा", Jashpur: "जशपुर",
   "Kabirdham (Kawardha)": "कबीरधाम (कवर्धा)", Kanker: "कांकेर", "Khairagarh-Chhuikhadan-Gandai": "खैरागढ़-छुईखदान-गंडई", Kondagaon: "कोंडागांव", Korba: "कोरबा", Koriya: "कोरिया",

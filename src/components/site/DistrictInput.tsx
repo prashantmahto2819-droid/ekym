@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { PLACE_HI } from "@/core/formText";
 import { ALL_DISTRICTS, DISTRICT_HI, DISTRICTS } from "@/lib/districts";
+import { canonDistrict } from "@/lib/places";
 
 const hiName = (n: string) => PLACE_HI[n] ?? DISTRICT_HI[n] ?? n;
 const norm = (s: string) => s.toLowerCase().normalize("NFC").replace(/[\s.\-()]+/g, "");
@@ -45,6 +46,11 @@ export function DistrictInput({ value, onChange, onPick, state, hi, placeholder,
         id={id} value={text} autoComplete="off" role="combobox" aria-expanded={open} aria-autocomplete="list" aria-invalid={invalid || undefined}
         placeholder={placeholder ?? (hi ? "ज़िले का नाम लिखें…" : "Type the district…")} className={className}
         onFocus={() => setOpen(true)}
+        onBlur={() => {
+          // typed in Hindi / other case / old name → the official English name (and its state)
+          const c = canonDistrict(text, state);
+          if (c.known && c.district !== value) { onChange(c.district); onPick?.(c.district, c.state); setText(hi ? hiName(c.district) : c.district); }
+        }}
         onChange={(e) => { setText(e.target.value); onChange(e.target.value); setOpen(true); setAct(0); }}
         onKeyDown={(e) => {
           if (!open || !list.length) return;

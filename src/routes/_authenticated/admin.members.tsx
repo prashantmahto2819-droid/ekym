@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { placeLine } from "@/lib/places";
 
 export const Route = createFileRoute("/_authenticated/admin/members")({
   component: MembersPage,
@@ -140,7 +141,7 @@ function MembersPage() {
                   </td>
                   <td className="px-4 py-3">{m.father_name ?? "—"}</td>
                   <td className="px-4 py-3">{m.mobile}</td>
-                  <td className="px-4 py-3">{[m.village, m.city, m.district].filter(Boolean).join(", ") || "—"}</td>
+                  <td className="px-4 py-3">{placeLine([m.village, m.city, m.district], false) || "—"}</td>
                   <td className="px-4 py-3">{new Date(m.applied_at).toLocaleDateString("en-IN")}</td>
                   <td className="px-4 py-3 text-right">
                     <Button size="sm" onClick={() => { setDeciding(m); setCategory(m.category); setNote(""); }}>
@@ -172,6 +173,7 @@ function MembersPage() {
           { key: "full_name", label: "Name" },
           { key: "mobile", label: "Mobile" },
           { key: "village", label: "Village / City", render: (r) => r.village || r.city || "—" },
+          { key: "district", label: "District" },
           { key: "category", label: "Category" },
           { key: "status", label: "Status" },
         ]}
@@ -213,7 +215,7 @@ function MembersPage() {
                 {deciding.mobile}
                 {deciding.email ? ` · ${deciding.email}` : ""}
                 <br />
-                {[deciding.village, deciding.city, deciding.district].filter(Boolean).join(", ")}
+                {placeLine([deciding.village, deciding.city, deciding.district], false)}
               </p>
               <label className="block">
                 <span className="text-xs font-medium text-muted-foreground">Membership category</span>

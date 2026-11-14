@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { call, uploadCommunityImage } from "@/community/chat";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
+import { canonState, STATE_OPTIONS } from "@/lib/places";
 
 export const Verified = ({ on, className = "size-4" }: { on: boolean; className?: string }) => (on ? <BadgeCheck className={`${className} shrink-0 fill-sky-500 text-white`} aria-label="verified" /> : null);
 
@@ -138,7 +139,10 @@ export function BizEditor({ page, hi, onClose }: { page?: BizPage | null; hi: bo
               </select></label>
             <label className="space-y-1 text-sm"><span className="font-medium">{L("शहर / क़स्बा", "City / town")}</span><Input value={d.city ?? ""} onChange={(e) => set("city", e.target.value)} /></label>
             <label className="space-y-1 text-sm"><span className="font-medium">{L("ज़िला", "District")}</span><DistrictInput value={d.district ?? ""} onChange={(v) => set("district", v)} onPick={(_, st) => set("state", st)} state={d.state} hi={hi} /></label>
-            <label className="space-y-1 text-sm"><span className="font-medium">{L("राज्य", "State")}</span><Input value={d.state ?? ""} onChange={(e) => set("state", e.target.value)} /></label>
+            <label className="space-y-1 text-sm"><span className="font-medium">{L("राज्य", "State")}</span>
+              <select className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm" value={canonState(d.state) || ""} onChange={(e) => set("state", e.target.value)}>
+                <option value="">{L("— चुनें —", "— choose —")}</option>{STATE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{hi ? o.hi : o.value}</option>)}
+              </select></label>
             <label className="space-y-1 text-sm sm:col-span-2"><span className="font-medium">{L("अपने व्यापार के बारे में", "About your business")}</span><Textarea rows={3} value={d.about ?? ""} onChange={(e) => set("about", e.target.value)} maxLength={3000} placeholder={L("क्या बेचते/करते हैं, कब से, क्या खास है…", "What you sell or do, since when, what's special…")} /></label>
             {FIELDS.map((f) => <label key={f.k} className={`space-y-1 text-sm ${f.k === "address" || f.k === "offer" ? "sm:col-span-2" : ""}`}><span className="font-medium">{hi ? f.hi : f.en}</span><Input type={f.type ?? "text"} value={(d[f.k] as string | null) ?? ""} onChange={(e) => set(f.k, e.target.value)} placeholder={f.ph} /></label>)}
           </div>

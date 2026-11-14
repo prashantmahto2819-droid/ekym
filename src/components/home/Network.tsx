@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 import { useLang } from "@/core/i18n";
 import { networkQuery } from "@/lib/queries";
 import type { Network, NetworkItem, NetworkOrg } from "@/lib/public.functions";
+import { placeLine } from "@/lib/places";
 
 const KIND: Record<string, [string, string]> = { samaj: ["Samaj", "समाज"], foundation: ["Foundation", "फ़ाउंडेशन"], trust: ["Trust", "ट्रस्ट"], committee: ["Committee", "समिति"], association: ["Association", "संघ"], youth_wing: ["Youth wing", "युवा मंच"], women_wing: ["Women's wing", "महिला मंच"], business: ["Business body", "व्यापार मंडल"], other: ["Organization", "संस्था"] };
 
@@ -17,7 +18,7 @@ export function OrgCard({ o }: { o: NetworkOrg }) {
   const { lang } = useLang();
   const hi = lang === "hi";
   const name = hi && o.name_hi ? o.name_hi : o.name;
-  const place = [o.city, o.district, o.state].filter(Boolean).join(", ");
+  const place = placeLine([o.city, o.district, o.state], hi);
   return (
     <a href={orgUrl(o)} className="surface-card lift-on-hover flex gap-4 p-5">
       {o.logo ? <img src={o.logo} alt="" className="size-14 shrink-0 rounded-lg object-contain" /> : <span className="bg-primary-soft text-primary-deep grid size-14 shrink-0 place-items-center rounded-lg font-display text-xl font-semibold">{name.slice(0, 1)}</span>}

@@ -34,6 +34,7 @@ import {
 import { embedUrl, formatCurrency, formatDate, telHref, whatsappHref } from "@/lib/format";
 import { useFt } from "@/core/formText";
 import { videoThumb } from "@/components/site/kit";
+import { placeLine } from "@/lib/places";
 
 /* ------------------------------ HERO ------------------------------ */
 
@@ -351,7 +352,7 @@ export function BloodRequirementCard({ requirement: r }: { requirement: any }) {
       <p className="mt-1 text-sm text-muted-foreground">{r.hospital}</p>
       <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
         <MapPin className="size-3.5" />
-        {[r.city, r.district, r.state].filter(Boolean).join(", ")}
+        {placeLine([r.city, r.district, r.state], hi)}
       </p>
       {r.required_date ? (
         <p className="mt-1 text-xs text-muted-foreground">{hi ? "कब तक: " : "Needed by "}{formatDate(r.required_date)}</p>
