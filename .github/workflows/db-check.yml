@@ -1,0 +1,28 @@
+# Run a test script from supabase/checks against the live DB and ROLL IT BACK (nothing is kept).
+# Actions → db-check → Run workflow → file name (e.g. contact_list.sql). Results are the NOTICE lines in the log.
+name: db-check
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "File in supabase/checks"
+        type: string
+        required: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install psql
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+      - name: Run (rolled back)
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          FILE: ${{ inputs.file }}
+        run: |
+          set -euo pipefail
+          case "$FILE" in *..*|/*) echo "bad file name"; exit 1;; esac
+          test -f "supabase/checks/$FILE"
+          { echo "begin;"; cat "supabase/checks/$FILE"; echo; echo "rollback;"; } > /tmp/run.sql
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f /tmp/run.sql 2>&1 | tee /tmp/out.txt
+          { echo '### db-check'; echo '```'; grep -E "NOTICE|ERROR" /tmp/out.txt || true; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
