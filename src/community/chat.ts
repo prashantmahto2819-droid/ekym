@@ -14,7 +14,8 @@ export async function call<T = unknown>(fn: string, args: Record<string, unknown
 }
 
 export type Room = { id: string; organization_id: string; org_name: string; kind: "channel" | "group" | "dm"; name: string; name_hi: string | null; description: string | null; category: string | null; sort_order: number; is_private: boolean; member_count: number; unread: number; last_message_at: string | null; last_text: string | null; joined: boolean; other_user: string | null; other_name: string | null; other_photo: string | null; other_online: boolean | null };
-export type Msg = { id: string; sender_id: string; sender_name: string; sender_photo: string | null; body: string | null; media: { type: string; url: string }[]; reply_to: string | null; reply_text: string | null; reply_name: string | null; created_at: string; edited_at: string | null; deleted: boolean; mine: boolean };
+export type Msg = { id: string; sender_id: string; sender_name: string; sender_photo: string | null; body: string | null; media: { type: string; url: string }[]; reply_to: string | null; reply_text: string | null; reply_name: string | null; created_at: string; edited_at: string | null; deleted: boolean; mine: boolean; reactions?: { e: string; n: number; mine: boolean }[]; seen_by?: number; others?: number };
+export type RoomFlags = { room_id: string; muted: boolean; last_mine: boolean | null; last_seen: boolean | null; last_at: string | null };
 export type Person = { user_id: string; name: string; photo_url: string | null; org_names: string | null; village: string | null; district?: string | null; last_seen_at: string | null; online: boolean; friend_status?: FriendStatus; total?: number };
 export type FriendStatus = "none" | "pending_out" | "pending_in" | "friends";
 export type Facets = { total: number; online: number; today: number; friends: number; incoming: number; orgs: { id: string; name: string; n: number }[]; districts: { name: string; n: number }[]; cities: { name: string; n: number }[] };
@@ -37,31 +38,55 @@ export function useRooms(enabled: boolean) {
 }
 
 /** Messages of one room, newest first from the server, kept oldest→newest for display; new rows arrive over Realtime. */
-export function useMessages(roomId: string | null) {
+export function useMessages(roomId: string | null, me?: { id: string; name: string } | null) {
   const qc = useQueryClient();
+  const [typing, setTyping] = useState<Record<string, { name: string; at: number }>>({});
+  const chRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const q = useQuery({
     queryKey: ["chat_msgs", roomId],
     enabled: !!roomId,
-    queryFn: async () => (await call<Msg[]>("k1_chat_messages", { p_room: roomId, p_limit: 50 })).reverse(),
+    queryFn: async () => (await call<Msg[]>("k1_chat_messages2", { p_room: roomId, p_limit: 50 })).reverse(),
   });
   useEffect(() => {
     if (!roomId) return;
+    const refresh = () => { void qc.invalidateQueries({ queryKey: ["chat_msgs", roomId] }); void qc.invalidateQueries({ queryKey: ["chat_rooms"] }); void qc.invalidateQueries({ queryKey: ["chat_flags"] }); };
+    // table changes = new / edited / deleted messages; broadcast = typing, reactions and "read" pings from other people (no table)
     const ch = supabase.channel(`room:${roomId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "cm_chat_messages", filter: `room_id=eq.${roomId}` }, () => {
-        void qc.invalidateQueries({ queryKey: ["chat_msgs", roomId] });
-        void qc.invalidateQueries({ queryKey: ["chat_rooms"] });
+      .on("postgres_changes", { event: "*", schema: "public", table: "cm_chat_messages", filter: `room_id=eq.${roomId}` }, refresh)
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        const p = payload as { id: string; name: string };
+        if (!p?.id || p.id === me?.id) return;
+        setTyping((t) => ({ ...t, [p.id]: { name: p.name, at: Date.now() } }));
       })
+      .on("broadcast", { event: "changed" }, refresh)
       .subscribe();
-    return () => { void supabase.removeChannel(ch); };
-  }, [roomId, qc]);
+    chRef.current = ch;
+    const t = setInterval(() => setTyping((cur) => { const now = Date.now(); const n = Object.fromEntries(Object.entries(cur).filter(([, v]) => now - v.at < 4000)); return Object.keys(n).length === Object.keys(cur).length ? cur : n; }), 1500);
+    return () => { clearInterval(t); chRef.current = null; setTyping({}); void supabase.removeChannel(ch); };
+  }, [roomId, qc, me?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const lastTyping = useRef(0);
+  /** Tell others in the room that I am typing (at most every 2.5 s). */
+  function sendTyping() {
+    const now = Date.now();
+    if (!me || now - lastTyping.current < 2500) return;
+    lastTyping.current = now;
+    void chRef.current?.send({ type: "broadcast", event: "typing", payload: { id: me.id, name: me.name } });
+  }
+  /** Ask others to refresh (after a reaction or after I read the room). */
+  function ping() { void chRef.current?.send({ type: "broadcast", event: "changed", payload: {} }); }
   async function loadOlder() {
     const cur = q.data ?? [];
     if (!cur.length || !roomId) return 0;
-    const older = (await call<Msg[]>("k1_chat_messages", { p_room: roomId, p_before: cur[0]!.created_at, p_limit: 50 })).reverse();
+    const older = (await call<Msg[]>("k1_chat_messages2", { p_room: roomId, p_before: cur[0]!.created_at, p_limit: 50 })).reverse();
     qc.setQueryData<Msg[]>(["chat_msgs", roomId], [...older, ...cur]);
     return older.length;
   }
-  return { ...q, loadOlder };
+  return { ...q, loadOlder, typing: Object.values(typing).map((v) => v.name), sendTyping, ping };
+}
+
+/** Muted / my-last-message / seen per room, for the chat list ticks. */
+export function useRoomFlags(enabled: boolean) {
+  return useQuery({ queryKey: ["chat_flags"], enabled, refetchInterval: 30000, queryFn: () => call<RoomFlags[]>("k1_chat_room_flags") });
 }
 
 /** Who is online right now (Realtime presence per root community) + a heartbeat on last_seen_at. */
@@ -164,7 +189,9 @@ export const timeAgo = (iso: string | null | undefined, L: boolean) => {
 export function useStickToBottom<T>(dep: T) {
   const ref = useRef<HTMLDivElement | null>(null);
   const stick = useRef(true);
+  const [away, setAway] = useState(false);
   useEffect(() => { const el = ref.current; if (el && stick.current) el.scrollTop = el.scrollHeight; }, [dep]);
-  const onScroll = () => { const el = ref.current; if (el) stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
-  return { ref, onScroll };
+  const onScroll = () => { const el = ref.current; if (el) { stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; setAway(!stick.current); } };
+  const toBottom = () => { const el = ref.current; if (el) { el.scrollTo({ top: el.scrollHeight, behavior: "smooth" }); stick.current = true; setAway(false); } };
+  return { ref, onScroll, away, toBottom };
 }

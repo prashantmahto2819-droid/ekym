@@ -320,3 +320,12 @@
     transform: scale(1.05);
   }
 }
+
+/* WhatsApp-like chat wallpaper: soft beige with a faint dotted pattern (dark: deep teal-grey). */
+.chat-wall {
+  background-color: #efeae2;
+  background-image: radial-gradient(rgb(0 0 0 / 0.045) 1px, transparent 1.2px), radial-gradient(rgb(0 0 0 / 0.03) 1px, transparent 1.2px);
+  background-size: 22px 22px, 22px 22px;
+  background-position: 0 0, 11px 11px;
+}
+.dark .chat-wall { background-color: #0b141a; background-image: radial-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1.2px); background-size: 22px 22px; }

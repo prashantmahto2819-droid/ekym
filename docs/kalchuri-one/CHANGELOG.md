@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-14 — Chat, WhatsApp style (cm_20)
+- Chat list: one list sorted by the latest message, search, chips (सभी / बिना पढ़े / सीधे / समूह / चैनल), time (आज का समय / कल / दिन / तारीख), ✓ / ✓✓ (blue = read) on my last message, green unread bubble, mute icon.
+- Conversation: beige wallpaper (dark: deep teal), WhatsApp bubbles with tails, grouped messages, name colours in groups, time + ticks inside the bubble, "बदला" (edited), deleted-message line, sticky day labels (आज / कल), typing line + dots (Realtime broadcast, no table), jump-down button, photos open in the viewer.
+- Message menu (hover button or right-click): 6 quick reactions, जवाब, कॉपी, बदलें (own, 15 min), सबके लिए हटाएँ, "x/y ने पढ़ा" in groups. Header: mute / unmute.
+- Composer: rounded box that grows, emoji panel, photo thumbnails before sending.
+- DB (applied): `cm_chat_reactions`, `k1_chat_react`, `k1_chat_edit`, `k1_chat_mute`, `k1_chat_messages2` (reactions, seen_by, others), `k1_chat_room_flags`. Old RPCs untouched.
+- Note: `20261114120000_k1_places.sql` (places PR) is not yet applied to the DB, so `supabase/APPLIED_THROUGH` stays at 20261114010000; cm_19 and cm_20 are applied and safe to re-run.
+
 ## 2026-11-14 — गोल्ड का बोर्ड कार्ड और पेज मैनेजर (cm_19)
 - गोल्ड पैकेज: हर महीने 7 दिन "प्रायोजित" बोर्ड पर पेज का विज्ञापन कार्ड (`biz_plans.board_days`, `ad_campaigns.biz_page_id`, `biz_board_card`) — मंज़ूरी पर तुरंत, फिर रोज़ का `biz_tick` हर 30 दिन पर नया।
 - पेज मैनेजर: सिल्वर 1, गोल्ड 2 (`biz_plans.managers`, `biz_page_managers`, `biz_managers`, `biz_manager_add/remove`, `biz_can_post`)। मैनेजर पोस्ट / प्रायोजित / बूस्ट / आँकड़े; पेज बदलना, पैकेज और मैनेजर चुनना सिर्फ़ मालिक। पैकेज ख़त्म तो मैनेजर रुकते हैं। `biz_my_pages` में संभाले पेज भी (`i_manage`)।
