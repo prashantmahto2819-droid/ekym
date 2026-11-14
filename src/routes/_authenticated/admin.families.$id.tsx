@@ -96,6 +96,11 @@ function FamilyPage() {
   }
   // महिला मुखिया: the lineage runs through the husband, so add him first (usually स्व.), then the wife as head under him
   async function addWomanHead() {
+    // तलाक़ / अलग / अविवाहित: no husband row at all — she is the top of the tree, children under her
+    if (!confirm(L ? "पति का नाम वृक्ष में जोड़ना है?\n\nOK = हाँ (पति स्व. हैं, वंश पति के नाम से)\nCancel = नहीं — स्वतंत्र महिला मुखिया (तलाक़ / अलग / अविवाहित; पति का नाम कहीं नहीं आएगा)" : "Add the husband's name to the tree?\n\nOK = yes (late husband; lineage through him)\nCancel = no — independent woman head (divorced / separated / unmarried)")) {
+      setDlg({ addUnder: null, edit: null, kind: "woman", asHead: true });
+      return;
+    }
     const name = prompt(L ? "महिला मुखिया — पहले पति का नाम (खाली = नाम याद नहीं / बताना नहीं)" : "Woman head — first the husband's name (empty = not known)");
     if (name === null) return;
     const deceased = confirm(L ? "क्या पति दिवंगत (स्व.) हैं? OK = हाँ" : "Is the husband deceased? OK = yes");
@@ -183,7 +188,8 @@ function FamilyPage() {
   if (fam.error) return <p className="text-sm text-destructive">{(fam.error as Error).message}</p>;
   if (!f) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
-  const selSide = selCur ? (selCur.member_kind ?? "son") !== "son" : false;
+  const selWoman = selCur?.member_kind === "woman"; // स्वतंत्र महिला मुखिया: top of the tree, children under her
+  const selSide = selCur ? !["son", "woman"].includes(selCur.member_kind ?? "son") : false;
   const selSibs = selCur && !selSide ? siblingsOf(selCur) : [];
   const selIdx = selCur ? selSibs.findIndex((x) => x.id === selCur.id) : -1;
   const hasSpouse = selCur ? people.some((m) => m.parent_id === selCur.id && m.member_kind === "spouse") : false;
@@ -224,12 +230,12 @@ function FamilyPage() {
           <span className="mr-2 font-semibold">{selCur.is_deceased ? "स्व. " : ""}{selCur.name}:</span>
           {!selSide ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "son", asHead: false })}>+ {L ? "पुत्र" : "Son"}</Button> : null}
           {!selSide ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "daughter", asHead: false })}>+ {L ? "पुत्री" : "Daughter"}</Button> : null}
-          {!selSide && !hasSpouse ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "spouse", asHead: false })}>+ {L ? "पत्नी" : "Wife"}</Button> : null}
+          {!selSide && !selWoman && !hasSpouse ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: selCur, edit: null, kind: "spouse", asHead: false })}>+ {L ? "पत्नी" : "Wife"}</Button> : null}
           {!selSide && selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: people.find((x) => x.id === selCur.parent_id) ?? null, edit: null, kind: "son", asHead: false })}>+ {L ? "भाई" : "Brother"}</Button> : null}
           {!selSide && selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: people.find((x) => x.id === selCur.parent_id) ?? null, edit: null, kind: "daughter", asHead: false })}>+ {L ? "बहन" : "Sister"}</Button> : null}
-          {!selSide && !selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => addAncestor(selCur)} disabled={busy}>⬆ {L ? "पूर्वज जोड़ें" : "Add ancestor"}</Button> : null}
+          {!selSide && !selWoman && !selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => addAncestor(selCur)} disabled={busy}>⬆ {L ? "पूर्वज जोड़ें" : "Add ancestor"}</Button> : null}
           <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: null, edit: selCur as Member, kind: "son", asHead: false })}>{L ? "बदलें" : "Edit"}</Button>
-          {!selCur.is_head && !selCur.is_deceased && !selCur.name_unknown ? <Button size="sm" variant="outline" onClick={() => makeHead(selCur)} disabled={busy}>{selSide ? (L ? "महिला मुखिया बनाएँ" : "Make her head") : (L ? "मुखिया बनाएँ" : "Make head")}</Button> : null}
+          {!selCur.is_head && !selCur.is_deceased && !selCur.name_unknown ? <Button size="sm" variant="outline" onClick={() => makeHead(selCur)} disabled={busy}>{selSide || selWoman ? (L ? "महिला मुखिया बनाएँ" : "Make her head") : (L ? "मुखिया बनाएँ" : "Make head")}</Button> : null}
           {selCur.is_head && people.filter((m) => m.is_head).length > 1 ? <Button size="sm" variant="outline" onClick={() => unmakeHead(selCur)} disabled={busy}>{L ? "मुखिया हटाएँ" : "Unset head"}</Button> : null}
           {selSibs.length > 1 ? <><Button size="sm" variant="ghost" disabled={busy || selIdx <= 0} onClick={() => reorder(selCur, -1)} title={L ? "क्रम ऊपर (बड़ा)" : "older"}>◀</Button><span>{selIdx + 1}/{selSibs.length}</span><Button size="sm" variant="ghost" disabled={busy || selIdx >= selSibs.length - 1} onClick={() => reorder(selCur, 1)} title={L ? "क्रम नीचे (छोटा)" : "younger"}>▶</Button></> : null}
           {isAdmin && !selCur.is_head && !selSide ? <Button size="sm" variant="ghost" onClick={() => move(selCur)} disabled={busy}>{L ? "ले जाएँ" : "Move"}</Button> : null}
@@ -290,7 +296,7 @@ function PersonPanel({ p, people, L, onPick, withPhones }: { p: Person | null; p
     <aside className="space-y-3 rounded-lg border border-border bg-background p-4 text-sm">
       <div>
         <p className="font-display text-lg font-semibold">{p.is_deceased ? "स्व. " : ""}{p.name}</p>
-        <p className="text-xs text-muted-foreground">{[p.relation, p.member_kind === "spouse" ? (L ? "पत्नी" : "wife") : p.member_kind === "daughter" ? (L ? "पुत्री" : "daughter") : null, p.is_head ? (L ? "मुखिया" : "head") : null].filter(Boolean).join(" · ")}</p>
+        <p className="text-xs text-muted-foreground">{[p.relation, p.member_kind === "spouse" ? (L ? "पत्नी" : "wife") : p.member_kind === "daughter" ? (L ? "पुत्री" : "daughter") : p.member_kind === "woman" ? (L ? "स्वतंत्र महिला" : "independent woman") : null, p.is_head ? (L ? "मुखिया" : "head") : null].filter(Boolean).join(" · ")}</p>
       </div>
       <dl className="space-y-2">
         {row(L ? "पिता" : "Father", father ? <button type="button" className="hover:underline" onClick={() => onPick(father)}>{father.name}</button> : null)}

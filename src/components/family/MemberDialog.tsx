@@ -24,7 +24,7 @@ export type MemberDialogProps = {
   /** parent to add under (null = root/head) */
   addUnder: Person | null;
   edit: (Person & { village_id?: string | null }) | null;
-  kind: "son" | "daughter" | "spouse";
+  kind: "son" | "daughter" | "spouse" | "woman";
   asHead: boolean;
   isAdmin: boolean;
   hideContacts: boolean;
@@ -45,7 +45,7 @@ export function MemberDialog(p: MemberDialogProps) {
   const [village, setVillage] = useState("");
   const [busy, setBusy] = useState(false);
   const isHead = p.edit ? !!p.edit.is_head : p.asHead;
-  const kind = p.edit ? ((p.edit.member_kind as "son" | "daughter" | "spouse") || "son") : p.kind;
+  const kind = p.edit ? ((p.edit.member_kind as "son" | "daughter" | "spouse" | "woman") || "son") : p.kind;
   const vName = (id: string | null | undefined) => p.villages.find((v) => v.id === id)?.name ?? "";
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export function MemberDialog(p: MemberDialogProps) {
       const village_id = await ensureVillage(village, p.villages);
       const row: Record<string, unknown> = {
         name: nm || "नाम याद नहीं", name_unknown: !nm, is_deceased: deceased, native_place: (inList?.name ?? native.trim()) || null,
-        relation: kind === "spouse" ? "पत्नी" : kind === "daughter" ? "पुत्री" : relation, village_id,
+        relation: kind === "spouse" ? "पत्नी" : kind === "daughter" ? "पुत्री" : kind === "woman" ? "मुखिया (महिला)" : relation, village_id,
       };
       const keepPhone = p.hideContacts && p.edit && !ph && !deceased;
       if (!keepPhone) row["phone"] = ph ? normPhone(ph) : null;
@@ -117,6 +117,7 @@ export function MemberDialog(p: MemberDialogProps) {
   }
 
   const title = p.edit ? (L ? "सदस्य की जानकारी बदलें" : "Edit member")
+    : kind === "woman" ? (L ? "परिवार की मुखिया (स्वतंत्र महिला)" : "Family head (independent woman)")
     : isHead && kind === "spouse" ? (L ? `परिवार की मुखिया (${p.addUnder?.name} की पत्नी)` : `Family head (wife of ${p.addUnder?.name})`)
     : isHead ? (L ? "परिवार के मुखिया (पिता)" : "Family head")
     : kind === "spouse" ? `${p.addUnder?.name} ${L ? "की पत्नी" : "— wife"}`

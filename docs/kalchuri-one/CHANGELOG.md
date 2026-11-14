@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-14 — स्वतंत्र महिला मुखिया (shok_09)
+- For divorced / separated / unmarried women: "+ महिला मुखिया" → Cancel at "पति का नाम जोड़ना है?" adds her as `member_kind 'woman'` at the top of the tree with NO husband row; her sons/daughters go under her; no "+ पत्नी" / "पूर्वज जोड़ें" on her.
+- Letters for her children carry no father name (trigger on `letter_recipients`), and the send picker shows no "पिता:" (`directory_members`). DB applied by the GitHub workflow. Same in the शोक पत्र app (third choice "महिला — स्वतंत्र").
+
 ## 2026-11-14 — महिला मुखिया (शोक पत्र / वंश वृक्ष, shok_08)
 - A living wife or daughter can be the family head. New family: "+ मुखिया (पुरुष)" or "+ महिला मुखिया" (husband added first — usually स्व., name or "नाम याद नहीं" — then the wife as head under him). Existing family: "महिला मुखिया बनाएँ" on a wife/daughter; her स्व. husband's head mark moves to her.
 - DB (applied by the GitHub workflow): `guard_member_kind`, `set_family_head`, `shok_branch_head` (a head wife of any ancestor counts), `shok_eldest_son_phone` (a wife's eldest son = her husband's sons). Same buttons in the शोक पत्र app (repo shokpatra).

@@ -118,7 +118,7 @@ export function FamilyChart({ people, selectedId, onSelect, familyColors, height
             const sel = p.id === selectedId;
             const dim = highlight ? !highlight.has(p.id) && !(b.isSpouse && highlight.has(b.unit.person.id)) : false;
             const color = familyColors?.[p.family_id ?? ""] ?? (p.is_head ? "#14213d" : "#b8924a");
-            const kindLabel = p.member_kind === "spouse" ? (L ? "पत्नी" : "wife") : p.member_kind === "daughter" ? (L ? "पुत्री" : "daughter") : null;
+            const kindLabel = p.member_kind === "spouse" ? (L ? "पत्नी" : "wife") : p.member_kind === "daughter" ? (L ? "पुत्री" : "daughter") : p.member_kind === "woman" ? (L ? "महिला मुखिया" : "woman head") : null;
             const sub = [p.relation, p.village_name ? (L ? "निवास: " : "") + p.village_name : null, p.native_place ? (L ? "मूल: " : "from ") + p.native_place : null].filter(Boolean).join(" · ");
             return (
               <g key={p.id} transform={`translate(${b.x},${b.y})`} opacity={dim ? 0.35 : 1} style={{ cursor: "pointer" }}
