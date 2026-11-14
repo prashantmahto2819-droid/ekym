@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-14 — Phase 39 UI: सदस्यों को संदेश (broadcast dialog)
+- New `components/admin/Broadcast.tsx`: dialog with type chips (सूचना / आयोजन / रक्त सेवा / सामान्य), title, message (2000), link, channels (bell always; WhatsApp / e-mail optional), audience (district, men/women, category, include sub-units) with a live member count, WhatsApp-style preview, confirm step with estimated time (25 a minute); history list with progress bar, auto-refresh while sending, "रोकें" (stop the rest).
+- Where: admin dashboard (top-right button, for settings/moderation permission), Admin → Messaging (section + history), events list ("सदस्यों को बताएँ", pre-filled with date, place, description, link) and announcements list ("सदस्यों को भेजें", pre-filled). Uses the existing cm_14 RPCs; no DB change.
+
 ## 2026-11-14 — Supabase connected to GitHub (auto migrations + edge functions)
 - `.github/workflows/db-migrate.yml` now runs by itself on every push to main that touches `supabase/migrations/**` and applies only files the DB has not seen (checks `supabase_migrations.schema_migrations`, skips ≤ `APPLIED_THROUGH`). Each file runs in one transaction; a failure stops the run (red ✗) and leaves nothing half-applied. Manual "Run workflow" keeps the dry-run option. Needs secret `SUPABASE_DB_URL`; without it the run only warns.
 - New `.github/workflows/functions-deploy.yml`: on push, deploys only the edge functions whose folder changed (all of them if `config.toml` changed); manual run takes a name or "all". Needs secret `SUPABASE_ACCESS_TOKEN`.

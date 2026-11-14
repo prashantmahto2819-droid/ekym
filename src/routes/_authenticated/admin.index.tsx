@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { ago, useAdminNotifications } from "@/components/admin/AdminBell";
 import { AdminCharts } from "@/components/admin/AdminCharts";
+import { BroadcastButton } from "@/components/admin/Broadcast";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
@@ -72,12 +73,16 @@ function AdminDashboard() {
   const mine = list.filter((m) => m.organization_id === tenant.organization_id);
   const others = list.filter((m) => m.organization_id !== tenant.organization_id);
   const canApprove = isPlatformAdmin || can("org.member.approve");
+  const canBroadcast = isPlatformAdmin || can("org.settings.edit") || can("community.listing.moderate");
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+       <div>
         <h1 className="font-display text-2xl font-semibold">{L ? "डैशबोर्ड" : "Dashboard"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{L ? `${tenant.name_hi ?? tenant.name} — आज के बाकी काम` : `${tenant.name} — what needs your decision today`}</p>
+       </div>
+       {canBroadcast ? <BroadcastButton /> : null}
       </div>
 
       {canApprove ? (

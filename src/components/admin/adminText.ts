@@ -86,6 +86,8 @@ const PAIRS: [string, string][] = [
   ["Organization name", "संगठन का नाम"], ["Tagline", "टैगलाइन"], ["Logo (square works best)", "लोगो (चौकोर सबसे अच्छा)"], ["Favicon URL", "फ़ेविकॉन (ब्राउज़र टैब का चिह्न)"], ["About us — full page text", "हमारे बारे में — पूरा पाठ"],
   ["Short about text", "संक्षिप्त परिचय"], ["Donation call-to-action text", "दान अपील"], ["Footer text", "फ़ुटर का पाठ"], ["0 means free", "0 = निःशुल्क"], ["X (Twitter)", "X (ट्विटर)"],
   ["These details power the header, footer and contact pages across the website.", "ये जानकारी पूरी वेबसाइट के ऊपरी हिस्से, फ़ुटर और संपर्क पेज पर दिखती है।"],
+  ["Messaging (WhatsApp & email)", "संदेश (WhatsApp व ईमेल)"], ["Message members", "सदस्यों को संदेश"], ["One message to many members — bell, WhatsApp and e-mail, with filters.", "एक संदेश कई सदस्यों को — घंटी, WhatsApp और ईमेल, फ़िल्टर के साथ।"],
+  ["Channels, templates, broadcasts and the delivery log. Messages are queued on the server and sent automatically every minute with safe gaps between them.", "चैनल, टेम्पलेट, ब्रॉडकास्ट और भेजे गए संदेशों का हिसाब। संदेश सर्वर पर कतार में रहते हैं और हर मिनट सुरक्षित अंतराल से अपने-आप जाते हैं।"],
 ];
 const EN2HI = new Map(PAIRS.map(([e, h]) => [e.toLowerCase(), h]));
 const HI2EN = new Map(PAIRS.map(([e, h]) => [h, e]));

@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { BroadcastButton, BroadcastHistory } from "@/components/admin/Broadcast";
+import { T } from "@/components/admin/T";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -67,9 +69,20 @@ function MessagingPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="font-display text-2xl font-semibold">Messaging (WhatsApp &amp; email)</h1>
-        <p className="text-sm text-muted-foreground">Channels, templates, broadcasts and the delivery log. Messages are queued on the server and sent automatically every minute with safe gaps between them.</p>
+        <h1 className="font-display text-2xl font-semibold"><T>Messaging (WhatsApp &amp; email)</T></h1>
+        <p className="text-sm text-muted-foreground"><T>Channels, templates, broadcasts and the delivery log. Messages are queued on the server and sent automatically every minute with safe gaps between them.</T></p>
       </header>
+
+      <section className="surface-card space-y-3 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="font-display text-lg font-semibold"><T>Message members</T></h2>
+            <p className="text-sm text-muted-foreground"><T>One message to many members — bell, WhatsApp and e-mail, with filters.</T></p>
+          </div>
+          <BroadcastButton />
+        </div>
+        <BroadcastHistory />
+      </section>
 
       {channels.isSuccess ? (() => { const own = (k: string) => (channels.data ?? []).some((c) => c.kind === k && c.status === "active"); const miss = [!own("email") && "SMTP (ईमेल)", !own("whatsapp") && "WhatsApp"].filter(Boolean); return miss.length ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { BroadcastButton } from "@/components/admin/Broadcast";
 import { CrudPage } from "@/components/admin/CrudPage";
 
 export const Route = createFileRoute("/_authenticated/admin/announcements")({
@@ -9,6 +10,11 @@ export const Route = createFileRoute("/_authenticated/admin/announcements")({
       title="Announcements"
       description="Internal notices for the team, members-only notices, or public announcements shown on the website."
       orderBy="publish_at"
+      extraActions={(r) => (
+        <span onClick={(e) => e.stopPropagation()}>
+          <BroadcastButton size="sm" variant="outline" label="सदस्यों को भेजें" preset={{ kind: "announcement", ref_table: "gov_announcements", ref: r.id, title: r.title_hi || r.title, body: (r.body_hi || r.body || "").slice(0, 2000) }} />
+        </span>
+      )}
       columns={[
         { key: "title", label: "Title" },
         { key: "audience", label: "Audience" },

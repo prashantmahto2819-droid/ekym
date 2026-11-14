@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
+import { BroadcastButton } from "@/components/admin/Broadcast";
 import { CrudPage } from "@/components/admin/CrudPage";
 
 export const Route = createFileRoute("/_authenticated/admin/events/")({ component: EventsList });
@@ -15,6 +16,16 @@ function EventsList() {
       slugFrom="title"
       createdBy
       onRowClick={(r) => nav({ to: "/admin/events/$id", params: { id: r.id } })}
+      extraActions={(r) => (
+        // stop clicks (also from the dialog, which bubbles through React) from opening the row
+        <span onClick={(e) => e.stopPropagation()}>
+          <BroadcastButton size="sm" variant="outline" label="सदस्यों को बताएँ" preset={{
+            kind: "event", ref_table: "ev_events", ref: r.id, link: r.slug ? `/events/${r.slug}` : "",
+            title: r.title_hi || r.title,
+            body: [`📅 ${new Date(r.starts_at).toLocaleString("hi-IN", { dateStyle: "full", timeStyle: "short" })}`, r.venue_hi || r.venue ? `📍 ${r.venue_hi || r.venue}` : "", r.description_hi || r.description || ""].filter(Boolean).join("\n").slice(0, 1800),
+          }} />
+        </span>
+      )}
       columns={[
         { key: "starts_at", label: "When", render: (r) => new Date(r.starts_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) },
         { key: "title", label: "Event" },
