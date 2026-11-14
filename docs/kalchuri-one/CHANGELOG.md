@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-14 — महिला मुखिया (शोक पत्र / वंश वृक्ष, shok_08)
+- A living wife or daughter can be the family head. New family: "+ मुखिया (पुरुष)" or "+ महिला मुखिया" (husband added first — usually स्व., name or "नाम याद नहीं" — then the wife as head under him). Existing family: "महिला मुखिया बनाएँ" on a wife/daughter; her स्व. husband's head mark moves to her.
+- DB (applied by the GitHub workflow): `guard_member_kind`, `set_family_head`, `shok_branch_head` (a head wife of any ancestor counts), `shok_eldest_son_phone` (a wife's eldest son = her husband's sons). Same buttons in the शोक पत्र app (repo shokpatra).
+
 ## 2026-11-14 — Phase 39 UI: सदस्यों को संदेश (broadcast dialog)
 - New `components/admin/Broadcast.tsx`: dialog with type chips (सूचना / आयोजन / रक्त सेवा / सामान्य), title, message (2000), link, channels (bell always; WhatsApp / e-mail optional), audience (district, men/women, category, include sub-units) with a live member count, WhatsApp-style preview, confirm step with estimated time (25 a minute); history list with progress bar, auto-refresh while sending, "रोकें" (stop the rest).
 - Where: admin dashboard (top-right button, for settings/moderation permission), Admin → Messaging (section + history), events list ("सदस्यों को बताएँ", pre-filled with date, place, description, link) and announcements list ("सदस्यों को भेजें", pre-filled). Uses the existing cm_14 RPCs; no DB change.

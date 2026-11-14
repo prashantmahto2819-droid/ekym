@@ -94,6 +94,19 @@ function FamilyPage() {
     const deceased = confirm(L ? "क्या वे दिवंगत (स्व.) हैं? OK = हाँ" : "Deceased (late)? OK = yes");
     await run(L ? "ऊपर की पीढ़ी जुड़ गई।" : "Ancestor added", () => rpc("add_parent_above", { p_member: p.id, p_name: name.trim() || "नाम याद नहीं", p_deceased: deceased, p_unknown: !name.trim(), p_relation: ANCESTOR_RELATION }));
   }
+  // महिला मुखिया: the lineage runs through the husband, so add him first (usually स्व.), then the wife as head under him
+  async function addWomanHead() {
+    const name = prompt(L ? "महिला मुखिया — पहले पति का नाम (खाली = नाम याद नहीं / बताना नहीं)" : "Woman head — first the husband's name (empty = not known)");
+    if (name === null) return;
+    const deceased = confirm(L ? "क्या पति दिवंगत (स्व.) हैं? OK = हाँ" : "Is the husband deceased? OK = yes");
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.from("members").insert({ family_id: id, parent_id: null, name: name.trim() || "नाम याद नहीं", name_unknown: !name.trim(), is_deceased: deceased, relation: "पिता", is_head: false, member_kind: "son", village_id: f?.village_id ?? null, sort_order: 0 } as never).select("*").single();
+      if (error) throw new Error(error.message);
+      await qc.invalidateQueries({ queryKey: ["family_members", id] });
+      setDlg({ addUnder: data as unknown as Member, edit: null, kind: "spouse", asHead: true });
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
+  }
   // several heads per family (one per branch after a partition); each head is the contact for his own branch
   async function makeHead(p: Person) {
     const others = people.filter((m) => m.is_head && m.id !== p.id).map((m) => m.name);
@@ -193,7 +206,8 @@ function FamilyPage() {
             <button type="button" className={`rounded px-2 py-1 ${mode === "list" ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setMode("list")}>{L ? "सूची" : "List"}</button>
           </div>
           {canEdit ? <Button size="sm" variant="outline" onClick={editFamily} disabled={busy}>{L ? "परिवार की जानकारी" : "Family info"}</Button> : null}
-          {canEdit && !head ? <Button size="sm" onClick={() => setDlg({ addUnder: null, edit: null, kind: "son", asHead: true })}>+ {L ? "मुखिया जोड़ें" : "Add head"}</Button> : null}
+          {canEdit && !head ? <Button size="sm" onClick={() => setDlg({ addUnder: null, edit: null, kind: "son", asHead: true })}>+ {L ? "मुखिया (पुरुष)" : "Add head (man)"}</Button> : null}
+          {canEdit && !head ? <Button size="sm" variant="outline" onClick={() => void addWomanHead()} disabled={busy}>+ {L ? "महिला मुखिया" : "Woman head"}</Button> : null}
           {!isAdmin && isOwner && ["draft", "rejected"].includes(f.status) ? <Button size="sm" onClick={submit} disabled={busy}>{L ? "मंज़ूरी के लिए भेजें" : "Submit for approval"}</Button> : null}
           {!isAdmin && isOwner && f.status === "approved" ? <Button size="sm" variant="outline" onClick={reopen} disabled={busy}>{L ? "बदलाव के लिए खोलें" : "Reopen for changes"}</Button> : null}
           {isAdmin && managed && f.status !== "approved" ? <Button size="sm" onClick={() => decide("approved")} disabled={busy}>{L ? "मंज़ूर करें" : "Approve"}</Button> : null}
@@ -215,7 +229,7 @@ function FamilyPage() {
           {!selSide && selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: people.find((x) => x.id === selCur.parent_id) ?? null, edit: null, kind: "daughter", asHead: false })}>+ {L ? "बहन" : "Sister"}</Button> : null}
           {!selSide && !selCur.parent_id ? <Button size="sm" variant="outline" onClick={() => addAncestor(selCur)} disabled={busy}>⬆ {L ? "पूर्वज जोड़ें" : "Add ancestor"}</Button> : null}
           <Button size="sm" variant="outline" onClick={() => setDlg({ addUnder: null, edit: selCur as Member, kind: "son", asHead: false })}>{L ? "बदलें" : "Edit"}</Button>
-          {!selSide && !selCur.is_head && !selCur.is_deceased && !selCur.name_unknown ? <Button size="sm" variant="outline" onClick={() => makeHead(selCur)} disabled={busy}>{L ? "मुखिया बनाएँ" : "Make head"}</Button> : null}
+          {!selCur.is_head && !selCur.is_deceased && !selCur.name_unknown ? <Button size="sm" variant="outline" onClick={() => makeHead(selCur)} disabled={busy}>{selSide ? (L ? "महिला मुखिया बनाएँ" : "Make her head") : (L ? "मुखिया बनाएँ" : "Make head")}</Button> : null}
           {selCur.is_head && people.filter((m) => m.is_head).length > 1 ? <Button size="sm" variant="outline" onClick={() => unmakeHead(selCur)} disabled={busy}>{L ? "मुखिया हटाएँ" : "Unset head"}</Button> : null}
           {selSibs.length > 1 ? <><Button size="sm" variant="ghost" disabled={busy || selIdx <= 0} onClick={() => reorder(selCur, -1)} title={L ? "क्रम ऊपर (बड़ा)" : "older"}>◀</Button><span>{selIdx + 1}/{selSibs.length}</span><Button size="sm" variant="ghost" disabled={busy || selIdx >= selSibs.length - 1} onClick={() => reorder(selCur, 1)} title={L ? "क्रम नीचे (छोटा)" : "younger"}>▶</Button></> : null}
           {isAdmin && !selCur.is_head && !selSide ? <Button size="sm" variant="ghost" onClick={() => move(selCur)} disabled={busy}>{L ? "ले जाएँ" : "Move"}</Button> : null}

@@ -117,6 +117,7 @@ export function MemberDialog(p: MemberDialogProps) {
   }
 
   const title = p.edit ? (L ? "सदस्य की जानकारी बदलें" : "Edit member")
+    : isHead && kind === "spouse" ? (L ? `परिवार की मुखिया (${p.addUnder?.name} की पत्नी)` : `Family head (wife of ${p.addUnder?.name})`)
     : isHead ? (L ? "परिवार के मुखिया (पिता)" : "Family head")
     : kind === "spouse" ? `${p.addUnder?.name} ${L ? "की पत्नी" : "— wife"}`
     : kind === "daughter" ? `${p.addUnder?.name} ${L ? "की पुत्री" : "— daughter"}`
