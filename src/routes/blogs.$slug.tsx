@@ -10,6 +10,8 @@ import { AdSlot } from "@/components/site/Ads";
 import { RichText } from "@/components/site/Blocks";
 import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { ReadingProgress, ReadTime } from "@/components/site/DetailExtras";
+import { useLang } from "@/core/i18n";
 import { blogQuery } from "@/lib/queries";
 import { formatDate, truncate } from "@/lib/format";
 
@@ -42,14 +44,16 @@ export const Route = createFileRoute("/blogs/$slug")({
 function BlogDetail() {
   const { slug } = Route.useParams();
   const { data } = useSuspenseQuery(blogQuery(slug));
+  const { lang } = useLang(); const L = lang === "hi";
   if (!data?.blog) return null;
   const { blog, related } = data;
 
   return (
     <>
+      <ReadingProgress />
       <PageHeader
         title={blog.title}
-        crumbs={[{ label: "Blogs", to: "/blogs" }, { label: truncate(blog.title, 40) }]}
+        crumbs={[{ label: L ? "ब्लॉग" : "Blogs", to: "/blogs" }, { label: truncate(blog.title, 40) }]}
       />
       <article className="section-y">
         <div className="container-page max-w-3xl">
@@ -64,6 +68,7 @@ function BlogDetail() {
                 {[blog.city, blog.state].filter(Boolean).join(", ")}
               </span>
             ) : null}
+            <ReadTime text={blog.content} L={L} />
           </p>
           {blog.featured_image ? (
             <img src={blog.featured_image} alt="" className="mt-6 w-full rounded-xl object-cover" />
@@ -80,7 +85,7 @@ function BlogDetail() {
       {related.length ? (
         <section className="bg-secondary/60 section-y">
           <div className="container-page">
-            <SectionHeading eyebrow="Keep reading" title="More from the field" />
+            <SectionHeading eyebrow={L ? "आगे पढ़ें" : "Keep reading"} title={L ? "और ब्लॉग" : "More from the field"} />
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {related.map((b: any) => (
                 <BlogCard key={b.id} blog={b} />

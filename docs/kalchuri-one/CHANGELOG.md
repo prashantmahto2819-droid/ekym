@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-14 — Detail pages: share, calendar, map, related
+- Share row everywhere (12 pages): Hindi labels, green WhatsApp button first (title + date/place + link), phone share sheet ("और ऐप") where the browser has one, then Facebook / X / Telegram / LinkedIn / copy link.
+- Event page: countdown (दिन / घंटे / मिनट, "अभी चल रहा है", "हो चुका"), Google Calendar + .ics (phone calendar, 2-hour reminder), map with "रास्ता" (directions), phone number tap-to-call, sticky side card, "और आयोजन" (upcoming first).
+- News and blog pages: reading progress bar, "x मिनट पढ़ें", Hindi crumbs; news gets "और समाचार" (same category / tags first).
+- Campaign page: Hindi title/description, % raised, "x दिन बाकी", sticky donate card, "और अभियान" with progress.
+- New `src/components/site/DetailExtras.tsx` (AddToCalendar, MapCard, ReadingProgress, ReadTime, Countdown, RelatedGrid). No DB change.
+
 ## 2026-11-14 — Chat, WhatsApp style (cm_20)
 - Chat list: one list sorted by the latest message, search, chips (सभी / बिना पढ़े / सीधे / समूह / चैनल), time (आज का समय / कल / दिन / तारीख), ✓ / ✓✓ (blue = read) on my last message, green unread bubble, mute icon.
 - Conversation: beige wallpaper (dark: deep teal), WhatsApp bubbles with tails, grouped messages, name colours in groups, time + ticks inside the bubble, "बदला" (edited), deleted-message line, sticky day labels (आज / कल), typing line + dots (Realtime broadcast, no table), jump-down button, photos open in the viewer.

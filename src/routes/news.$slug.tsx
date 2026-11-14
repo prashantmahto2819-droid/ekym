@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
 import { siteName } from "@/core/seo";
 
@@ -8,8 +8,10 @@ import { AdSlot } from "@/components/site/Ads";
 import { RichText } from "@/components/site/Blocks";
 import { Comments } from "@/components/site/Comments";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { ReadingProgress, ReadTime, RelatedGrid } from "@/components/site/DetailExtras";
+import { useLang } from "@/core/i18n";
 import { Button } from "@/components/ui/button";
-import { newsQuery } from "@/lib/queries";
+import { newsListQuery, newsQuery } from "@/lib/queries";
 import { formatDate, truncate } from "@/lib/format";
 
 export const Route = createFileRoute("/news/$slug")({
@@ -40,19 +42,26 @@ export const Route = createFileRoute("/news/$slug")({
 function NewsDetail() {
   const { slug } = Route.useParams();
   const { data: item } = useSuspenseQuery(newsQuery(slug));
+  const { lang } = useLang(); const L = lang === "hi";
+  const list = useQuery(newsListQuery());
   if (!item) return null;
+  const related = (list.data ?? []).filter((x) => x.slug !== item.slug)
+    .map((x) => ({ x, score: (x.category_id && x.category_id === item.category_id ? 2 : 0) + (x.tags ?? []).filter((t: string) => (item.tags ?? []).includes(t)).length }))
+    .sort((a, b) => b.score - a.score || Date.parse(b.x.published_at ?? "") - Date.parse(a.x.published_at ?? ""))
+    .map(({ x }) => ({ key: x.id, to: "/news/$slug", params: { slug: x.slug }, title: x.title, image: x.thumbnail, meta: formatDate(x.published_at) }));
 
   return (
     <>
+      <ReadingProgress />
       <PageHeader
         title={item.title}
-        crumbs={[{ label: "News", to: "/news" }, { label: truncate(item.title, 40) }]}
+        crumbs={[{ label: L ? "समाचार" : "News", to: "/news" }, { label: truncate(item.title, 40) }]}
       />
       <article className="section-y">
         <div className="container-page max-w-3xl">
-          <p className="text-sm text-muted-foreground">
-            {item.source_name ? `${item.source_name} · ` : ""}
-            {formatDate(item.published_at)}
+          <p className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <span>{item.source_name ? `${item.source_name} · ` : ""}{formatDate(item.published_at)}</span>
+            <ReadTime text={item.content || item.description} L={L} />
           </p>
           {item.thumbnail ? (
             <img src={item.thumbnail} alt="" className="mt-6 w-full rounded-xl object-cover" />
@@ -61,7 +70,7 @@ function NewsDetail() {
           {item.external_url ? (
             <Button asChild variant="outline" className="mt-6">
               <a href={item.external_url} target="_blank" rel="noreferrer noopener">
-                Read original coverage <ExternalLink className="size-4" />
+                {L ? "मूल समाचार पढ़ें" : "Read original coverage"} <ExternalLink className="size-4" />
               </a>
             </Button>
           ) : null}
@@ -72,6 +81,7 @@ function NewsDetail() {
           <Comments kind="news" postId={item.id} />
         </div>
       </article>
+      <RelatedGrid title={L ? "और समाचार" : "More news"} items={related} all={{ to: "/news", label: L ? "सभी समाचार" : "All news" }} />
     </>
   );
 }

@@ -1,17 +1,18 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { RichText } from "@/components/site/Blocks";
 import { PageHeader } from "@/components/site/PageHeader";
 import { ShareButtons } from "@/components/site/ShareButtons";
+import { AddToCalendar, Countdown, MapCard, RelatedGrid } from "@/components/site/DetailExtras";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/core/i18n";
 import { siteName } from "@/core/seo";
 import { supabase } from "@/integrations/supabase/client";
-import { eventQuery } from "@/lib/queries";
+import { eventQuery, eventsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/events/$slug")({
   loader: async ({ context, params }) => { const e = await context.queryClient.ensureQueryData(eventQuery(params.slug)); if (!e) throw notFound(); return e; },
@@ -24,6 +25,7 @@ function EventPage() {
   const { data: e } = useSuspenseQuery(eventQuery(slug));
   const { lang, loc } = useLang();
   const L = lang === "hi";
+  const all = useQuery(eventsQuery());
   const [name, setName] = useState(""); const [phone, setPhone] = useState(""); const [seats, setSeats] = useState(1); const [done, setDone] = useState<string | null>(null); const [busy, setBusy] = useState(false);
   if (!e) return null;
   async function register() {
@@ -31,7 +33,12 @@ function EventPage() {
     setBusy(true);
     try { const { data, error } = await supabase.rpc("k1_event_register", { p_event: e!.id, p_name: name.trim(), p_phone: phone, p_seats: seats } as never); if (error) throw error; setDone(data as string); } catch (er) { toast.error((er as Error).message); } finally { setBusy(false); }
   }
-  const when = new Date(e.starts_at).toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" });
+  const when = new Date(e.starts_at).toLocaleString(L ? "hi-IN" : "en-IN", { dateStyle: "full", timeStyle: "short" });
+  const place = loc(e, "venue") || e.venue;
+  const now = Date.now();
+  const related = (all.data ?? []).filter((x) => x.slug !== e.slug)
+    .sort((a, b) => { const fa = Date.parse(a.starts_at) >= now, fb = Date.parse(b.starts_at) >= now; return fa !== fb ? (fa ? -1 : 1) : fa ? Date.parse(a.starts_at) - Date.parse(b.starts_at) : Date.parse(b.starts_at) - Date.parse(a.starts_at); })
+    .map((x) => ({ key: x.id, to: "/events/$slug", params: { slug: x.slug }, title: loc(x, "title"), image: x.cover_image, meta: [new Date(x.starts_at).toLocaleDateString(L ? "hi-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric" }), loc(x, "venue")].filter(Boolean).join(" · ") }));
   return (
     <>
       <PageHeader title={loc(e, "title")} description={when} crumbs={[{ label: L ? "आयोजन" : "Events", to: "/events" }, { label: loc(e, "title") }]} />
@@ -39,12 +46,14 @@ function EventPage() {
         <div className="space-y-4">
           {e.cover_image ? <img src={e.cover_image} alt="" className="w-full rounded-xl object-cover" /> : null}
           {loc(e, "description") ? <RichText text={loc(e, "description")} /> : null}
-          <ShareButtons path={`/events/${e.slug}`} title={e.title} />
+          <ShareButtons path={`/events/${e.slug}`} title={loc(e, "title")} text={`📅 ${when}${place ? `\n📍 ${place}` : ""}`} />
         </div>
-        <aside className="space-y-3 rounded-xl border border-border bg-background p-4 text-sm">
+        <aside className="space-y-3 rounded-xl border border-border bg-background p-4 text-sm lg:sticky lg:top-20 lg:self-start">
+          <Countdown start={e.starts_at} end={e.ends_at} L={L} />
           <p><b>{L ? "कब" : "When"}:</b> {when}{e.ends_at ? ` – ${new Date(e.ends_at).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}` : ""}</p>
-          {e.venue ? <p><b>{L ? "कहाँ" : "Where"}:</b> {loc(e, "venue")} {e.map_url ? <a href={e.map_url} target="_blank" rel="noreferrer" className="underline">{L ? "नक्शा" : "map"}</a> : null}</p> : null}
-          {e.organizer ? <p><b>{L ? "आयोजक" : "Organizer"}:</b> {e.organizer}{e.contact_phone ? ` · ${e.contact_phone}` : ""}</p> : null}
+          {Date.parse(e.ends_at ?? e.starts_at) > now ? <AddToCalendar L={L} ev={{ title: loc(e, "title"), start: e.starts_at, end: e.ends_at, location: place, details: e.organizer ? `${L ? "आयोजक" : "Organizer"}: ${e.organizer}` : null, url: typeof window === "undefined" ? undefined : window.location.href }} /> : null}
+          {place || e.map_url ? <MapCard place={place} mapUrl={e.map_url} L={L} /> : null}
+          {e.organizer ? <p><b>{L ? "आयोजक" : "Organizer"}:</b> {e.organizer}{e.contact_phone ? <> · <a href={`tel:${e.contact_phone}`} className="underline">{e.contact_phone}</a></> : null}</p> : null}
           {e.registration_open && e.status === "published" ? (
             done ? <p className="rounded-md bg-primary/10 p-3">{L ? "पंजीकरण हो गया! आपका प्रवेश कोड:" : "Registered! Your entry code:"} <b>{done}</b><br /><a className="underline" href={`/rsvp/${done}`}>{L ? "QR / विवरण देखें" : "View QR / details"}</a></p> : (
               <div className="space-y-2 rounded-md bg-secondary/50 p-3">
@@ -58,6 +67,7 @@ function EventPage() {
           ) : null}
         </aside>
       </div></section>
+      <RelatedGrid title={L ? "और आयोजन" : "More events"} items={related} all={{ to: "/events", label: L ? "सभी आयोजन" : "All events" }} />
     </>
   );
 }
