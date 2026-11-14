@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-14 — Gallery, with a full-screen photo viewer
+- /gallery: Hindi heading, album chips (cover thumbnail + photo count), album info (date, place, description), masonry grid (2 / 3 / 4 columns), caption + album on hover.
+- Viewer: full screen, "2 / 7", arrows and ← → keys, swipe left/right on phones (swipe down closes), slideshow (Space, 3.5 s), thumbnail strip, download, share (phone share sheet or WhatsApp), tap to hide controls, preloads neighbours.
+- Deep links: `/gallery?album=<slug>&photo=<id>` opens that photo; Back closes the viewer. No DB change.
+
 ## 2026-11-14 — Detail pages: share, calendar, map, related
 - Share row everywhere (12 pages): Hindi labels, green WhatsApp button first (title + date/place + link), phone share sheet ("और ऐप") where the browser has one, then Facebook / X / Telegram / LinkedIn / copy link.
 - Event page: countdown (दिन / घंटे / मिनट, "अभी चल रहा है", "हो चुका"), Google Calendar + .ics (phone calendar, 2-hour reminder), map with "रास्ता" (directions), phone number tap-to-call, sticky side card, "और आयोजन" (upcoming first).
