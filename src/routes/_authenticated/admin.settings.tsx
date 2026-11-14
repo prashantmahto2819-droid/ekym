@@ -13,6 +13,7 @@ import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DistrictField, StateSelect } from "@/components/site/PlaceInputs";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   component: SettingsAdmin,
@@ -123,7 +124,10 @@ function SettingsAdmin() {
       <form onSubmit={onSubmit} className="surface-card mt-6 grid gap-4 p-6 sm:grid-cols-2">
         {TEXT_FIELDS.map((f) => (
           <Field key={f.key} label={f.label} className={f.full ? "sm:col-span-2" : undefined}>
-            {f.key === "logo" || f.key === "favicon" ? <ImgInput name={f.key} initial={row[f.key] ?? ""} /> : <Input name={f.key} defaultValue={row[f.key] ?? ""} />}
+            {f.key === "logo" || f.key === "favicon" ? <ImgInput name={f.key} initial={row[f.key] ?? ""} />
+              : f.key === "state" ? <StateSelect initial={row[f.key]} hi={false} />
+              : f.key === "district" ? <DistrictField initial={row[f.key]} hi={false} />
+              : <Input name={f.key} defaultValue={row[f.key] ?? ""} inputMode={f.key === "pincode" ? "numeric" : undefined} maxLength={f.key === "pincode" ? 6 : undefined} />}
           </Field>
         ))}
         {MARKUP_FIELDS.map((f) => (

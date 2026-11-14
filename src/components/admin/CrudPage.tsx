@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Download, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Field } from "@/components/site/Field";
@@ -21,6 +21,8 @@ import { tx } from "@/components/admin/adminText";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
+import { DistrictField, StateSelect } from "@/components/site/PlaceInputs";
+import { canonDistrict, canonState, placeLabel } from "@/lib/places";
 
 export type AdminOption = string | { value: string; label: string };
 
@@ -155,6 +157,29 @@ export function CrudPage({
     },
   });
 
+  // search + Excel over what is loaded; state / district cells show the official (Hindi) names
+  const [q, setQ] = useState("");
+  const cellText = (row: any, key: string) => {
+    const v = row?.[key];
+    if (v == null) return "";
+    if (key === "state" || key === "district") return placeLabel(String(v), L);
+    return typeof v === "object" ? JSON.stringify(v) : String(v);
+  };
+  const needle = q.trim().toLowerCase();
+  const rows: any[] = !needle ? (list.data ?? []) : (list.data ?? []).filter((r: any) =>
+    [...columns.map((c) => c.key), ...fields.map((f) => f.key)].some((k) => cellText(r, k).toLowerCase().includes(needle)));
+  const cell = (c: AdminColumn, row: any) => (c.render ? c.render(row) : (cellText(row, c.key) || "—"));
+  function exportCsv() {
+    const keys = [...new Set([...columns.map((c) => c.key), ...fields.filter((f) => !["image", "markup", "json"].includes(f.type ?? "")).map((f) => f.key)])];
+    const label = (k: string) => tx(columns.find((c) => c.key === k)?.label ?? fields.find((f) => f.key === k)?.label ?? k, L);
+    const esc = (t: string) => (/[",\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t);
+    const lines = [keys.map((k) => esc(label(k))).join(","), ...rows.map((r) => keys.map((k) => esc(cellText(r, k).replace(/\r?\n/g, " "))).join(","))];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+    a.download = `${table}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
   const save = useMutation({
     mutationFn: async (values: Record<string, any>) => {
       const payload: Record<string, any> = { ...defaults, ...(editing?.id ? {} : filter ?? {}), ...values, organization_id: tenant.organization_id };
@@ -226,6 +251,11 @@ export function CrudPage({
         values[f.key] = (form.get(f.key) as string) ?? "";
       }
     }
+    if (typeof values["state"] === "string" || typeof values["district"] === "string") {
+      const c = canonDistrict(values["district"] as string | undefined, values["state"] as string | undefined);
+      if (typeof values["state"] === "string") values["state"] = canonState(values["state"]) || (values["state"] as string).trim() || (c.known ? c.state : "");
+      if (typeof values["district"] === "string") values["district"] = c.district;
+    }
     save.mutate(values);
   }
 
@@ -246,20 +276,31 @@ export function CrudPage({
         </Button>
       </div>
       {toolbar ? <div className="mb-4">{toolbar}</div> : null}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[12rem] flex-1 sm:max-w-xs">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L ? "खोजें…" : "Search…"} className="pl-8" aria-label={L ? "खोजें" : "Search"} />
+        </div>
+        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
+          {needle ? `${rows.length} / ${list.data?.length ?? 0}` : (list.data?.length ?? 0)}
+        </span>
+        <span className="flex-1" />
+        {rows.length ? <Button type="button" size="sm" variant="outline" onClick={exportCsv}><Download className="size-4" /> Excel</Button> : null}
+      </div>
 
       {/* phones: one card per record */}
       <div className="space-y-2 md:hidden">
         {list.isLoading ? <p className="surface-card p-4 text-sm text-muted-foreground">{L ? "लोड हो रहा है…" : "Loading…"}</p> : null}
-        {list.isSuccess && !list.data?.length ? <p className="surface-card p-4 text-sm text-muted-foreground">{L ? "अभी यहाँ कुछ नहीं है।" : "Nothing here yet."}</p> : null}
-        {(list.data ?? []).map((row: any) => (
+        {list.isSuccess && !rows.length ? <p className="surface-card p-4 text-sm text-muted-foreground">{L ? "अभी यहाँ कुछ नहीं है।" : "Nothing here yet."}</p> : null}
+        {rows.map((row: any) => (
           <div key={row.id} className={`surface-card p-3 text-sm ${rowClass?.(row) ?? ""}`}>
             <div className={onRowClick ? "cursor-pointer" : ""} onClick={onRowClick ? () => onRowClick(row) : undefined}>
-              <div className="font-medium">{columns[0] ? (columns[0].render ? columns[0].render(row) : String(row[columns[0].key] ?? "—")) : null}</div>
+              <div className="font-medium">{columns[0] ? cell(columns[0], row) : null}</div>
               <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
                 {columns.slice(1).map((c) => (
                   <Fragment key={c.key}>
                     <dt className="text-muted-foreground">{tx(c.label, L)}</dt>
-                    <dd className="min-w-0 break-words">{c.render ? c.render(row) : String(row[c.key] ?? "—")}</dd>
+                    <dd className="min-w-0 break-words">{cell(c, row)}</dd>
                   </Fragment>
                 ))}
               </dl>
@@ -292,12 +333,12 @@ export function CrudPage({
                   {L ? "लोड हो रहा है…" : "Loading…"}
                 </td>
               </tr>
-            ) : list.data?.length ? (
-              list.data.map((row: any) => (
+            ) : rows.length ? (
+              rows.map((row: any) => (
                 <tr key={row.id} className={`border-t border-border ${onRowClick ? "cursor-pointer hover:bg-secondary/40" : ""} ${rowClass?.(row) ?? ""}`}>
                   {columns.map((c) => (
                     <td key={c.key} className="max-w-xs truncate px-4 py-3" onClick={onRowClick ? () => onRowClick(row) : undefined}>
-                      {c.render ? c.render(row) : String(row[c.key] ?? "—")}
+                      {cell(c, row)}
                     </td>
                   ))}
                   <td className="whitespace-nowrap px-4 py-3 text-right">
@@ -329,7 +370,7 @@ export function CrudPage({
             ) : (
               <tr>
                 <td className="px-4 py-6 text-muted-foreground" colSpan={columns.length + 1}>
-                  {L ? "अभी यहाँ कुछ नहीं है।" : "Nothing here yet."}
+                  {needle ? (L ? `“${q}” — कुछ नहीं मिला` : `Nothing matches “${q}”`) : (L ? "अभी यहाँ कुछ नहीं है।" : "Nothing here yet.")}
                 </td>
               </tr>
             )}
@@ -384,6 +425,10 @@ export function CrudPage({
                     <HiddenImage name={f.key} initial={value ?? ""} />
                   ) : f.type === "markup" ? (
                     <HiddenMarkup name={f.key} initial={value ?? ""} />
+                  ) : f.key === "state" && !f.fk && (!f.type || f.type === "text") ? (
+                    <StateSelect initial={value} hi={L} required={f.required} />
+                  ) : f.key === "district" && !f.fk && (!f.type || f.type === "text") ? (
+                    <DistrictField initial={value} hi={L} required={f.required} />
                   ) : f.type === "select" || f.fk ? (
                     <select
                       name={f.key}

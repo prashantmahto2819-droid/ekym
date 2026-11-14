@@ -171,6 +171,30 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  /* Form polish everywhere: native dropdowns get one chevron, wrong fields go red after the person leaves them,
+     ticks / radios take the brand colour, number inputs lose the spinners on phones-sized screens. */
+  select:not([multiple]):not([size]) {
+    appearance: none;
+    padding-right: 2.25rem;
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 8l5 5 5-5'/%3E%3C/svg%3E");
+  }
+  input:user-invalid,
+  textarea:user-invalid,
+  select:user-invalid {
+    border-color: var(--color-destructive);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-destructive) 15%, transparent);
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-primary);
+  }
+  textarea {
+    line-height: 1.55;
+  }
+
   h1,
   h2,
   h3,

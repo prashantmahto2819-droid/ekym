@@ -17,6 +17,7 @@ import { call, timeAgo, useProfile, type Profile } from "@/community/chat";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
+import { placeLine } from "@/lib/places";
 
 export const Route = createFileRoute("/u/$id")({
   head: () => ({ meta: [{ title: "सदस्य प्रोफ़ाइल · Member profile" }, { name: "robots", content: "noindex" }] }),
@@ -176,7 +177,7 @@ const fmtDay = (iso: string, L: boolean) => new Date(`${iso.slice(0, 10)}T00:00:
 
 /** Left-column intro card (Facebook's "Intro"). */
 function Intro({ d, L, onMore, birthday }: { d: Profile; L: boolean; onMore: () => void; birthday: string | null }) {
-  const lives = [d.village, d.district, d.state].filter(Boolean).join(", ");
+  const lives = placeLine([d.village, d.district, d.state], L);
   const Row = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => <li className="flex gap-2.5"><span className="mt-0.5 text-muted-foreground [&>svg]:size-5">{icon}</span><span className="min-w-0">{children}</span></li>;
   return (
     <section className={`${box} space-y-3 text-sm`}>
@@ -195,7 +196,7 @@ function Intro({ d, L, onMore, birthday }: { d: Profile; L: boolean; onMore: () 
 }
 
 function About({ d, L, birthday, anniversary }: { d: Profile; L: boolean; birthday: string | null; anniversary: string | null }) {
-  const lives = [d.village, d.district, d.state].filter(Boolean).join(", ");
+  const lives = placeLine([d.village, d.district, d.state], L);
   const links = Object.entries(d.links).filter(([, v]) => v);
   const Item = ({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) => (
     <li className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground [&>svg]:size-5">{icon}</span><span className="min-w-0"><span className="block">{children}</span><span className="block text-xs text-muted-foreground">{label}</span></span></li>

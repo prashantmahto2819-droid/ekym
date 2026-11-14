@@ -275,10 +275,7 @@ export function DonateForm({
 
       {compact ? null : (
         <>
-          <LocationFields form={form} includeDistrict={false} />
-          <Field label={t("Pincode")} error={errors.pincode?.message}>
-            <Input inputMode="numeric" maxLength={6} {...register("pincode")} />
-          </Field>
+          <LocationFields form={form} includeDistrict={false} savePin />
           <Field label={t("Address")} className="sm:col-span-2" error={errors.address?.message}>
             <Textarea rows={2} {...register("address")} />
           </Field>

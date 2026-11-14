@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { DistrictInput } from "@/components/site/DistrictInput";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
+import { canonDistrict, canonState, STATE_OPTIONS } from "@/lib/places";
 
 export const Route = createFileRoute("/_authenticated/register-organization")({ component: RegisterOrg });
 
@@ -29,7 +31,7 @@ function RegisterOrg() {
     if (!f["name"]?.trim() || !f["contact_name"]?.trim() || !f["phone"]?.trim()) { toast.error(hi ? "संगठन का नाम, संपर्क व्यक्ति और मोबाइल ज़रूरी हैं" : "Organization name, contact person and mobile are required"); return; }
     setBusy(true);
     try {
-      const { data, error } = await supabase.rpc("k1_org_register", { p_name: f["name"], p_name_hi: f["name_hi"] ?? "", p_kind: f["kind"], p_level: f["level"], p_city: f["city"] ?? null, p_district: f["district"] ?? null, p_state: f["state"] ?? null, p_about: f["about"] ?? null, p_contact_name: f["contact_name"], p_phone: f["phone"], p_email: f["email"] ?? null, p_parent: null } as never);
+      const { data, error } = await supabase.rpc("k1_org_register", { p_name: f["name"], p_name_hi: f["name_hi"] ?? "", p_kind: f["kind"], p_level: f["level"], p_city: f["city"]?.trim() || null, p_district: canonDistrict(f["district"], f["state"]).district || null, p_state: canonState(f["state"]) || f["state"]?.trim() || null, p_about: f["about"] ?? null, p_contact_name: f["contact_name"], p_phone: f["phone"], p_email: f["email"] ?? null, p_parent: null } as never);
       if (error) throw new Error(error.message);
       setDone((data as { slug: string }).slug);
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
@@ -52,8 +54,13 @@ function RegisterOrg() {
             <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "प्रकार" : "Kind"}</span><select className={sel} value={f["kind"]} onChange={(e) => set("kind", e.target.value)}>{KINDS.map(([v, e, h]) => <option key={v} value={v}>{hi ? h : e}</option>)}</select></label>
             <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "स्तर" : "Level"}</span><select className={sel} value={f["level"]} onChange={(e) => set("level", e.target.value)}>{LEVELS.map(([v, e, h]) => <option key={v} value={v}>{hi ? h : e}</option>)}</select></label>
             <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "शहर / गाँव" : "City / village"}</span><Input value={f["city"] ?? ""} onChange={(e) => set("city", e.target.value)} /></label>
-            <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "ज़िला" : "District"}</span><Input value={f["district"] ?? ""} onChange={(e) => set("district", e.target.value)} /></label>
-            <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "राज्य" : "State"}</span><Input value={f["state"] ?? ""} onChange={(e) => set("state", e.target.value)} /></label>
+            <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "राज्य" : "State"}</span>
+              <select className={sel} value={canonState(f["state"]) || ""} onChange={(e) => setF((x) => ({ ...x, state: e.target.value, district: "" }))}>
+                <option value="">{hi ? "राज्य चुनें" : "Select state"}</option>
+                {STATE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{hi ? o.hi : o.value}</option>)}
+              </select></label>
+            <div className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "ज़िला" : "District"}</span>
+              <DistrictInput value={f["district"] ?? ""} state={canonState(f["state"]) || null} hi={hi} onChange={(v) => set("district", v)} onPick={(_d, st) => { if (!f["state"]) set("state", st); }} /></div>
             <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "संगठन के बारे में (संक्षेप)" : "About the organization (short)"}</span><Textarea rows={3} value={f["about"] ?? ""} onChange={(e) => set("about", e.target.value)} /></label>
             <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "संपर्क व्यक्ति (पदाधिकारी) *" : "Contact person (office bearer) *"}</span><Input value={f["contact_name"] ?? ""} onChange={(e) => set("contact_name", e.target.value)} /></label>
             <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">{hi ? "मोबाइल (WhatsApp) *" : "Mobile (WhatsApp) *"}</span><Input inputMode="tel" value={f["phone"] ?? ""} onChange={(e) => set("phone", e.target.value)} /></label>
