@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-14 — App-like site (PWA)
+- `/manifest.webmanifest` per organization (Hindi name, brand colour, organization logo + Kalchuri icons incl. maskable, shortcuts: चौपाल / चैट / आयोजन / रक्त सेवा), theme-color and Apple home-screen tags in the root head.
+- `public/sw.js` service worker: pages network-first with the last copy (or `/offline.html`) when offline; built assets, icons and fonts cache-first; Supabase/API/POST and admin/auth pages untouched. Registered in production only.
+- `InstallPrompt` (phones): "ऐप की तरह जोड़ें" card — Android/Chrome install button, iPhone "Share → Add to Home Screen" steps; hidden once installed, 30 days after "अभी नहीं".
+- New icons: `public/pwa-192.png`, `pwa-512.png`, `pwa-maskable-512.png`.
+
 ## 2026-11-14 — संपर्क सूची (contact list, shok_11) + welcome-name fix (shok_10) + db-check workflow
 - Contact-only households (disputed relations etc.): `families.kind = 'contact'`, one member, no relation/father shown. They get शोक पत्र and सूचना / आमंत्रण, but are hidden from every tree, browse/suggest list, similar-name hints, empty-tree list and the Kalchuri One family list. Added by the super admin or "पूरी पहुँच" admins; owner shown as the super admin; private note + who added only for the super admin; "वंश वृक्ष में रखें" moves the person into a tree later. UI in the शोक पत्र app → एडमिन → संपर्क सूची.
 - Welcome WhatsApp greets the person (member with that number / living head / contact name), never the family name; contacts get a neutral "संपर्क सूची" text.

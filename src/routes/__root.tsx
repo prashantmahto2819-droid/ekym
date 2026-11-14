@@ -25,6 +25,7 @@ import { themeCss, type Branding } from "@/core/theme";
 import { THEME_SCRIPT } from "@/core/theme-mode";
 import { AdSlot, ConsentBanner } from "@/components/site/Ads";
 import { BottomTabs } from "@/components/site/BottomTabs";
+import { InstallPrompt } from "@/components/site/InstallPrompt";
 
 import appCss from "../styles.css?url";
 
@@ -102,6 +103,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: loaderData?.org?.about_short ?? "Community organization on Kalchuri One.",
       },
       { name: "robots", content: "index, follow" },
+      { name: "theme-color", content: typeof loaderData?.tenant.branding?.["primary"] === "string" ? String(loaderData.tenant.branding["primary"]) : "#0f766e" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: loaderData?.tenant.short_name || loaderData?.tenant.name || "Kalchuri One" },
       { property: "og:site_name", content: loaderData?.tenant.name ?? "Kalchuri One" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -110,7 +116,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: loaderData?.org?.favicon || loaderData?.org?.logo || "/favicon.ico" },
-      ...(loaderData?.org?.logo ? [{ rel: "apple-touch-icon", href: loaderData.org.logo }] : []),
+      { rel: "apple-touch-icon", href: loaderData?.org?.logo || "/pwa-192.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "alternate", type: "application/rss+xml", title: "RSS", href: "/feed.xml" },
       { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -186,6 +193,7 @@ function RootComponent() {
             {chromeless ? null : <Footer />}
             {chromeless ? null : <ConsentBanner />}
             {chromeless ? null : <BottomTabs />}
+            {chromeless ? null : <InstallPrompt appName={tenant.short_name || tenant.name || "Kalchuri One"} />}
           </div>
           </ConsentProvider>
           <Toaster richColors position="top-center" />
