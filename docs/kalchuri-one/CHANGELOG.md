@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-14 — Supabase connected to GitHub (auto migrations + edge functions)
+- `.github/workflows/db-migrate.yml` now runs by itself on every push to main that touches `supabase/migrations/**` and applies only files the DB has not seen (checks `supabase_migrations.schema_migrations`, skips ≤ `APPLIED_THROUGH`). Each file runs in one transaction; a failure stops the run (red ✗) and leaves nothing half-applied. Manual "Run workflow" keeps the dry-run option. Needs secret `SUPABASE_DB_URL`; without it the run only warns.
+- New `.github/workflows/functions-deploy.yml`: on push, deploys only the edge functions whose folder changed (all of them if `config.toml` changed); manual run takes a name or "all". Needs secret `SUPABASE_ACCESS_TOKEN`.
+- `supabase/config.toml` records `verify_jwt = false` for the five functions of this repo (as they run today).
+- First automatic run will apply the pending `20261114120000_k1_places.sql` (places PR).
+
 ## 2026-11-14 — Dark mode, loading placeholders, phone tab bar
 - Dark mode: one button in the header (and in the phone menu, and the admin top bar) cycles दिन → रात → फोन के अनुसार; choice kept in localStorage `k1_theme`, applied by a tiny script in <head> before paint (no white flash). The 50/100 and 800/900 shades of every Tailwind colour are re-pointed in `.dark` (styles.css), so all light badges / notes turn into deep tints with light text without per-file `dark:` classes (stale `dark:*-50/100/800/900` classes removed). Organization brand colours get dark-friendly variants too (`themeCss`).
 - Loading placeholders: `components/site/Skeletons.tsx` (PageSkeleton, CardGridSkeleton, PostSkeleton, ListSkeleton). The router shows PageSkeleton when a page takes >400 ms; chat list / messages, exams, matrimony and profile posts show grey outlines instead of "…".

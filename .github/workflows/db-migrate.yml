@@ -1,35 +1,57 @@
-# Applies the SQL files in supabase/migrations that the database has not seen yet (same bookkeeping table the Supabase
-# MCP/CLI use: supabase_migrations.schema_migrations, version = the leading digits of the file name).
-# Needs repository secret SUPABASE_DB_URL (Supabase → Project Settings → Database → Connection string → URI, session mode).
-# Migrations up to the version in supabase/APPLIED_THROUGH were applied through the Supabase MCP (which records its own
-# version numbers), so they are skipped; bump that file whenever something is applied outside this workflow.
-# Run by hand from the Actions tab ("Run workflow"); dry run lists what would be applied.
+# Supabase ← GitHub: applies the SQL files in supabase/migrations that the database has not seen yet.
+# Runs by itself on every push to main that changes supabase/migrations/**, and by hand from the Actions tab
+# ("Run workflow"; dry run lists what would be applied).
+# Bookkeeping = supabase_migrations.schema_migrations (same table the Supabase MCP/CLI use; version = leading digits
+# of the file name). Files up to supabase/APPLIED_THROUGH are always skipped; files whose version is already in the
+# table are skipped too, so a migration applied earlier through the MCP is never run twice.
+# Each file runs in ONE transaction: if any statement fails, nothing from that file stays and the run stops (red ✗).
+# Needs repository secret SUPABASE_DB_URL (Supabase → Connect → Session pooler URI, with the database password).
+# Without the secret the run only prints a warning (stays green) so pushes are not blocked before setup.
 name: db-migrate
 on:
+  push:
+    branches: [main]
+    paths: ["supabase/migrations/**", "supabase/APPLIED_THROUGH"]
   workflow_dispatch:
     inputs:
       dry_run:
         description: "Only list pending migrations"
         type: boolean
         default: true
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
 jobs:
   migrate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install psql
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
-      - name: Apply pending migrations
+      - name: Check secret
+        id: s
         env:
           DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-          DRY: ${{ inputs.dry_run }}
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "::warning title=Supabase not connected::Add repository secret SUPABASE_DB_URL (Settings → Secrets and variables → Actions) so migrations apply automatically."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install psql
+        if: steps.s.outputs.ok == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null
+      - name: Apply pending migrations
+        if: steps.s.outputs.ok == 'true'
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          # push → apply for real; manual run → as chosen (default: dry run)
+          DRY: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
         run: |
           set -euo pipefail
-          test -n "$DB_URL" || { echo "SUPABASE_DB_URL secret missing"; exit 1; }
           psql "$DB_URL" -v ON_ERROR_STOP=1 -qc "create schema if not exists supabase_migrations; create table if not exists supabase_migrations.schema_migrations (version text primary key, statements text[], name text);"
           applied=$(psql "$DB_URL" -At -c "select version from supabase_migrations.schema_migrations")
           through=$(tr -d '[:space:]' < supabase/APPLIED_THROUGH)
-          pending=0
+          pending=0; done_n=0
           for f in $(ls supabase/migrations/*.sql | sort); do
             base=$(basename "$f" .sql); ver=${base%%_*}; name=${base#*_}
             if [ "$ver" \< "$through" ] || [ "$ver" = "$through" ]; then continue; fi
@@ -37,9 +59,11 @@ jobs:
             pending=$((pending+1))
             echo "PENDING: $base"
             if [ "$DRY" = "true" ]; then continue; fi
-            echo "--- applying $base"
-            psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f "$f"
+            echo "::group::applying $base"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -q --single-transaction -f "$f"
             psql "$DB_URL" -v ON_ERROR_STOP=1 -qc "insert into supabase_migrations.schema_migrations (version, name) values ('$ver', '$name') on conflict do nothing"
-            echo "--- done $base"
+            echo "::endgroup::"
+            echo "applied: $base"; done_n=$((done_n+1))
           done
-          echo "pending files: $pending (dry_run=$DRY)"
+          echo "pending: $pending · applied now: $done_n · dry_run=$DRY"
+          echo "### Supabase migrations: pending $pending, applied $done_n (dry run: $DRY)" >> "$GITHUB_STEP_SUMMARY"

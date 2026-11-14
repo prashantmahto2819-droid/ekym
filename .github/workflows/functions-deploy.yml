@@ -1,0 +1,71 @@
+# Supabase ← GitHub: deploys edge functions from supabase/functions.
+# On a push to main only the functions whose folder changed are deployed; by hand ("Run workflow") you name one
+# function or "all". verify_jwt per function comes from supabase/config.toml.
+# Needs repository secret SUPABASE_ACCESS_TOKEN (supabase.com → Account → Access Tokens). Without it: warning only.
+name: functions-deploy
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/functions/**", "supabase/config.toml"]
+  workflow_dispatch:
+    inputs:
+      function:
+        description: "Function name (folder in supabase/functions) or all"
+        type: string
+        default: all
+concurrency:
+  group: functions-deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_REF: udxdxkyfrqlgdwwqaucu
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check secret
+        id: s
+        env:
+          TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::warning title=Supabase not connected::Add repository secret SUPABASE_ACCESS_TOKEN so edge functions deploy automatically."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: supabase/setup-cli@v1
+        if: steps.s.outputs.ok == 'true'
+        with:
+          version: latest
+      - name: Pick functions
+        if: steps.s.outputs.ok == 'true'
+        id: pick
+        env:
+          WANT: ${{ inputs.function }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          all=$(find supabase/functions -mindepth 1 -maxdepth 1 -type d ! -name '_*' -printf '%f\n' | sort)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "$WANT" = "all" ]; then list="$all"; else list="$WANT"; fi
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || git diff --name-only "$BEFORE" HEAD | grep -qE '^(supabase/config.toml|supabase/functions/_shared/)'; then
+            list="$all"
+          else
+            list=$(git diff --name-only "$BEFORE" HEAD -- supabase/functions | cut -d/ -f3 | sort -u | grep -vE '^_' || true)
+          fi
+          echo "list=$(echo $list)" >> "$GITHUB_OUTPUT"
+          echo "functions: $list"
+      - name: Deploy
+        if: steps.s.outputs.ok == 'true' && steps.pick.outputs.list != ''
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          for fn in ${{ steps.pick.outputs.list }}; do
+            test -d "supabase/functions/$fn" || { echo "skip $fn (no folder)"; continue; }
+            echo "::group::deploy $fn"
+            supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+            echo "::endgroup::"
+            echo "- deployed \`$fn\`" >> "$GITHUB_STEP_SUMMARY"
+          done
