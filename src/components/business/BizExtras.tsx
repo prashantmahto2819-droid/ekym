@@ -1,6 +1,7 @@
 // Business page extras: star rating, reviews (write / edit / delete, owner reply, moderator hide) and the owner's stats panel.
 import { Link } from "@tanstack/react-router";
 import { Eye, Globe, Heart, MapPin, MessageCircle, Phone, Rocket, Share2, Star, UserPlus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -169,4 +170,55 @@ export function StatsPanel({ b, hi }: { b: BizPage; hi: boolean }) {
       ) : null}
     </div>
   );
+}
+
+type Manager = { user_id: string; name: string; photo: string | null; added_at: string };
+/** Owner: add / remove page managers (people who can post for the page). Silver 1, Gold 2. */
+export function ManagersBox({ b, hi, org }: { b: BizPage; hi: boolean; org: string }) {
+  const L = (h: string, e: string) => (hi ? h : e);
+  const refresh = useBizRefresh();
+  const list = useQuery({ queryKey: ["biz_managers", b.id], queryFn: () => call<Manager[]>("biz_managers", { p_page: b.id }) });
+  const [q, setQ] = useState("");
+  const found = useQuery({ queryKey: ["mgr_search", org, q], enabled: q.trim().length >= 2, queryFn: () => call<{ user_id: string; full_name: string; org_name: string }[]>("k1_mention_search", { p_org: org, p_q: q.trim(), p_limit: 6 }) });
+  const rows = list.data ?? [];
+  const limit = b.managers_limit ?? 0;
+  async function add(uid: string) {
+    try { await call("biz_manager_add", { p_page: b.id, p_user: uid }); setQ(""); toast.success(L("मैनेजर जोड़ा — उन्हें सूचना भेज दी गई", "Manager added — they've been notified")); void list.refetch(); void refresh(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  }
+  async function remove(uid: string) {
+    if (!confirm(L("इन्हें मैनेजर से हटाएँ?", "Remove this manager?"))) return;
+    try { await call("biz_manager_remove", { p_page: b.id, p_user: uid }); void list.refetch(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  }
+  if (!limit && !rows.length) return null;
+  return (
+    <section className="space-y-2 rounded-2xl bg-card p-4 text-sm shadow-sm ring-1 ring-border/70">
+      <div className="flex items-center justify-between"><h2 className="font-display text-lg font-semibold">{L("पेज मैनेजर", "Page managers")}</h2><span className="text-xs text-muted-foreground">{rows.length}/{limit}</span></div>
+      <p className="text-xs text-muted-foreground">{L("मैनेजर पेज की ओर से पोस्ट, प्रायोजित और बूस्ट कर सकते हैं। पेज बदलना, पैकेज लेना और मैनेजर चुनना सिर्फ़ आप कर सकते हैं।", "Managers can post, sponsor and boost for the page. Only you edit the page, buy plans and choose managers.")}</p>
+      {rows.map((m) => (
+        <div key={m.user_id} className="flex items-center gap-2"><Avatar url={m.photo} name={m.name} size={8} /><Link to="/u/$id" params={{ id: m.user_id }} className="min-w-0 flex-1 truncate font-medium hover:underline">{m.name}</Link><button type="button" className="text-xs text-muted-foreground hover:text-destructive hover:underline" onClick={() => void remove(m.user_id)}>{L("हटाएँ", "Remove")}</button></div>
+      ))}
+      {rows.length < limit ? (
+        <div className="relative">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("सदस्य का नाम लिखें…", "Type a member's name…")} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+          {q.trim().length >= 2 && found.data?.length ? (
+            <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-xl border border-border bg-popover shadow-lg">
+              {found.data.filter((f) => f.user_id !== b.owner_id && !rows.some((r) => r.user_id === f.user_id)).map((f) => <li key={f.user_id}><button type="button" onClick={() => void add(f.user_id)} className="flex w-full flex-col items-start px-3 py-1.5 text-left hover:bg-secondary"><span className="font-medium">{f.full_name}</span><span className="text-xs text-muted-foreground">{f.org_name}</span></button></li>)}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      {!limit && rows.length ? <p className="text-xs text-amber-800 dark:text-amber-300">{L("पैकेज ख़त्म होने से मैनेजर अभी पोस्ट नहीं कर पा रहे — नवीनीकरण करें।", "The plan has ended, so managers can't post now — renew it.")}</p> : null}
+    </section>
+  );
+}
+
+/** Shown to a manager on the page: who they are, and leave. */
+export function ManagerBanner({ b, hi, onLeft }: { b: BizPage; hi: boolean; onLeft: () => void }) {
+  const { user } = useAuth();
+  async function leave() {
+    if (!user || !confirm(hi ? "इस पेज के मैनेजर से हट जाएँ?" : "Stop managing this page?")) return;
+    try { await call("biz_manager_remove", { p_page: b.id, p_user: user.id }); onLeft(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  }
+  return <p className="rounded-2xl bg-sky-50 px-4 py-2 text-sm text-sky-900 ring-1 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-900">🧑‍💼 {hi ? "आप इस पेज के मैनेजर हैं — पेज की ओर से पोस्ट कर सकते हैं।" : "You manage this page — you can post for it."} <button type="button" className="ml-1 underline" onClick={() => void leave()}>{hi ? "मैनेजर से हटें" : "Leave"}</button></p>;
 }

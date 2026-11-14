@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { bizTrack, catOf, catLabel, inr, planName, telLink, useBizPage, useBizRefresh, useSponsorStatus, waLink, type BizPage } from "@/components/business/biz";
 import { PlanDialog } from "@/components/business/PlanDialog";
-import { RatingLine, Reviews, StatsPanel } from "@/components/business/BizExtras";
+import { ManagerBanner, ManagersBox, RatingLine, Reviews, StatsPanel } from "@/components/business/BizExtras";
 import { BizEditor, BizFollowButton, BizLogo, TierBadge, Verified } from "@/components/business/BizUI";
 import { CreatePost, PostCard, type Post } from "@/components/site/Feed";
 import { EmptyState } from "@/components/site/kit";
@@ -51,7 +51,7 @@ function BizPageView() {
   const left = Math.max(0, b.daily_limit - (b.today_posts ?? 0));
   const list = posts.data?.pages.flat() ?? [];
   const tabs: ["posts" | "reviews" | "stats", string][] = [["posts", hi ? `पोस्ट (${b.posts})` : `Posts (${b.posts})`], ["reviews", hi ? `समीक्षा (${b.rating?.count ?? 0})` : `Reviews (${b.rating?.count ?? 0})`]];
-  if (b.mine || b.can_moderate) tabs.push(["stats", hi ? "आँकड़े" : "Insights"]);
+  if (b.mine || b.i_manage || b.can_moderate) tabs.push(["stats", hi ? "आँकड़े" : "Insights"]);
   const wa = b.whatsapp || b.phone;
   async function share() {
     const url = `${window.location.origin}/business/${b!.slug}`;
@@ -100,6 +100,8 @@ function BizPageView() {
         <div className="mt-4 grid gap-4 px-3 sm:px-0 lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
             {b.mine ? <PlanPanel b={b} hi={hi} onChanged={() => void q.refetch()} /> : null}
+            {b.mine ? <ManagersBox b={b} hi={hi} org={tenant.organization_id} /> : null}
+            {b.board_live && (b.mine || b.i_manage) ? <p className="rounded-2xl bg-amber-50 px-4 py-2 text-xs text-amber-900 ring-1 ring-amber-200 dark:bg-amber-950/30 dark:text-amber-200">📌 {hi ? "आपका विज्ञापन कार्ड अभी \"प्रायोजित\" बोर्ड पर चल रहा है।" : "Your ad card is live on the Sponsored board."} <Link to="/sponsored" className="underline">{hi ? "देखें" : "See"}</Link></p> : null}
             {b.offer ? <div className="rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 p-4 text-white shadow-sm"><p className="text-xs font-bold uppercase tracking-wide opacity-90">{hi ? "समाज के लिए खास" : "Community offer"}</p><p className="mt-1 font-display text-lg font-semibold leading-snug">🏷️ {b.offer}</p></div> : null}
             <section className="space-y-3 rounded-2xl bg-card p-4 text-sm shadow-sm ring-1 ring-border/70">
               <h2 className="font-display text-lg font-semibold">{hi ? "परिचय" : "About"}</h2>
@@ -121,7 +123,8 @@ function BizPageView() {
           </aside>
 
           <main className="min-w-0 space-y-4">
-            {b.mine && b.status === "active" ? (
+            {b.i_manage && !b.mine ? <ManagerBanner b={b} hi={hi} onLeft={() => void q.refetch()} /> : null}
+            {(b.mine || b.i_manage) && b.status === "active" ? (
               <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-card p-4 shadow-sm ring-1 ring-border/70">
                 <BizLogo url={b.logo_url} name={b.name} className="size-10 rounded-xl" />
                 <button type="button" disabled={!left} onClick={() => setPosting(true)} className="h-10 min-w-0 flex-1 truncate rounded-full bg-secondary px-4 text-left text-sm text-muted-foreground hover:bg-secondary/70 disabled:opacity-60">{left ? (hi ? `${b.name} की ओर से पोस्ट करें…` : `Post as ${b.name}…`) : (hi ? "आज की पोस्ट हो चुकी — कल फिर" : "Today's post is done — tomorrow again")}</button>

@@ -122,6 +122,7 @@ function PlansForm({ org }: { org: string }) {
             {field(p, "price_month", "कीमत / महीना (₹)")}{field(p, "price_year", "कीमत / साल (₹)")}
             {field(p, "daily_posts", "रोज़ की पोस्ट")}{field(p, "sponsored_per_month", "प्रायोजित पोस्ट / महीना")}
             {field(p, "sponsored_reach", "एक प्रायोजित पोस्ट की पहुँच (लोग)")}{field(p, "sponsored_days", "प्रायोजित कितने दिन")}
+            {field(p, "managers", "मैनेजर (कितने लोग)")}{field(p, "board_days", "बोर्ड पर विज्ञापन कार्ड (दिन/महीना)")}
           </div>
           <Button size="sm" onClick={() => void save(p)}>सहेजें</Button>
         </div>

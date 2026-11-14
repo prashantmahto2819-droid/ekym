@@ -15,8 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 
 export function PlanFeatures({ p, hi }: { p: Plan; hi: boolean }) {
   const items = hi
-    ? [`रोज़ ${p.daily_posts} पोस्ट`, `हर महीने ${p.sponsored_per_month} प्रायोजित पोस्ट — सबके "आपके लिए" फ़ीड में`, `हर प्रायोजित पोस्ट ${p.sponsored_days} दिन, ${p.sponsored_reach.toLocaleString("en-IN")} लोगों तक`, "सत्यापित ✓ बैज", "निर्देशिका में ऊपर"]
-    : [`${p.daily_posts} posts a day`, `${p.sponsored_per_month} sponsored posts a month in everyone's "For you" feed`, `Each runs ${p.sponsored_days} days, up to ${p.sponsored_reach.toLocaleString("en-IN")} people`, "Verified ✓ badge", "Higher in the directory"];
+    ? [`रोज़ ${p.daily_posts} पोस्ट`, `हर महीने ${p.sponsored_per_month} प्रायोजित पोस्ट — सबके "आपके लिए" फ़ीड में`, `हर प्रायोजित पोस्ट ${p.sponsored_days} दिन, ${p.sponsored_reach.toLocaleString("en-IN")} लोगों तक`, "सत्यापित ✓ बैज", "निर्देशिका में ऊपर", ...(p.managers ? [`${p.managers} मैनेजर — दूसरे लोग भी पेज की ओर से पोस्ट कर सकें`] : []), ...(p.board_days ? [`हर महीने ${p.board_days} दिन "प्रायोजित" बोर्ड पर आपका विज्ञापन कार्ड`] : [])]
+    : [`${p.daily_posts} posts a day`, `${p.sponsored_per_month} sponsored posts a month in everyone's "For you" feed`, `Each runs ${p.sponsored_days} days, up to ${p.sponsored_reach.toLocaleString("en-IN")} people`, "Verified ✓ badge", "Higher in the directory", ...(p.managers ? [`${p.managers} manager(s) can post for the page`] : []), ...(p.board_days ? [`Your ad card on the Sponsored board ${p.board_days} days every month`] : [])];
   return <ul className="space-y-1.5 text-sm">{items.map((t) => <li key={t} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />{t}</li>)}</ul>;
 }
 
