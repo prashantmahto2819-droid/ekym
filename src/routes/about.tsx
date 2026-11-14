@@ -41,7 +41,7 @@ function AboutPage() {
   const { data: seva } = useSuspenseQuery(sevaListQuery());
   const { lang } = useLang();
   const hi = lang === "hi";
-  const counts = useQuery({ queryKey: ["public_counts", tenant.organization_id], queryFn: async () => { const { data } = await supabase.rpc("k1_public_counts", { p_org: tenant.organization_id } as never); return (data ?? null) as Counts | null; } });
+  const counts = useQuery({ queryKey: ["public_counts", tenant.organization_id], queryFn: async () => { const { data } = await supabase.rpc("k1_public_counts" as never, { p_org: tenant.organization_id } as never); return (data ?? null) as Counts | null; } });
   const name = (hi && org?.organization_name_hi) || org?.organization_name || (hi && tenant.name_hi) || tenant.name;
   const tagline = (hi && org?.tagline_hi) || org?.tagline;
   const c = counts.data;
