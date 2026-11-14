@@ -1,4 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -56,7 +57,7 @@ function LettersIndex() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-semibold">Letters &amp; documents</h1>
+          <h1 className="font-display text-2xl font-semibold"><T>Letters &amp; documents</T></h1>
           <p className="mt-1 text-sm text-muted-foreground">Create → approve → issue (number + QR) → PDF → dispatch. Issued documents are locked; cancel instead of editing.</p>
         </div>
         {can("docs.letter.create") ? (
@@ -73,7 +74,7 @@ function LettersIndex() {
       </div>
       <div className="surface-card overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-secondary/70 text-left"><tr><th className="px-4 py-3">Ref</th><th className="px-4 py-3">Kind</th><th className="px-4 py-3">Title / To</th><th className="px-4 py-3">Date</th><th className="px-4 py-3">Status</th></tr></thead>
+          <thead className="bg-secondary/70 text-left"><tr><th className="px-4 py-3"><T>Ref</T></th><th className="px-4 py-3"><T>Kind</T></th><th className="px-4 py-3"><T>Title / To</T></th><th className="px-4 py-3"><T>Date</T></th><th className="px-4 py-3"><T>Status</T></th></tr></thead>
           <tbody>
             {(list.data ?? []).map((r) => (
               <tr key={r.id} className="cursor-pointer border-t border-border hover:bg-secondary/40" onClick={() => navigate({ to: "/admin/letters/$id", params: { id: r.id } })}>
@@ -84,7 +85,7 @@ function LettersIndex() {
                 <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-xs ${badge[r.status] ?? ""}`}>{r.status.replace(/_/g, " ")}</span></td>
               </tr>
             ))}
-            {list.isSuccess && list.data.length === 0 ? <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">No documents yet.</td></tr> : null}
+            {list.isSuccess && list.data.length === 0 ? <tr><td colSpan={5} className="px-4 py-6 text-center text-muted-foreground"><T>No documents yet.</T></td></tr> : null}
           </tbody>
         </table>
         {(list.data?.length ?? 0) >= limit ? <div className="p-3 text-center"><Button variant="outline" size="sm" onClick={() => setLimit((n) => n + 200)}>और दिखाएँ · Show more</Button></div> : null}

@@ -1,5 +1,6 @@
 // Community admin: listings moderation, matrimony verification, polls, contributors & testimonials.
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ function CommunityAdmin() {
 
   return (
     <div className="space-y-4">
-      <header><h1 className="font-display text-2xl font-semibold">Community</h1><p className="text-sm text-muted-foreground">Directory listings (business, professionals, jobs, scholarships, emergency help), matrimony verification and polls.</p></header>
+      <header><h1 className="font-display text-2xl font-semibold"><T>Community</T></h1><p className="text-sm text-muted-foreground">Directory listings (business, professionals, jobs, scholarships, emergency help), matrimony verification and polls.</p></header>
       <div className="flex w-fit rounded-md border border-border p-0.5 text-xs">{([["feed", "Kalchuri One feed"], ["business", "व्यापार पैकेज"], ["listings", "Listings"], ["matrimony", "Matrimony"], ["polls", "Polls"], ["people", "Contributors & testimonials"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
 
       {tab === "feed" ? <FeedModeration org={org} /> : null}
@@ -53,10 +54,10 @@ function CommunityAdmin() {
                 <p className="mt-1 line-clamp-2 text-muted-foreground">{l.body}</p>
                 <p className="text-xs text-muted-foreground">{[l.contact_name, l.phone, l.city, l.expires_at ? `expires ${l.expires_at}` : null].filter(Boolean).join(" · ")}</p>
               </div>
-              {can("community.listing.moderate") ? <div className="flex gap-1">{l.status !== "approved" ? <Button size="sm" onClick={() => decide(l, "approved")}>Approve</Button> : null}{l.status !== "rejected" ? <Button size="sm" variant="outline" onClick={() => decide(l, "rejected")}>Reject</Button> : null}{l.status === "approved" ? <Button size="sm" variant="ghost" onClick={() => decide(l, "expired")}>Expire</Button> : null}</div> : null}
+              {can("community.listing.moderate") ? <div className="flex gap-1">{l.status !== "approved" ? <Button size="sm" onClick={() => decide(l, "approved")}><T>Approve</T></Button> : null}{l.status !== "rejected" ? <Button size="sm" variant="outline" onClick={() => decide(l, "rejected")}><T>Reject</T></Button> : null}{l.status === "approved" ? <Button size="sm" variant="ghost" onClick={() => decide(l, "expired")}><T>Expire</T></Button> : null}</div> : null}
             </div>
           ))}
-          {listings.isSuccess && !listings.data.length ? <p className="text-sm text-muted-foreground">Nothing here.</p> : null}
+          {listings.isSuccess && !listings.data.length ? <p className="text-sm text-muted-foreground"><T>Nothing here.</T></p> : null}
         </div>
       ) : null}
 
@@ -69,7 +70,7 @@ function CommunityAdmin() {
               {can("community.matrimony.manage") ? <Button size="sm" variant={p.verified_at ? "ghost" : "default"} onClick={() => verify(p.id, !p.verified_at)}>{p.verified_at ? "Un-verify" : "Verify"}</Button> : null}
             </div>
           ))}
-          {profiles.isSuccess && !profiles.data.length ? <p className="text-sm text-muted-foreground">No profiles yet.</p> : null}
+          {profiles.isSuccess && !profiles.data.length ? <p className="text-sm text-muted-foreground"><T>No profiles yet.</T></p> : null}
         </div>
       ) : null}
 
@@ -78,10 +79,10 @@ function CommunityAdmin() {
       {tab === "people" ? (
         <div className="space-y-8">
           <CrudPage table="contributors" title="Contributors" description="Donors, partners and well-wishers recognised on the site." defaults={{ active: true, display_publicly: true }}
-            columns={[{ key: "name", label: "Name" }, { key: "organization", label: "Organization" }, { key: "contribution_type", label: "Type" }, { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") }]}
+            columns={[{ key: "name", label: "Name" }, { key: "organization", label: "Organization" }, { key: "contribution_type", label: "Type" }, { key: "active", label: "Active", render: (r) => <T>{r.active ? "Yes" : "No"}</T> }]}
             fields={[{ key: "name", label: "Name", required: true, full: true }, { key: "organization", label: "Organization" }, { key: "contribution_type", label: "Contribution type" }, { key: "photo", label: "Photo URL", type: "url", full: true }, { key: "description", label: "Description", type: "textarea", full: true }, { key: "recognition_message", label: "Recognition message", type: "textarea", full: true }, { key: "location", label: "Location" }, { key: "contribution_date", label: "Contribution date", type: "date" }, { key: "display_publicly", label: "Show publicly", type: "checkbox" }, { key: "active", label: "Active", type: "checkbox" }]} />
           <CrudPage table="testimonials" title="Testimonials" description="Only approved and active testimonials appear publicly." orderBy="display_order" ascending defaults={{ active: true, approved: true }}
-            columns={[{ key: "name", label: "Name" }, { key: "city", label: "City" }, { key: "approved", label: "Approved", render: (r) => (r.approved ? "Yes" : "No") }, { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") }]}
+            columns={[{ key: "name", label: "Name" }, { key: "city", label: "City" }, { key: "approved", label: "Approved", render: (r) => <T>{r.approved ? "Yes" : "No"}</T> }, { key: "active", label: "Active", render: (r) => <T>{r.active ? "Yes" : "No"}</T> }]}
             fields={[{ key: "name", label: "Name", required: true }, { key: "role", label: "Role" }, { key: "city", label: "City" }, { key: "photo", label: "Photo URL", type: "url" }, { key: "message", label: "Message", type: "textarea", full: true, required: true }, { key: "display_order", label: "Display order", type: "number" }, { key: "approved", label: "Approved", type: "checkbox" }, { key: "active", label: "Active", type: "checkbox" }]} />
         </div>
       ) : null}
@@ -102,7 +103,7 @@ function PollsAdmin({ org }: { org: string }) {
         toolbar={<label className="block text-sm"><span className="mb-1 block text-xs text-muted-foreground">Options for the NEXT poll you create (one per line, English|हिंदी)</span><textarea className="w-full rounded-md border border-input bg-background p-2 text-sm" rows={3} value={opts} onChange={(e) => setOpts(e.target.value)} placeholder={"Yes|हाँ\nNo|नहीं"} /></label>}
         columns={[{ key: "question", label: "Question" }, { key: "audience", label: "Audience" }, { key: "status", label: "Status" }, { key: "votes", label: "Votes / results", render: (r) => { const res = results.data?.[r.id]; return res ? <span className="text-xs">{res.total} votes{res.counts ? " · " + Object.entries(res.counts).map(([k, n]) => `${(r.options as { key: string; label: string }[]).find((o) => o.key === k)?.label ?? k}: ${n}`).join(", ") : ""}</span> : null; } }]}
         fields={[{ key: "question", label: "Question (English)", required: true, full: true }, { key: "question_hi", label: "प्रश्न (हिंदी)", full: true }, { key: "description", label: "Description", type: "textarea", full: true }, { key: "audience", label: "Who can vote", type: "select", options: ["members", "team", "public"] }, { key: "status", label: "Status", type: "select", options: ["open", "draft", "closed"] }, { key: "ends_at", label: "Ends at", type: "datetime" }, { key: "anonymous", label: "Anonymous (hide who voted)", type: "checkbox" }, { key: "open_results", label: "Show results while open", type: "checkbox" }, { key: "multi", label: "Allow multiple choices", type: "checkbox" }]}
-        extraActions={(r) => r.status === "open" ? <Button size="sm" variant="outline" onClick={() => close(r.id)}>Close</Button> : null}
+        extraActions={(r) => r.status === "open" ? <Button size="sm" variant="outline" onClick={() => close(r.id)}><T>Close</T></Button> : null}
       />
       <OptionsApplier org={org} opts={opts} onApplied={() => { setOpts(""); qc.invalidateQueries({ queryKey: ["admin", "cm_polls"] }); qc.invalidateQueries({ queryKey: ["cm_polls_admin", org] }); }} />
     </div>
@@ -114,7 +115,7 @@ function OptionsApplier({ org, opts, onApplied }: { org: string; opts: string; o
   const [busy, setBusy] = useState(false);
   async function apply() {
     const lines = opts.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (lines.length < 2) { toast.error("Enter at least two options"); return; }
+    if (lines.length < 2) { toast.error(txNow("Enter at least two options")); return; }
     setBusy(true);
     try {
       const { data } = await supabase.from("cm_polls").select("id,question,options").eq("organization_id", org).order("created_at", { ascending: false }).limit(1).maybeSingle();
@@ -125,7 +126,7 @@ function OptionsApplier({ org, opts, onApplied }: { org: string; opts: string; o
     } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
   if (!opts.trim()) return null;
-  return <Button size="sm" onClick={apply} disabled={busy}>Apply these options to the newest poll</Button>;
+  return <Button size="sm" onClick={apply} disabled={busy}><T>Apply these options to the newest poll</T></Button>;
 }
 
 type Report = { id: string; post_id: string | null; comment_id: string | null; reason: string; status: string; created_at: string };
@@ -146,10 +147,10 @@ function FeedModeration({ org }: { org: string }) {
       <p className="text-xs text-muted-foreground">Members post on <a href="/community" className="underline" target="_blank" rel="noreferrer">/community</a>. Every post is screened for advertising / promotion (keywords instantly, AI on text + images when configured): flagged posts get limited reach (only the author and moderators see them) and you get a WhatsApp alert. Paid sponsors appear on <a href="/sponsored" className="underline" target="_blank" rel="noreferrer">/sponsored</a> (Admin → Ads & revenue). Reports land here; hide removes a post from the feed (restorable), remove deletes it from view permanently.</p>
       <Flagged org={org} />
       <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium">Open reports ({reports.data?.length ?? 0})</p>
-        <ul className="mt-2 divide-y divide-border">{(reports.data ?? []).map((r) => <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{r.reason} <span className="text-xs text-muted-foreground">· {new Date(r.created_at).toLocaleString("en-IN")}</span> {r.post_id ? <a className="ml-1 underline" href={`/community/${r.post_id}`} target="_blank" rel="noreferrer">view post</a> : null}</span><span className="flex gap-1">{r.post_id ? <><Button size="sm" variant="outline" onClick={() => act(r.post_id, "hidden")}>Hide post</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(r.post_id, "removed")}>Remove</Button></> : null}<Button size="sm" variant="ghost" onClick={() => act(null, null, r.id, true)}>Dismiss</Button></span></li>)}{reports.isSuccess && !reports.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul></div>
+        <ul className="mt-2 divide-y divide-border">{(reports.data ?? []).map((r) => <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{r.reason} <span className="text-xs text-muted-foreground">· {new Date(r.created_at).toLocaleString("en-IN")}</span> {r.post_id ? <a className="ml-1 underline" href={`/community/${r.post_id}`} target="_blank" rel="noreferrer">view post</a> : null}</span><span className="flex gap-1">{r.post_id ? <><Button size="sm" variant="outline" onClick={() => act(r.post_id, "hidden")}><T>Hide post</T></Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(r.post_id, "removed")}><T>Remove</T></Button></> : null}<Button size="sm" variant="ghost" onClick={() => act(null, null, r.id, true)}><T>Dismiss</T></Button></span></li>)}{reports.isSuccess && !reports.data.length ? <li className="py-2 text-muted-foreground"><T>None.</T></li> : null}</ul></div>
       <ModerationSettings org={org} />
-      <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium">Hidden posts</p>
-        <ul className="mt-2 divide-y divide-border">{(hidden.data ?? []).map((p) => <li key={p.id} className="flex items-center justify-between gap-2 py-2"><span className="line-clamp-1">{p.body ?? p.link_url ?? "(photo)"} <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleDateString("en-IN")}</span></span><span className="flex gap-1"><Button size="sm" variant="outline" onClick={() => act(p.id, "active")}>Restore</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(p.id, "removed")}>Remove</Button></span></li>)}{hidden.isSuccess && !hidden.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul></div>
+      <div className="rounded-lg border border-border bg-background p-3"><p className="font-medium"><T>Hidden posts</T></p>
+        <ul className="mt-2 divide-y divide-border">{(hidden.data ?? []).map((p) => <li key={p.id} className="flex items-center justify-between gap-2 py-2"><span className="line-clamp-1">{p.body ?? p.link_url ?? "(photo)"} <span className="text-xs text-muted-foreground">· {new Date(p.created_at).toLocaleDateString("en-IN")}</span></span><span className="flex gap-1"><Button size="sm" variant="outline" onClick={() => act(p.id, "active")}><T>Restore</T></Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => act(p.id, "removed")}><T>Remove</T></Button></span></li>)}{hidden.isSuccess && !hidden.data.length ? <li className="py-2 text-muted-foreground"><T>None.</T></li> : null}</ul></div>
     </div>
   );
 }
@@ -174,8 +175,8 @@ function Flagged({ org }: { org: string }) {
             {p.moderation?.appeal ? <p className="mt-1 rounded bg-amber-100 px-2 py-1 text-xs dark:bg-amber-900/40">🙋 {new Date(p.moderation.appeal.at).toLocaleString("en-IN")} — author asks for review{p.moderation.appeal.note ? `: ${p.moderation.appeal.note}` : ""}</p> : null}
             <p className="text-xs text-muted-foreground">{ai?.reason ? `AI (${ai.category}, ${Math.round(ai.confidence * 100)}%): ${ai.reason}` : ai?.model ? `AI: ${ai.model}` : "AI: pending"}{p.moderation?.political?.hits?.length ? ` · political words: ${p.moderation.political.hits.join(", ")}` : ""}{h?.hits?.length ? ` · keywords: ${h.hits.join(", ")} (score ${h.score})` : ""}</p>
           </div>
-          <span className="flex gap-1"><Button size="sm" onClick={() => review(p.id, "allow")}>Allow (full reach)</Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => review(p.id, "remove")}>Remove</Button></span>
-        </li>; })}{q.isSuccess && !q.data.length ? <li className="py-2 text-muted-foreground">None.</li> : null}</ul>
+          <span className="flex gap-1"><Button size="sm" onClick={() => review(p.id, "allow")}><T>Allow (full reach)</T></Button><Button size="sm" variant="ghost" className="text-destructive" onClick={() => review(p.id, "remove")}><T>Remove</T></Button></span>
+        </li>; })}{q.isSuccess && !q.data.length ? <li className="py-2 text-muted-foreground"><T>None.</T></li> : null}</ul>
     </div>
   );
 }
@@ -186,20 +187,20 @@ function ModerationSettings({ org }: { org: string }) {
   const [s, setS] = useState<CmSettings | null>(null);
   const [open, setOpen] = useState(false);
   useEffect(() => { if (q.isSuccess && !s) setS(q.data ?? { organization_id: org, auto_limit: true, threshold: 3, ai_min_confidence: 0.6, keywords: [], notify_moderators: true }); }, [q.isSuccess, q.data, s, org]);
-  async function save() { if (!s) return; const { error } = await supabase.from("cm_settings").upsert(s as never, { onConflict: "organization_id" }); if (error) toast.error(error.message); else toast.success("Saved"); }
+  async function save() { if (!s) return; const { error } = await supabase.from("cm_settings").upsert(s as never, { onConflict: "organization_id" }); if (error) toast.error(error.message); else toast.success(txNow("Saved")); }
   if (!s) return null;
   return (
-    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="rounded-lg border border-border bg-background p-3"><summary className="cursor-pointer font-medium">Promotion filter settings</summary>
+    <details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} className="rounded-lg border border-border bg-background p-3"><summary className="cursor-pointer font-medium"><T>Promotion filter settings</T></summary>
       <div className="mt-2 grid gap-2 sm:grid-cols-2">
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.auto_limit} onChange={(e) => setS({ ...s, auto_limit: e.target.checked })} /> Limit reach automatically (off = only flag for review)</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.notify_moderators} onChange={(e) => setS({ ...s, notify_moderators: e.target.checked })} /> WhatsApp alert to moderators</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.political_hold ?? true} onChange={(e) => setS({ ...s, political_hold: e.target.checked })} /> 🗳️ Hold political posts for approval (limited reach until an admin allows)</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.occasion_posts ?? true} onChange={(e) => setS({ ...s, occasion_posts: e.target.checked })} /> 🎂 Post birthdays / anniversaries on the wall as the organization</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={s.occasion_greetings ?? true} onChange={(e) => setS({ ...s, occasion_greetings: e.target.checked })} /> 💐 Send birthday / anniversary greetings (WhatsApp / email)</label>
-        <label className="block"><span className="text-xs text-muted-foreground">Keyword score to flag (phone number = 2, % off = 2, each keyword = 1)</span><Input type="number" value={s.threshold} onChange={(e) => setS({ ...s, threshold: Number(e.target.value) })} /></label>
-        <label className="block"><span className="text-xs text-muted-foreground">AI confidence needed (0–1)</span><Input type="number" step="0.05" min="0" max="1" value={s.ai_min_confidence} onChange={(e) => setS({ ...s, ai_min_confidence: Number(e.target.value) })} /></label>
-        <label className="block sm:col-span-2"><span className="text-xs text-muted-foreground">Keywords (comma separated; empty = built-in Hindi + English list)</span><Textarea rows={3} value={s.keywords.join(", ")} onChange={(e) => setS({ ...s, keywords: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} /></label>
-        <div className="sm:col-span-2"><Button size="sm" onClick={save}>Save</Button> <span className="ml-2 text-xs text-muted-foreground">Image + text AI needs the secret GEMINI_API_KEY on the cm-moderate function (Supabase → Edge Functions → Secrets).</span></div>
+        <label className="block"><span className="text-xs text-muted-foreground"><T>Keyword score to flag (phone number = 2, % off = 2, each keyword = 1)</T></span><Input type="number" value={s.threshold} onChange={(e) => setS({ ...s, threshold: Number(e.target.value) })} /></label>
+        <label className="block"><span className="text-xs text-muted-foreground"><T>AI confidence needed (0–1)</T></span><Input type="number" step="0.05" min="0" max="1" value={s.ai_min_confidence} onChange={(e) => setS({ ...s, ai_min_confidence: Number(e.target.value) })} /></label>
+        <label className="block sm:col-span-2"><span className="text-xs text-muted-foreground"><T>Keywords (comma separated; empty = built-in Hindi + English list)</T></span><Textarea rows={3} value={s.keywords.join(", ")} onChange={(e) => setS({ ...s, keywords: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} /></label>
+        <div className="sm:col-span-2"><Button size="sm" onClick={save}><T>Save</T></Button> <span className="ml-2 text-xs text-muted-foreground">Image + text AI needs the secret GEMINI_API_KEY on the cm-moderate function (Supabase → Edge Functions → Secrets).</span></div>
       </div>
     </details>
   );

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -89,7 +90,7 @@ function SettingsAdmin() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Settings saved");
+      toast.success(txNow("Settings saved"));
       qc.invalidateQueries({ queryKey: ["admin", "organization_settings"] });
       qc.invalidateQueries({ queryKey: ["organization"] });
     },
@@ -107,15 +108,15 @@ function SettingsAdmin() {
     save.mutate(values);
   }
 
-  if (settings.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (settings.isLoading) return <p className="text-sm text-muted-foreground"><T>Loading…</T></p>;
 
   const row = (settings.data ?? {}) as Record<string, string | null>;
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold">Organization settings</h1>
+      <h1 className="font-display text-2xl font-semibold"><T>Organization settings</T></h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        These details power the header, footer and contact pages across the website.
+        <T>These details power the header, footer and contact pages across the website.</T>
       </p>
 
       <ModulesCard />
@@ -142,7 +143,7 @@ function SettingsAdmin() {
         ))}
         <div className="sm:col-span-2">
           <Button type="submit" disabled={save.isPending}>
-            {save.isPending ? "Saving…" : "Save settings"}
+            <T>{save.isPending ? "Saving…" : "Save settings"}</T>
           </Button>
         </div>
       </form>
@@ -178,14 +179,14 @@ function ModulesCard() {
     setBusy(true);
     const { error } = await supabase.rpc("k1_set_branding", { p_org: tenant.organization_id, p_branding: { modules: mods } } as never);
     setBusy(false);
-    if (error) toast.error(error.message); else toast.success("Saved — reload to see the menu change");
+    if (error) toast.error(error.message); else toast.success(txNow("Saved — reload to see the menu change"));
   }
   return (
     <div className="surface-card mt-6 p-6">
-      <p className="font-display font-semibold">Modules on this site</p>
+      <p className="font-display font-semibold"><T>Modules on this site</T></p>
       <p className="text-xs text-muted-foreground">Switch a module off to hide it from the menu, the home page and the admin menu (data is kept).</p>
       <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 text-sm">{MODULE_KEYS.map(([k, label]) => <label key={k} className="flex items-center gap-2"><input type="checkbox" checked={mods[k] !== false} onChange={(e) => setMods({ ...mods, [k]: e.target.checked })} /> {label}</label>)}</div>
-      <Button type="button" size="sm" className="mt-3" onClick={save} disabled={busy}>Save modules</Button>
+      <Button type="button" size="sm" className="mt-3" onClick={save} disabled={busy}><T>Save modules</T></Button>
     </div>
   );
 }

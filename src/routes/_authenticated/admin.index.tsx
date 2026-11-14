@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { ago, useAdminNotifications } from "@/components/admin/AdminBell";
+import { AdminCharts } from "@/components/admin/AdminCharts";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
@@ -109,6 +110,8 @@ function AdminDashboard() {
           ) : null)}
         </section>
       ) : null}
+
+      <AdminCharts />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
         <section>

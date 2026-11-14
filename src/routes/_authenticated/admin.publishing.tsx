@@ -1,5 +1,6 @@
 // Categories, comment moderation, central-feed approvals (parent organizations), magazine issues.
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -44,7 +45,7 @@ function PublishingPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="font-display text-2xl font-semibold">Publishing</h1>
+        <h1 className="font-display text-2xl font-semibold"><T>Publishing</T></h1>
         <p className="text-sm text-muted-foreground">Comments, categories, the central feed and the magazine. Posts themselves live under Blogs and News.</p>
       </header>
       <div className="flex rounded-md border border-border p-0.5 text-xs w-fit">
@@ -60,13 +61,13 @@ function PublishingPage() {
                 <p className="mt-1 whitespace-pre-wrap">{c.body}</p>
               </div>
               <div className="flex gap-1">
-                {c.status !== "approved" ? <Button size="sm" onClick={() => moderate(c, "approved")}>Approve</Button> : null}
-                {c.status !== "spam" ? <Button size="sm" variant="outline" onClick={() => moderate(c, "spam")}>Spam</Button> : null}
-                <Button size="sm" variant="ghost" onClick={() => { if (confirm("Delete this comment?")) moderate(c, "delete"); }}>Delete</Button>
+                {c.status !== "approved" ? <Button size="sm" onClick={() => moderate(c, "approved")}><T>Approve</T></Button> : null}
+                {c.status !== "spam" ? <Button size="sm" variant="outline" onClick={() => moderate(c, "spam")}><T>Spam</T></Button> : null}
+                <Button size="sm" variant="ghost" onClick={() => { if (confirm("Delete this comment?")) moderate(c, "delete"); }}><T>Delete</T></Button>
               </div>
             </div>
           ))}
-          {comments.isSuccess && !comments.data.length ? <p className="text-sm text-muted-foreground">No comments yet.</p> : null}
+          {comments.isSuccess && !comments.data.length ? <p className="text-sm text-muted-foreground"><T>No comments yet.</T></p> : null}
         </div>
       ) : null}
 
@@ -83,10 +84,10 @@ function PublishingPage() {
           {(nominated.data ?? []).map((f) => (
             <div key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3 text-sm">
               <div><Badge variant="outline">{f.org_name}</Badge> <b className="ml-1">{f.title}</b> <span className="text-xs text-muted-foreground">· {f.kind} · {f.published_at ? new Date(f.published_at).toLocaleDateString("en-IN") : ""}</span>{f.excerpt ? <p className="text-xs text-muted-foreground line-clamp-2">{f.excerpt}</p> : null}</div>
-              <div className="flex gap-1"><Button size="sm" onClick={() => decide(f, true)}>Approve</Button><Button size="sm" variant="outline" onClick={() => decide(f, false)}>Decline</Button></div>
+              <div className="flex gap-1"><Button size="sm" onClick={() => decide(f, true)}><T>Approve</T></Button><Button size="sm" variant="outline" onClick={() => decide(f, false)}><T>Decline</T></Button></div>
             </div>
           ))}
-          {nominated.isSuccess && !nominated.data.length ? <p className="text-sm text-muted-foreground">Nothing nominated right now.</p> : null}
+          {nominated.isSuccess && !nominated.data.length ? <p className="text-sm text-muted-foreground"><T>Nothing nominated right now.</T></p> : null}
         </div>
       ) : null}
 
@@ -119,7 +120,7 @@ function MagazineAdmin({ org }: { org: string }) {
         const { error } = await supabase.storage.from("publications").upload(path, f, { upsert: true, contentType: f.type }); if (error) throw error;
         const { error: e2 } = await supabase.from("pub_issues").update({ [kind === "pdf" ? "pdf_path" : "cover_path"]: path } as never).eq("id", issue.id); if (e2) throw e2;
       }
-      toast.success("Uploaded"); qc.invalidateQueries({ queryKey: ["admin", "pub_issues"] });
+      toast.success(txNow("Uploaded")); qc.invalidateQueries({ queryKey: ["admin", "pub_issues"] });
     } catch (e) { toast.error((e as Error).message); } finally { setUploading(null); }
   }
   async function clearPages(issue: Issue) {
@@ -137,8 +138,8 @@ function MagazineAdmin({ org }: { org: string }) {
       slugFrom="title"
       extraActions={(r: Issue) => (
         <span className="inline-flex flex-wrap items-center gap-1 text-xs">
-          <label className="cursor-pointer rounded border border-border px-2 py-1">Cover<input type="file" accept="image/*" hidden onChange={(e) => upload(r, "cover", e.target.files)} /></label>
-          <label className="cursor-pointer rounded border border-border px-2 py-1">PDF<input type="file" accept="application/pdf" hidden onChange={(e) => upload(r, "pdf", e.target.files)} /></label>
+          <label className="cursor-pointer rounded border border-border px-2 py-1"><T>Cover</T><input type="file" accept="image/*" hidden onChange={(e) => upload(r, "cover", e.target.files)} /></label>
+          <label className="cursor-pointer rounded border border-border px-2 py-1"><T>PDF</T><input type="file" accept="application/pdf" hidden onChange={(e) => upload(r, "pdf", e.target.files)} /></label>
           <label className="cursor-pointer rounded border border-border px-2 py-1">+ Pages<input type="file" accept="image/*" multiple hidden onChange={(e) => upload(r, "pages", e.target.files)} /></label>
           {r.pages?.length ? <Button size="sm" variant="ghost" onClick={() => clearPages(r)}>clear pages</Button> : null}
           {uploading === r.id ? <span>uploading…</span> : null}

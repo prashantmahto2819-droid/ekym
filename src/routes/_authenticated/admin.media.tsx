@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 
 import { CrudPage } from "@/components/admin/CrudPage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,9 +12,9 @@ function MediaAdmin() {
   return (
     <Tabs defaultValue="videos">
       <TabsList className="mb-6">
-        <TabsTrigger value="videos">Videos</TabsTrigger>
-        <TabsTrigger value="reels">Reels</TabsTrigger>
-        <TabsTrigger value="gallery">Gallery albums</TabsTrigger>
+        <TabsTrigger value="videos"><T>Videos</T></TabsTrigger>
+        <TabsTrigger value="reels"><T>Reels</T></TabsTrigger>
+        <TabsTrigger value="gallery"><T>Gallery albums</T></TabsTrigger>
       </TabsList>
 
       <TabsContent value="videos">
@@ -27,7 +28,7 @@ function MediaAdmin() {
             { key: "title", label: "Title" },
             { key: "platform", label: "Platform" },
             { key: "display_order", label: "Order" },
-            { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") },
+            { key: "active", label: "Active", render: (r) => <T>{r.active ? "Yes" : "No"}</T> },
           ]}
           fields={[
             { key: "title", label: "Title", required: true, full: true },
@@ -57,7 +58,7 @@ function MediaAdmin() {
             { key: "title", label: "Title" },
             { key: "platform", label: "Platform" },
             { key: "display_order", label: "Order" },
-            { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") },
+            { key: "active", label: "Active", render: (r) => <T>{r.active ? "Yes" : "No"}</T> },
           ]}
           fields={[
             { key: "title", label: "Title", required: true, full: true },
@@ -88,7 +89,7 @@ function MediaAdmin() {
             { key: "title", label: "Album" },
             { key: "category", label: "Category" },
             { key: "location", label: "Location" },
-            { key: "active", label: "Active", render: (r) => (r.active ? "Yes" : "No") },
+            { key: "active", label: "Active", render: (r) => <T>{r.active ? "Yes" : "No"}</T> },
           ]}
           fields={[
             { key: "title", label: "Album title", required: true, full: true },

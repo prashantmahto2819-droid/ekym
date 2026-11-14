@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 
 import { RequisitionSlipCell } from "@/components/admin/RequisitionSlipCell";
 import { ReviewPage } from "@/components/admin/ReviewPage";
@@ -13,8 +14,8 @@ function BloodAdmin() {
   return (
     <Tabs defaultValue="requirements">
       <TabsList className="mb-6">
-        <TabsTrigger value="requirements">Blood requirements</TabsTrigger>
-        <TabsTrigger value="donors">Donor registry</TabsTrigger>
+        <TabsTrigger value="requirements"><T>Blood requirements</T></TabsTrigger>
+        <TabsTrigger value="donors"><T>Donor registry</T></TabsTrigger>
       </TabsList>
 
       <TabsContent value="requirements">
@@ -64,7 +65,7 @@ function BloodAdmin() {
             {
               key: "emergency_available",
               label: "Emergency",
-              render: (r) => (r.emergency_available ? "Yes" : "No"),
+              render: (r) => <T>{r.emergency_available ? "Yes" : "No"}</T>,
             },
             {
               key: "last_donation_date",

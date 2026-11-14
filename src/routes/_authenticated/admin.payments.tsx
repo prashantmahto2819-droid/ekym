@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -72,14 +73,14 @@ function PaymentSettings() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Payment settings saved");
+      toast.success(txNow("Payment settings saved"));
       qc.invalidateQueries({ queryKey: ["admin", "payment-settings"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
   });
 
   if (q.isLoading || !form) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <p className="text-sm text-muted-foreground"><T>Loading…</T></p>;
   }
 
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
@@ -87,7 +88,7 @@ function PaymentSettings() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="font-display text-2xl font-semibold">Payment settings</h1>
+      <h1 className="font-display text-2xl font-semibold"><T>Payment settings</T></h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Amounts and fees used by the donation checkout. Gateway keys are stored as secrets and never
         shown here.
@@ -105,7 +106,7 @@ function PaymentSettings() {
             checked={form.online_payments_enabled}
             onCheckedChange={(v) => set("online_payments_enabled", v === true)}
           />
-          <span>Accept online donations</span>
+          <span><T>Accept online donations</T></span>
         </label>
 
         <Field label="Minimum donation">
@@ -166,7 +167,7 @@ function PaymentSettings() {
 
         <div className="sm:col-span-2">
           <Button type="submit" disabled={save.isPending}>
-            {save.isPending ? "Saving…" : "Save settings"}
+            <T>{save.isPending ? "Saving…" : "Save settings"}</T>
           </Button>
         </div>
       </form>

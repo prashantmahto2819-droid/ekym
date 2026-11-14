@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -145,14 +146,14 @@ function AdminDonations() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-semibold">Donations</h1>
+      <h1 className="font-display text-2xl font-semibold"><T>Donations</T></h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Only server-verified payments are marked paid. Receipts open through short-lived private links.
       </p>
 
       <div className="surface-card mt-6 grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
         <label className="text-sm">
-          <span className="mb-1 block text-muted-foreground">Status</span>
+          <span className="mb-1 block text-muted-foreground"><T>Status</T></span>
           <select
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             value={status}
@@ -166,15 +167,15 @@ function AdminDonations() {
           </select>
         </label>
         <label className="text-sm">
-          <span className="mb-1 block text-muted-foreground">From</span>
+          <span className="mb-1 block text-muted-foreground"><T>From</T></span>
           <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
         </label>
         <label className="text-sm">
-          <span className="mb-1 block text-muted-foreground">To</span>
+          <span className="mb-1 block text-muted-foreground"><T>To</T></span>
           <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
         <label className="text-sm lg:col-span-2">
-          <span className="mb-1 block text-muted-foreground">Search</span>
+          <span className="mb-1 block text-muted-foreground"><T>Search</T></span>
           <Input
             placeholder="Donation ID, name, mobile, payment reference"
             value={search}
@@ -198,14 +199,14 @@ function AdminDonations() {
         <table className="w-full text-sm">
           <thead className="bg-secondary/60 text-left">
             <tr>
-              <th className="px-3 py-3">Donation ID</th>
-              <th className="px-3 py-3">Date</th>
-              <th className="px-3 py-3">Donor</th>
-              <th className="px-3 py-3">Mobile</th>
-              <th className="px-3 py-3">Purpose</th>
-              <th className="px-3 py-3">Amount</th>
-              <th className="px-3 py-3">Status</th>
-              <th className="px-3 py-3">Receipt</th>
+              <th className="px-3 py-3"><T>Donation ID</T></th>
+              <th className="px-3 py-3"><T>Date</T></th>
+              <th className="px-3 py-3"><T>Donor</T></th>
+              <th className="px-3 py-3"><T>Mobile</T></th>
+              <th className="px-3 py-3"><T>Purpose</T></th>
+              <th className="px-3 py-3"><T>Amount</T></th>
+              <th className="px-3 py-3"><T>Status</T></th>
+              <th className="px-3 py-3"><T>Receipt</T></th>
             </tr>
           </thead>
           <tbody>

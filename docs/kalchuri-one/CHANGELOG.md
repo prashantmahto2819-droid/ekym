@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-14 — Admin charts and one-language admin text (cm_23)
+- Admin dashboard: "गतिविधि" card — 7 / 30 / 90 days, six totals (नए आवेदन, मंज़ूर सदस्य, चौपाल पोस्ट, चैट संदेश, दान ₹, रक्त अनुरोध); click one to see its daily bars (hover/tap a day), daily average and peak. Side cards: membership status split, members by district (top 10).
+- DB (applied): `k1_admin_trends(org, days)` — org team / platform admin only.
+- Admin text: ~230 more words and sentences in the shared admin dictionary (`adminText.ts`), so every CRUD / review page label, hint, status and the form `Field` labels show in the chosen language. New `<T>` / `txNow()` (`components/admin/T.tsx`) used for headings, table heads, buttons and toasts on 15 admin screens that were English-only (donations, settings, payments, health, blood, volunteers, letters, publishing, meetings, community, media, committees, exams, pages, studio).
+
 ## 2026-11-14 — Filters: blood, matrimony, exams (cm_22)
 - /blood: donor count per group (green = can give today), group chips with counts, "मेरा ग्रुप" (shows only requirements my group can give to, with the compatibility line), district/city and urgency filters, most urgent and soonest first, Hindi headings.
 - /matrimony (browse): search (name, work, city, native place), age from–to, city/district, education, "यह गोत्र छोड़ें", only with photo, sort (newest / youngest / oldest), x / y shown, clear. Runs on the verified cards the server already returns.

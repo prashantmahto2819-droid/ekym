@@ -1,6 +1,7 @@
 // परीक्षा व प्रतियोगिता admin: exams (CrudPage) → selected exam: categories, paper pool (fill from the bank by filter),
 // registrations (with attempts), results/ranks/certificates; question bank with CSV / JSON import.
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -111,14 +112,14 @@ function ExamDetail({ exam, onClose }: { exam: Exam; onClose: () => void }) {
           <Input placeholder="कक्षा से" type="number" value={fill.class_from} onChange={(e) => setFill({ ...fill, class_from: e.target.value })} />
           <Input placeholder="कक्षा तक" type="number" value={fill.class_to} onChange={(e) => setFill({ ...fill, class_to: e.target.value })} />
           <select className="h-9 rounded-md border border-input bg-background px-2" value={fill.difficulty} onChange={(e) => setFill({ ...fill, difficulty: e.target.value })}><option value="">कोई भी कठिनाई</option><option value="easy">easy</option><option value="medium">medium</option><option value="hard">hard</option></select>
-          <select className="h-9 rounded-md border border-input bg-background px-2" value={fill.lang} onChange={(e) => setFill({ ...fill, lang: e.target.value })}><option value="">कोई भी भाषा</option><option value="hi">हिंदी</option><option value="en">English</option></select>
+          <select className="h-9 rounded-md border border-input bg-background px-2" value={fill.lang} onChange={(e) => setFill({ ...fill, lang: e.target.value })}><option value="">कोई भी भाषा</option><option value="hi">हिंदी</option><option value="en"><T>English</T></option></select>
           <Input placeholder="कितने (limit)" type="number" value={fill.limit} onChange={(e) => setFill({ ...fill, limit: e.target.value })} />
           <Input placeholder="अंक प्रति प्रश्न" type="number" value={fill.marks} onChange={(e) => setFill({ ...fill, marks: e.target.value })} />
         </div>
         <div className="mt-2 flex gap-2"><Button size="sm" onClick={doFill} disabled={busy}>पूल में जोड़ें</Button><Button size="sm" variant="ghost" onClick={() => clearPool(null)}>साझा पूल खाली</Button></div>
       </div>
       <div className="surface-card p-4 text-sm">
-        <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold">पंजीयन ({regs.data?.length ?? 0}) · परीक्षा दी: {(regs.data ?? []).filter((r) => r.percent != null).length}</p><div className="flex gap-2"><Button size="sm" variant="outline" onClick={exportCsv}>CSV</Button><Button size="sm" onClick={results} disabled={busy}>🏆 परिणाम घोषित करें</Button></div></div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold">पंजीयन ({regs.data?.length ?? 0}) · परीक्षा दी: {(regs.data ?? []).filter((r) => r.percent != null).length}</p><div className="flex gap-2"><Button size="sm" variant="outline" onClick={exportCsv}><T>CSV</T></Button><Button size="sm" onClick={results} disabled={busy}>🏆 परिणाम घोषित करें</Button></div></div>
         <div className="mt-2 max-h-[60vh] overflow-auto">
           <table className="w-full text-xs"><thead className="text-left text-muted-foreground"><tr><th className="p-1">क्रमांक</th><th className="p-1">विद्यार्थी</th><th className="p-1">श्रेणी</th><th className="p-1">स्कूल / शहर</th><th className="p-1">संपर्क</th><th className="p-1">अंक</th><th className="p-1">रैंक</th><th className="p-1">प्रमाण-पत्र</th><th className="p-1"></th></tr></thead>
             <tbody>{(regs.data ?? []).map((r) => <tr key={r.id} className={`border-t border-border ${r.status !== "registered" ? "opacity-50" : ""}`}><td className="p-1">{r.reg_no}</td><td className="p-1 font-medium">{r.student_name}{r.is_minor ? " 🧒" : ""}<span className="block text-muted-foreground">{[r.class_level ? `कक्षा ${r.class_level}` : "", r.blood_group ? `🩸 ${r.blood_group === "unknown" ? "पता नहीं" : r.blood_group}` : ""].filter(Boolean).join(" · ")}</span></td><td className="p-1">{catName(r.category_id)}</td><td className="p-1">{[r.school, r.city].filter(Boolean).join(", ")}</td><td className="p-1">{r.mobile}{r.parent_name ? <span className="block text-muted-foreground">{r.parent_name} · {r.parent_mobile}</span> : null}</td><td className="p-1">{r.percent != null ? `${r.score}/${r.max_score} (${r.percent}%)` : "—"}</td><td className="p-1">{r.rank ?? "—"} {r.result === "merit" ? "🏅" : ""}</td><td className="p-1">{r.cert_no ?? "—"}</td><td className="p-1">{r.status === "registered" ? <button type="button" className="text-destructive underline" onClick={() => setStatus(r, "disqualified")}>अयोग्य</button> : <button type="button" className="underline" onClick={() => setStatus(r, "registered")}>बहाल</button>}</td></tr>)}</tbody>

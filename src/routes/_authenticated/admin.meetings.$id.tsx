@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -45,7 +46,7 @@ function MeetingDetail() {
       const { data } = await supabase.from("org_memberships").select("full_name,whatsapp").eq("organization_id", tenant.organization_id).eq("status", "active").not("whatsapp", "is", null).limit(5000);
       const rows = (data ?? []) as { full_name: string; whatsapp: string | null }[];
       const list = rows.map((r) => ({ to: normPhone(r.whatsapp ?? ""), name: r.full_name })).filter((r) => r.to.length >= 12);
-      if (!list.length) { toast.error("No active member has a WhatsApp number"); return; }
+      if (!list.length) { toast.error(txNow("No active member has a WhatsApp number")); return; }
       if (!confirm(`Queue the notice to ${list.length} member(s)?`)) return;
       let ok = 0;
       for (const r of list) {
@@ -78,7 +79,7 @@ function MeetingDetail() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Saved");
+      toast.success(txNow("Saved"));
       qc.invalidateQueries({ queryKey: ["admin", "gov_meetings"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -95,8 +96,8 @@ function MeetingDetail() {
       });
   }
 
-  if (meeting.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
-  if (!meeting.data) return <p className="text-sm text-destructive">Meeting not found.</p>;
+  if (meeting.isLoading) return <p className="text-sm text-muted-foreground"><T>Loading…</T></p>;
+  if (!meeting.data) return <p className="text-sm text-destructive"><T>Meeting not found.</T></p>;
   const m = meeting.data;
   const approved = m.minutes_status === "approved";
 
@@ -104,7 +105,7 @@ function MeetingDetail() {
     <div className="space-y-8 rounded-lg border border-border p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Meeting</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground"><T>Meeting</T></p>
           <h2 className="font-display text-xl font-semibold">{m.title}</h2>
           <p className="text-sm text-muted-foreground">
             {new Date(m.scheduled_at).toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })}
@@ -114,7 +115,7 @@ function MeetingDetail() {
         <div className="flex gap-2">
           {can("gov.meeting.manage") ? <Button size="sm" variant="outline" disabled={notifying} onClick={() => notify(m)}>{notifying ? "Queuing…" : "WhatsApp notice to members"}</Button> : null}
           <Button asChild variant="ghost" size="sm">
-            <Link to="/admin/meetings">Close</Link>
+            <Link to="/admin/meetings"><T>Close</T></Link>
           </Button>
         </div>
       </div>
@@ -142,8 +143,8 @@ function MeetingDetail() {
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div>
-          <h3 className="font-display text-lg font-semibold">Attendance</h3>
-          <p className="mb-2 text-xs text-muted-foreground">One name per line. Write "(absent)" after a name to mark absence.</p>
+          <h3 className="font-display text-lg font-semibold"><T>Attendance</T></h3>
+          <p className="mb-2 text-xs text-muted-foreground"><T>{"One name per line. Write \"(absent)\" after a name to mark absence."}</T></p>
           <Textarea rows={10} value={attendance} onChange={(e) => setAttendance(e.target.value)} disabled={approved} />
           <Button className="mt-2" size="sm" disabled={approved || save.isPending} onClick={() => save.mutate({ attendance: parseAttendance(attendance) })}>
             Save attendance

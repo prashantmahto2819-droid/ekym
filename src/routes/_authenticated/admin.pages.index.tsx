@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -30,12 +31,12 @@ function PagesList() {
   return (
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div><h1 className="font-display text-2xl font-semibold">Pages</h1><p className="text-sm text-muted-foreground">Build pages from blocks (banner, text, cards, gallery, video…). A page marked "use as home" replaces the default home page.</p></div>
+        <div><h1 className="font-display text-2xl font-semibold"><T>Pages</T></h1><p className="text-sm text-muted-foreground">Build pages from blocks (banner, text, cards, gallery, video…). A page marked "use as home" replaces the default home page.</p></div>
         {can("cms.page.edit") ? <div className="flex gap-2"><Input placeholder="New page title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-56" onKeyDown={(e) => { if (e.key === "Enter") create(); }} /><Button onClick={create}>+ Page</Button></div> : null}
       </header>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-sm">
-          <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-2">Title</th><th className="p-2">URL</th><th className="p-2">Status</th><th className="p-2">Updated</th></tr></thead>
+          <thead className="bg-secondary/60 text-xs uppercase text-muted-foreground"><tr><th className="p-2"><T>Title</T></th><th className="p-2"><T>URL</T></th><th className="p-2"><T>Status</T></th><th className="p-2"><T>Updated</T></th></tr></thead>
           <tbody>
             {(pages.data ?? []).map((p) => (
               <tr key={p.id} className="cursor-pointer border-t border-border hover:bg-secondary/40" onClick={() => nav({ to: "/admin/pages/$id", params: { id: p.id } })}>
@@ -45,7 +46,7 @@ function PagesList() {
                 <td className="p-2 text-xs text-muted-foreground">{new Date(p.updated_at).toLocaleString("en-IN")}</td>
               </tr>
             ))}
-            {pages.isSuccess && !pages.data.length ? <tr><td className="p-3 text-muted-foreground" colSpan={4}>No pages yet. Type a title above to start.</td></tr> : null}
+            {pages.isSuccess && !pages.data.length ? <tr><td className="p-3 text-muted-foreground" colSpan={4}><T>No pages yet. Type a title above to start.</T></td></tr> : null}
           </tbody>
         </table>
       </div>

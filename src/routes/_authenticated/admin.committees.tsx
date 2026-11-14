@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useState } from "react";
 
 import { CrudPage } from "@/components/admin/CrudPage";
@@ -47,7 +48,7 @@ function CommitteesPage() {
       {committee ? (
         <div className="rounded-lg border border-border p-4 sm:p-6">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">Office bearers of</p>
+            <p className="text-sm text-muted-foreground"><T>Office bearers of</T></p>
             <Button size="sm" variant="ghost" onClick={() => setCommittee(null)}>
               Close
             </Button>
@@ -92,7 +93,7 @@ function CommitteesPage() {
           />
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">Select a committee above to add its office bearers.</p>
+        <p className="text-sm text-muted-foreground"><T>Select a committee above to add its office bearers.</T></p>
       )}
     </div>
   );

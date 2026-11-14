@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { T, txNow } from "@/components/admin/T";
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -36,7 +37,7 @@ function TemplateEditor() {
       const { error } = await supabase.from("docs_templates").update({ design: design as never, thumbnail } as never).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Template saved"); qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] }); },
+    onSuccess: () => { toast.success(txNow("Template saved")); qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
   const rename = useMutation({
@@ -44,8 +45,8 @@ function TemplateEditor() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "docs_templates"] }),
   });
 
-  if (tpl.isLoading) return <p className="text-sm text-muted-foreground">Loading template…</p>;
-  if (!tpl.data) return <p className="text-sm text-destructive">Template not found.</p>;
+  if (tpl.isLoading) return <p className="text-sm text-muted-foreground"><T>Loading template…</T></p>;
+  if (!tpl.data) return <p className="text-sm text-destructive"><T>Template not found.</T></p>;
 
   return (
     <div className="space-y-3 rounded-lg border border-border bg-background p-3">
@@ -54,7 +55,7 @@ function TemplateEditor() {
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{tpl.data.kind} template</p>
           <input className="bg-transparent font-display text-xl font-semibold outline-none" defaultValue={tpl.data.name} onBlur={(e) => e.target.value !== tpl.data!.name && rename.mutate(e.target.value)} />
         </div>
-        <Button asChild variant="ghost" size="sm"><Link to="/admin/studio">Close</Link></Button>
+        <Button asChild variant="ghost" size="sm"><Link to="/admin/studio"><T>Close</T></Link></Button>
       </div>
       <StudioEditor key={tpl.data.id} initial={tpl.data.design} data={{ ...orgMergeData(tenant, org), ...sampleFor(tpl.data.design) }} onSave={(d) => save.mutate(d)} saving={save.isPending} />
     </div>
