@@ -4,7 +4,7 @@ do $$ declare adm uuid; u uuid; fid uuid; got int; st text; ent int; ph text := 
   select id into u from public.profiles where role <> 'admin' and status in ('pending', 'approved') order by created_at desc limit 1;
   update public.profiles set phone = ph, status = 'pending' where id = u;
   update auth.users set phone = ph, phone_confirmed_at = now() where id = u;
-  insert into public.families (family_name, main_whatsapp, owner_id, status, approved_at) values ('टेस्ट वंश', null, adm, 'approved', now()) returning id into fid;
+  insert into public.families (family_name, main_whatsapp, owner_id, status, approved_at) values ('टेस्ट वंश', '919999900089', adm, 'approved', now()) returning id into fid;
   insert into public.members (family_id, parent_id, name, relation, is_head, member_kind, phone) values (fid, null, 'टेस्ट मुखिया', 'मुखिया (पिता)', true, 'son', ph);
   perform set_config('request.jwt.claims', json_build_object('sub', u, 'role', 'authenticated')::text, true);
   got := public.claim_admin_families();
