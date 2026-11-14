@@ -81,7 +81,7 @@ function ExamsPage() {
           {all.length ? (
             <div className="space-y-3">
               <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-                {([["", hi ? "सभी" : "All", all.length], ["open", STATUS_HI.open![hi ? 1 : 0], n("open")], ["running", STATUS_HI.running![hi ? 1 : 0], n("running")], ["results", STATUS_HI.results![hi ? 1 : 0], n("results")], ["closed", STATUS_HI.closed![hi ? 1 : 0], n("closed")]] as const).filter(([k, , c]) => !k || c > 0).map(([k, l, c]) => (
+                {([["", hi ? "सभी" : "All", all.length], ["open", STATUS_HI["open"]![hi ? 1 : 0], n("open")], ["running", STATUS_HI["running"]![hi ? 1 : 0], n("running")], ["results", STATUS_HI["results"]![hi ? 1 : 0], n("results")], ["closed", STATUS_HI["closed"]![hi ? 1 : 0], n("closed")]] as const).filter(([k, , c]) => !k || c > 0).map(([k, l, c]) => (
                   <button key={k || "all"} type="button" onClick={() => setSt(k)} className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm ${st === k ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary"}`}>{l} <span className="opacity-70">{c}</span></button>
                 ))}
               </div>
