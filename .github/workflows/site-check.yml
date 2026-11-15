@@ -1,0 +1,27 @@
+# Opens the live sites in a real (headless) Chrome from GitHub's machines: HTTP status, page title, console / page errors,
+# failed requests, and a phone-size screenshot of each page (artifact "site-check"). Actions → site-check → Run workflow.
+name: site-check
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: "Space-separated URLs (empty = default list)"
+        type: string
+        default: ""
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Playwright
+        run: |
+          mkdir -p /tmp/pw && cd /tmp/pw && npm init -y >/dev/null && npm i -s playwright@1.48.2 >/dev/null && npx playwright install --with-deps chromium >/dev/null
+      - name: Check
+        env:
+          URLS: ${{ inputs.urls }}
+        run: NODE_PATH=/tmp/pw/node_modules node scripts/site-check.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: site-check
+          path: site-check/
