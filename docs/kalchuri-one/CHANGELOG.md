@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-15 — मूल संस्था (base organization) + one membership per number
+- A person can belong to several organizations; exactly one is the मूल संस्था (`org_memberships.is_base`, one per account). The first membership becomes the base automatically; if it ends, the next active one takes over.
+- /me/profile → "मेरी संस्थाएँ": all memberships (⭐ मूल संस्था, status, number, site link), "मूल बनाएँ", "आवेदन वापस लें", "दूसरी संस्था से जुड़ें" (search organizations, optional message; the application carries the base membership's details and lands in that organization's normal approval list).
+- Admin → Members: column "मूल संस्था" (⭐ यही / other organization's name) and "⭐ मूल बनाएँ" for members with an account.
+- RPCs: `k1_my_memberships`, `k1_set_base_membership` (member, that organization's admin, or platform admin; active only), `k1_orgs_to_join`, `k1_apply_to_org`, `k1_withdraw_membership`, `k1_member_bases`. Test: `supabase/checks/base_org.sql`.
+- Earlier today: the same number twice (PJKKSAMAJ/M/0001 + 0002) merged; every membership mobile stored as 91XXXXXXXXXX (`k1_mobile_norm` + trigger) so the unique index catches it; the शोक पत्र approval links an admin-made membership with the same number instead of creating a second.
+- New `site-check` workflow: opens live pages in headless Chrome (status, console errors, failed requests, screenshots).
+
 ## 2026-11-14 — App-like site (PWA)
 - `/manifest.webmanifest` per organization (Hindi name, brand colour, organization logo + Kalchuri icons incl. maskable, shortcuts: चौपाल / चैट / आयोजन / रक्त सेवा), theme-color and Apple home-screen tags in the root head.
 - `public/sw.js` service worker: pages network-first with the last copy (or `/offline.html`) when offline; built assets, icons and fonts cache-first; Supabase/API/POST and admin/auth pages untouched. Registered in production only.

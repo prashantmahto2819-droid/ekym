@@ -48,6 +48,16 @@ function MembersPage() {
   const [q, setQ] = useState("");
 
   const navigate = useNavigate();
+  // मूल संस्था: for members with an account — is this organization their base, or which one is
+  const bases = useQuery({
+    queryKey: ["k1_member_bases", tenant.organization_id],
+    queryFn: async () => { const { data } = await supabase.rpc("k1_member_bases" as never, { p_org: tenant.organization_id } as never); return new Map(((data ?? []) as unknown as { membership_id: string; is_base: boolean; base_org: string | null; other_orgs: number }[]).map((b) => [b.membership_id, b])); },
+  });
+  async function makeBaseHere(id: string) {
+    if (!confirm("इस सदस्य की मूल संस्था यह संस्था बनाएँ? (उनकी दूसरी सदस्यताएँ बनी रहेंगी)")) return;
+    const { error } = await supabase.rpc("k1_set_base_membership" as never, { p_id: id } as never);
+    if (error) toast.error(error.message); else { toast.success("मूल संस्था बदल दी"); void bases.refetch(); }
+  }
   /** Create an ID-card document for this member from the organization's id_card template (first one, else from the starter). */
   async function issueCard(m: Membership & { photo_path?: string | null; blood_group?: string | null; valid_to?: string | null; valid_from?: string | null }) {
     try {
@@ -163,7 +173,15 @@ function MembersPage() {
       <CrudPage
         table="org_memberships"
         title="Members"
-        extraActions={(r) => (r.status === "active" && can("org.member.card.issue") ? <Button size="sm" variant="outline" onClick={() => void issueCard(r as Membership & { photo_path?: string | null; blood_group?: string | null; valid_to?: string | null; valid_from?: string | null })}>ID card</Button> : null)}
+        extraActions={(r) => {
+          const b = bases.data?.get(r.id);
+          return (
+            <>
+              {r.status === "active" && b && !b.is_base && can("org.member.approve") ? <Button size="sm" variant="outline" onClick={() => void makeBaseHere(r.id)} title={b.base_org ? `अभी मूल संस्था: ${b.base_org}` : undefined}>⭐ मूल बनाएँ</Button> : null}
+              {r.status === "active" && can("org.member.card.issue") ? <Button size="sm" variant="outline" onClick={() => void issueCard(r as Membership & { photo_path?: string | null; blood_group?: string | null; valid_to?: string | null; valid_from?: string | null })}>ID card</Button> : null}
+            </>
+          );
+        }}
         description="All members of the organization. Add a member directly here; applications are approved above."
         orderBy="member_no"
         ascending
@@ -176,6 +194,7 @@ function MembersPage() {
           { key: "district", label: "District" },
           { key: "category", label: "Category" },
           { key: "status", label: "Status" },
+          { key: "is_base", label: "मूल संस्था", render: (r) => { const b = bases.data?.get(r.id); return !b ? "—" : b.is_base ? (b.other_orgs ? `⭐ यही (+${b.other_orgs} और)` : "⭐ यही") : (b.base_org ?? "—"); } },
         ]}
         fields={[
           { key: "full_name", label: "Full name (English)", required: true },

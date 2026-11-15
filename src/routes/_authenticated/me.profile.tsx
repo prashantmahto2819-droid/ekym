@@ -18,6 +18,7 @@ import { INDIAN_STATES } from "@/lib/locations";
 import { DistrictInput } from "@/components/site/DistrictInput";
 import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
+import { MyOrgs } from "@/components/site/MyOrgs";
 
 export const Route = createFileRoute("/_authenticated/me/profile")({
   head: () => ({ meta: [{ title: "मेरी प्रोफ़ाइल · My profile" }, { name: "robots", content: "noindex" }] }),
@@ -123,6 +124,7 @@ function EditProfile() {
           <div className="mt-4 flex justify-end gap-2"><Button asChild variant="outline"><Link to="/community/chat">{L ? "चैट पर जाएँ" : "Go to chat"}</Link></Button><Button onClick={() => void save()} disabled={busy}>{L ? "सहेजें" : "Save"}</Button></div>
         </div>
       </div>
+      <div className="mt-6"><MyOrgs /></div>
     </section>
   );
 }
