@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.stories-cleanup]
 verify_jwt = false
+
+[functions.letters-cleanup]
+verify_jwt = false
