@@ -19,7 +19,7 @@ jobs:
       - name: Check
         env:
           URLS: ${{ inputs.urls }}
-        run: NODE_PATH=/tmp/pw/node_modules node scripts/site-check.mjs
+        run: cp scripts/site-check.mjs /tmp/pw/ && cd /tmp/pw && node site-check.mjs && cp -r site-check "$GITHUB_WORKSPACE"/ || { cp -r site-check "$GITHUB_WORKSPACE"/ 2>/dev/null; exit 1; }
       - uses: actions/upload-artifact@v4
         if: always()
         with:
