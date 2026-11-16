@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.chat-cleanup]
 verify_jwt = false
+
+[functions.push-send]
+verify_jwt = false

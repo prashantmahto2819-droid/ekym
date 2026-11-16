@@ -19,6 +19,7 @@ import { call, CHAT_FILE_ACCEPT, CHAT_MEDIA_DAYS, roomTitle, timeAgo, uploadChat
 import { Lightbox } from "@/components/site/Feed";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
+import { MuteMenu } from "@/components/community/MuteMenu";
 import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -323,7 +324,7 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
             <span className={`block truncate text-xs ${msgs.typing.length || otherOnline ? "text-emerald-600" : "text-muted-foreground"}`}>{sub}</span>
           </span>
         </button>
-        <Button size="icon" variant="ghost" onClick={() => void toggleMute()} title={muted ? (L ? "सूचनाएँ चालू करें" : "Unmute") : (L ? "म्यूट करें" : "Mute")}>{muted ? <BellOff className="size-4" /> : <Bell className="size-4" />}</Button>
+        <MuteMenu roomId={room.id} L={L} className="size-9" />
         {room.kind !== "dm" ? <Button size="sm" variant="ghost" onClick={() => setShowMembers((v) => !v)}><Users className="size-4" /> {room.member_count}</Button> : null}
       </header>
       <div className="relative flex min-h-0 flex-1">

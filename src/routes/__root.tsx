@@ -25,6 +25,7 @@ import { themeCss, type Branding } from "@/core/theme";
 import { THEME_SCRIPT } from "@/core/theme-mode";
 import { AdSlot, ConsentBanner } from "@/components/site/Ads";
 import { BottomTabs } from "@/components/site/BottomTabs";
+import { ChatDock } from "@/components/community/ChatDock";
 import { InstallPrompt } from "@/components/site/InstallPrompt";
 
 import appCss from "../styles.css?url";
@@ -193,6 +194,7 @@ function RootComponent() {
             {chromeless ? null : <Footer />}
             {chromeless ? null : <ConsentBanner />}
             {chromeless ? null : <BottomTabs />}
+            {chromeless ? null : <ChatDock />}
             {chromeless ? null : <InstallPrompt appName={tenant.short_name || tenant.name || "Kalchuri One"} />}
           </div>
           </ConsentProvider>

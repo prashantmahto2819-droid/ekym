@@ -3,7 +3,7 @@
  * - Built files (/assets/*), icons, fonts: cache first (they have hashed names / rarely change).
  * - Supabase / API / POST requests are never touched.
  * Bump VERSION to drop old caches. */
-const VERSION = "k1-v1";
+const VERSION = "k1-v2";
 const PAGES = `${VERSION}-pages`;
 const STATIC = `${VERSION}-static`;
 const OFFLINE = "/offline.html";
@@ -55,4 +55,24 @@ self.addEventListener("fetch", (e) => {
       return res;
     })());
   }
+});
+
+/* ---- सिस्टम सूचना (Web Push, edge function push-send) ---- */
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { title: "Kalchuri One", body: e.data ? e.data.text() : "" }; }
+  e.waitUntil(self.registration.showNotification(d.title || "Kalchuri One", {
+    body: d.body || "", icon: "/pwa-192.png", badge: "/pwa-192.png", tag: d.tag || undefined, renotify: !!d.tag,
+    data: { url: d.url || "/community" }, lang: "hi",
+  }));
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || "/community", self.location.origin).href;
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) { if (new URL(w.url).origin === self.location.origin) { await w.focus(); w.navigate(url).catch(() => undefined); return; } }
+    await self.clients.openWindow(url);
+  })());
 });
