@@ -42,7 +42,7 @@ export function ExtraEditor({ rows, onChange, L }: { rows: ExtraField[]; onChang
             ) : null}
             <datalist id={`mx-${g.id}`}>{g.suggest.map(([hi, en]) => <option key={hi} value={L ? hi : en} />)}</datalist>
             <div className="mt-2 flex flex-wrap gap-1">
-              {g.suggest.filter(([hi, en]) => !used.has(hi) && !used.has(en)).slice(0, 8).map(([hi, en]) => (
+              {g.suggest.filter(([hi, en]) => !used.has(hi) && !used.has(en)).slice(0, 14).map(([hi, en]) => (
                 <button key={hi} type="button" onClick={() => add(g.id, L ? hi : en)} className="rounded-full border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground hover:border-primary hover:text-primary">+ {L ? hi : en}</button>
               ))}
               <button type="button" onClick={() => add(g.id)} className="rounded-full border border-primary/40 px-2 py-0.5 text-xs text-primary">+ {L ? "अपनी पंक्ति" : "Own row"}</button>

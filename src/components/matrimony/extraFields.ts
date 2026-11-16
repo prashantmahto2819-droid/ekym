@@ -5,15 +5,15 @@ export type ExtraField = { g: ExtraGroup; k: string; v: string };
 export const EXTRA_GROUPS: { id: ExtraGroup; hi: string; en: string; icon: string; suggest: [string, string][] }[] = [
   { id: "family", hi: "पारिवारिक विवरण", en: "Family details", icon: "👨‍👩‍👧", suggest: [
     ["पिता का नाम", "Father's name"], ["पिता का व्यवसाय", "Father's occupation"], ["माता का नाम", "Mother's name"], ["माता का व्यवसाय", "Mother's occupation"],
-    ["भाई", "Brothers"], ["बहन", "Sisters"], ["दादा", "Grandfather"], ["मामा (ननिहाल)", "Maternal uncle"], ["परिवार का प्रकार", "Family type"], ["पारिवारिक पता", "Family address"],
+    ["भाई", "Brothers"], ["बहन", "Sisters"], ["परिवार में सदस्य संख्या", "Family members"], ["दादा", "Grandfather"], ["मामा (ननिहाल)", "Maternal uncle"], ["परिवार का प्रकार", "Family type"], ["पारिवारिक पता", "Family address"],
   ] },
   { id: "birth", hi: "जन्म व कुंडली", en: "Birth & horoscope", icon: "🪔", suggest: [
     ["जन्म तिथि", "Date of birth"], ["जन्म समय", "Time of birth"], ["जन्म स्थान", "Place of birth"], ["राशि", "Rashi"], ["नक्षत्र", "Nakshatra"], ["मांगलिक", "Manglik"], ["नाड़ी", "Nadi"], ["गण", "Gana"],
   ] },
   { id: "personal", hi: "व्यक्तिगत", en: "Personal", icon: "🙂", suggest: [
-    ["रंग", "Complexion"], ["वज़न", "Weight"], ["रक्त समूह", "Blood group"], ["खान-पान", "Diet"], ["भाषाएँ", "Languages"], ["कार्यस्थल", "Work place"], ["वैवाहिक स्थिति", "Marital status"],
+    ["जाति / उपजाति", "Caste / sub-caste"], ["कंपनी / संस्था", "Company / employer"], ["मासिक आय", "Monthly income"], ["रंग", "Complexion"], ["वज़न", "Weight"], ["रक्त समूह", "Blood group"], ["खान-पान", "Diet"], ["भाषाएँ", "Languages"], ["कार्यस्थल", "Work place"], ["वैवाहिक स्थिति", "Marital status"],
   ] },
-  { id: "other", hi: "अन्य जानकारी", en: "Other details", icon: "📝", suggest: [["संपत्ति", "Property"], ["वाहन", "Vehicle"], ["उपलब्धियाँ", "Achievements"], ["विशेष", "Note"]] },
+  { id: "other", hi: "अन्य जानकारी", en: "Other details", icon: "📝", suggest: [["संपत्ति", "Property"], ["स्वयं का मकान", "Own house"], ["वाहन", "Vehicle"], ["कुलदेवी / कुलदेवता", "Family deity"], ["उपलब्धियाँ", "Achievements"], ["शुभेच्छु / संदर्भ", "Referred by"], ["विशेष", "Note"]] },
 ];
 
 /** Clean rows from the database (drops empty / malformed rows). */
