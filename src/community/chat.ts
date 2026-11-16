@@ -14,7 +14,46 @@ export async function call<T = unknown>(fn: string, args: Record<string, unknown
 }
 
 export type Room = { id: string; organization_id: string; org_name: string; kind: "channel" | "group" | "dm"; name: string; name_hi: string | null; description: string | null; category: string | null; sort_order: number; is_private: boolean; member_count: number; unread: number; last_message_at: string | null; last_text: string | null; joined: boolean; other_user: string | null; other_name: string | null; other_photo: string | null; other_online: boolean | null };
-export type Msg = { id: string; sender_id: string; sender_name: string; sender_photo: string | null; body: string | null; media: { type: string; url: string }[]; reply_to: string | null; reply_text: string | null; reply_name: string | null; created_at: string; edited_at: string | null; deleted: boolean; mine: boolean; reactions?: { e: string; n: number; mine: boolean }[]; seen_by?: number; others?: number };
+export type Msg = { id: string; sender_id: string; sender_name: string; sender_photo: string | null; body: string | null; media: ChatMedia[]; reply_to: string | null; reply_text: string | null; reply_name: string | null; created_at: string; edited_at: string | null; deleted: boolean; mine: boolean; reactions?: { e: string; n: number; mine: boolean }[]; seen_by?: number; others?: number };
+/** चैट की फोटो / फ़ाइल: पुरानी {type:'image', url} (community बैच, सार्वजनिक), नई {type:'image'|'file', path, name, size, mime} (निजी chat बैच),
+ *  30 दिन बाद हटने पर {type:'expired', n} */
+export type ChatMedia = { type: string; url?: string; path?: string; name?: string; size?: number; mime?: string; n?: number };
+export const CHAT_MEDIA_DAYS = 30; // DB: k1_chat_media_days()
+export const CHAT_FILE_ACCEPT = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv";
+
+/** फोटो छोटी करके, दस्तावेज़ जैसा है वैसा — निजी chat बैच में <room>/<file> */
+export async function uploadChatFile(file: File, roomId: string): Promise<ChatMedia> {
+  const rand = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const isImg = file.type.startsWith("image/");
+  let blob: Blob = file, mime = file.type || "application/octet-stream", ext = (file.name.split(".").pop() || "bin").toLowerCase();
+  if (isImg && file.type !== "image/gif") {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    blob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("encode"))), "image/jpeg", 0.85));
+    mime = "image/jpeg"; ext = "jpg";
+  }
+  if (blob.size > 10 * 1024 * 1024) throw new Error("फ़ाइल 10 MB से छोटी रखें");
+  const path = `${roomId}/${rand}.${ext.replace(/[^a-z0-9]/g, "") || "bin"}`;
+  const { error } = await supabase.storage.from("chat").upload(path, blob, { contentType: mime });
+  if (error) throw new Error(error.message.includes("mime") ? "यह फ़ाइल प्रकार नहीं चलेगा (फोटो, PDF, Word, Excel, PPT, TXT)" : error.message);
+  return { type: isImg ? "image" : "file", path, name: file.name.slice(0, 120), size: blob.size, mime };
+}
+
+/** निजी फ़ाइलों के 1 घंटे वाले लिंक (एक साथ) */
+export function useChatSigned(paths: string[]) {
+  const key = [...new Set(paths)].sort();
+  return useQuery({
+    queryKey: ["chat_signed", key], enabled: key.length > 0, staleTime: 50 * 60 * 1000,
+    queryFn: async () => {
+      const { data } = await supabase.storage.from("chat").createSignedUrls(key, 3600);
+      return Object.fromEntries((data ?? []).filter((x) => x.signedUrl).map((x) => [x.path, x.signedUrl])) as Record<string, string>;
+    },
+  });
+}
+
 export type RoomFlags = { room_id: string; muted: boolean; last_mine: boolean | null; last_seen: boolean | null; last_at: string | null };
 export type Person = { user_id: string; name: string; photo_url: string | null; org_names: string | null; village: string | null; district?: string | null; last_seen_at: string | null; online: boolean; friend_status?: FriendStatus; total?: number };
 export type FriendStatus = "none" | "pending_out" | "pending_in" | "friends";

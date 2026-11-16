@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, FriendButton, ProfileCard } from "@/components/community/ChatBits";
 import { OccasionsCard } from "@/components/community/Occasions";
 import { StoriesStrip } from "@/components/community/Stories";
-import { call, roomTitle, timeAgo, uploadCommunityImage, useFacets, useFriendRequests, useMe, useMessages, usePeople, usePresence, useRecommendations, useRoomFlags, useRooms, useStickToBottom, type Msg, type PeopleFilter, type Person, type Room, type RoomFlags, type RoomMember } from "@/community/chat";
+import { call, CHAT_FILE_ACCEPT, CHAT_MEDIA_DAYS, roomTitle, timeAgo, uploadChatFile, useChatSigned, useFacets, useFriendRequests, useMe, useMessages, usePeople, usePresence, useRecommendations, useRoomFlags, useRooms, useStickToBottom, type ChatMedia, type Msg, type PeopleFilter, type Person, type Room, type RoomFlags, type RoomMember } from "@/community/chat";
 import { Lightbox } from "@/components/site/Feed";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
@@ -256,6 +256,9 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
   const [busy, setBusy] = useState(false); const [showMembers, setShowMembers] = useState(false); const [menu, setMenu] = useState<string | null>(null); const [emoji, setEmoji] = useState(false);
   const [viewer, setViewer] = useState<{ urls: string[]; i: number } | null>(null);
   const list = msgs.data ?? [];
+  const signed = useChatSigned(list.flatMap((m) => (m.media ?? []).filter((x) => x.path).map((x) => x.path!)));
+  const srcOf = (x: ChatMedia) => x.url ?? (x.path ? signed.data?.[x.path] : undefined) ?? "";
+  const dlOf = (x: ChatMedia) => { const u = srcOf(x); if (!u) return ""; return `${u}${u.includes("?") ? "&" : "?"}download=${encodeURIComponent(x.name || (x.type === "image" ? "photo.jpg" : "file"))}`; };
   const { ref, onScroll, away, toBottom } = useStickToBottom(list.length);
   const fileRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -277,8 +280,8 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
     if (!consent.accepted) { consent.ensure(() => void send()); return; }
     setBusy(true);
     try {
-      const media: { type: string; url: string }[] = [];
-      for (const f of files.slice(0, 4)) media.push({ type: "image", url: await uploadCommunityImage(f, `${tenant.organization_id}/chat/${room.id}`) });
+      const media: ChatMedia[] = [];
+      for (const f of files.slice(0, 4)) media.push(await uploadChatFile(f, room.id));
       await call("k1_chat_send", { p_room: room.id, p_body: text.trim(), p_media: media, p_reply: reply?.id ?? null });
       setText(""); setFiles([]); setReply(null); setEmoji(false);
       await qc.invalidateQueries({ queryKey: ["chat_msgs", room.id] });
@@ -334,8 +337,12 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
             const showDay = !prev || new Date(prev.created_at).toDateString() !== day;
             const first = showDay || !prev || prev.sender_id !== m.sender_id || Date.parse(m.created_at) - Date.parse(prev.created_at) > 5 * 60000;
             const last = !next || next.sender_id !== m.sender_id || new Date(next.created_at).toDateString() !== day || Date.parse(next.created_at) - Date.parse(m.created_at) > 5 * 60000;
-            const imgs = (m.media ?? []).filter((x) => x.type === "image").map((x) => x.url);
-            const onlyImg = !m.body && imgs.length > 0 && !m.reply_to;
+            const imgItems = (m.media ?? []).filter((x) => x.type === "image");
+            const imgs = imgItems.map(srcOf).filter(Boolean);
+            const docs = (m.media ?? []).filter((x) => x.type === "file");
+            const expired = (m.media ?? []).find((x) => x.type === "expired");
+            const until = new Date(Date.parse(m.created_at) + CHAT_MEDIA_DAYS * 86400000);
+            const onlyImg = false;
             const ticks = m.mine && !m.deleted ? ((m.others ?? 0) > 0 && (m.seen_by ?? 0) >= (m.others ?? 0) ? <CheckCheck className="size-3.5 text-sky-500" /> : (m.seen_by ?? 0) > 0 ? <CheckCheck className="size-3.5" /> : <Check className="size-3.5" />) : null;
             return (
               <div key={m.id} className={first ? "mt-2" : "mt-0.5"}>
@@ -352,6 +359,19 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
                       {m.reply_to ? <div className="mb-1 rounded-md border-l-4 border-emerald-500 bg-black/5 px-2 py-1 text-[12px] dark:bg-white/10"><b className="block text-emerald-700 dark:text-emerald-300">{m.reply_name}</b><span className="line-clamp-2 opacity-80">{m.reply_text}</span></div> : null}
                       {m.deleted ? <i className="flex items-center gap-1 pr-12 text-[13px] opacity-60">🚫 {m.mine ? (L ? "आपने यह संदेश हटाया" : "You deleted this message") : (L ? "यह संदेश हटाया गया" : "This message was deleted")}</i> : <>
                         {imgs.length ? <div className={`grid gap-1 ${imgs.length > 1 ? "grid-cols-2" : ""}`}>{imgs.map((u, i) => <button key={i} type="button" onClick={() => setViewer({ urls: imgs, i })} className="overflow-hidden rounded-md"><img src={u} alt="" loading="lazy" className={`w-full object-cover ${imgs.length > 1 ? "aspect-square max-w-[150px]" : "max-h-72 max-w-xs"}`} /></button>)}</div> : null}
+                        {docs.map((d, i) => (
+                          <a key={i} href={dlOf(d) || undefined} target="_blank" rel="noreferrer" className="mb-1 flex items-center gap-2 rounded-md bg-black/5 px-2 py-2 hover:bg-black/10 dark:bg-white/10">
+                            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-rose-600 text-[10px] font-bold uppercase text-white">{(d.name?.split(".").pop() ?? "file").slice(0, 4)}</span>
+                            <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{d.name ?? (L ? "फ़ाइल" : "File")}</span><span className="block text-[11px] opacity-70">{d.size ? `${(d.size / 1024 / 1024).toFixed(d.size > 1048576 ? 1 : 2)} MB · ` : ""}{L ? "डाउनलोड करें" : "Download"}</span></span>
+                          </a>
+                        ))}
+                        {expired ? <p className="mb-1 rounded-md bg-black/5 px-2 py-1.5 text-[12.5px] italic opacity-70 dark:bg-white/10">🗂️ {L ? `${expired.n ?? 1} फोटो / फ़ाइल ${CHAT_MEDIA_DAYS} दिन बाद सर्वर से हटा दी गई` : `${expired.n ?? 1} photo / file removed after ${CHAT_MEDIA_DAYS} days`}</p> : null}
+                        {(imgItems.length || docs.length) && !expired ? (
+                          <p className="mb-1 mt-0.5 flex flex-wrap items-center gap-x-1.5 rounded bg-amber-100/80 px-1.5 py-0.5 text-[11px] text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
+                            ⏳ {L ? `सर्वर पर ${until.toLocaleDateString("hi-IN", { day: "numeric", month: "short" })} तक ही रहेगी — ज़रूरी हो तो डाउनलोड करके कहीं और सहेज लें` : `Kept on the server until ${until.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} — download to keep it`}
+                            {imgItems.map((x, i) => (dlOf(x) ? <a key={i} href={dlOf(x)} target="_blank" rel="noreferrer" className="font-semibold underline">⬇ {imgItems.length > 1 ? `${L ? "फोटो" : "photo"} ${i + 1}` : (L ? "डाउनलोड" : "download")}</a> : null))}
+                          </p>
+                        ) : null}
                         {m.body ? <p className="whitespace-pre-wrap break-words">{linkify(m.body)}<span className={`inline-block ${m.edited_at ? "w-24" : m.mine ? "w-16" : "w-12"}`} aria-hidden /></p> : null}
                       </>}
                       <span className={`float-right -mt-3.5 ml-2 flex items-center gap-0.5 text-[10.5px] ${onlyImg ? "absolute bottom-2 right-2 mt-0 rounded bg-black/40 px-1 text-white" : "relative top-1 opacity-60"}`}>
@@ -402,7 +422,8 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
             <button type="button" onClick={() => { setReply(null); if (editing) { setEditing(null); setText(""); } }} aria-label={L ? "रद्द" : "Cancel"}><X className="size-4" /></button>
           </div>
         ) : null}
-        {files.length ? <div className="mb-1.5 flex gap-1.5">{files.map((f, i) => <span key={i} className="relative"><img src={URL.createObjectURL(f)} alt="" className="size-14 rounded-md object-cover" /><button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-foreground text-[10px] text-background">✕</button></span>)}</div> : null}
+        {files.length ? <p className="mb-1 text-[11px] text-muted-foreground">⏳ {L ? `फोटो / फ़ाइलें ${CHAT_MEDIA_DAYS} दिन बाद सर्वर से अपने-आप हट जाती हैं — पाने वाले को भी यही लिखा दिखेगा।` : `Photos / files are removed from the server after ${CHAT_MEDIA_DAYS} days — the receiver sees this note too.`}</p> : null}
+        {files.length ? <div className="mb-1.5 flex gap-1.5">{files.map((f, i) => <span key={i} className="relative">{f.type.startsWith("image/") ? <img src={URL.createObjectURL(f)} alt="" className="size-14 rounded-md object-cover" /> : <span className="grid size-14 place-items-center rounded-md bg-rose-600 p-1 text-center text-[10px] font-bold uppercase leading-tight text-white">{(f.name.split(".").pop() ?? "").slice(0, 4)}<span className="block w-full truncate text-[8px] font-normal normal-case">{f.name}</span></span>}<button type="button" onClick={() => setFiles(files.filter((_, j) => j !== i))} className="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-foreground text-[10px] text-background">✕</button></span>)}</div> : null}
         {emoji ? <div className="mb-1.5 grid grid-cols-10 gap-0.5 rounded-lg border border-border bg-background p-1.5">{EMOJIS.map((e) => <button key={e} type="button" onClick={() => { setText((t) => t + e); taRef.current?.focus(); }} className="grid h-8 place-items-center rounded text-lg hover:bg-secondary">{e}</button>)}</div> : null}
         <div className="flex items-end gap-1.5">
           <div className="flex min-w-0 flex-1 items-end rounded-3xl border border-input bg-background px-1">
@@ -415,8 +436,8 @@ function RoomView({ room, L, online, me, muted, onBack, onProfile }: { room: Roo
               className="max-h-32 min-h-[38px] w-full min-w-0 flex-1 resize-none bg-transparent px-1 py-2 text-[15px] outline-none"
             />
             {!editing ? <>
-              <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { setFiles([...files, ...Array.from(e.target.files ?? [])].slice(0, 4)); e.target.value = ""; }} />
-              <Button size="icon" variant="ghost" className="size-9 shrink-0 rounded-full" onClick={() => fileRef.current?.click()} title={L ? "फोटो" : "Photo"}><ImageIcon className="size-5" /></Button>
+              <input ref={fileRef} type="file" accept={CHAT_FILE_ACCEPT} multiple hidden onChange={(e) => { setFiles([...files, ...Array.from(e.target.files ?? [])].slice(0, 4)); e.target.value = ""; }} />
+              <Button size="icon" variant="ghost" className="size-9 shrink-0 rounded-full" onClick={() => fileRef.current?.click()} title={L ? "फोटो / दस्तावेज़" : "Photo / document"}><ImageIcon className="size-5" /></Button>
             </> : null}
           </div>
           <Button size="icon" className="size-11 shrink-0 rounded-full bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => void send()} disabled={busy || (!text.trim() && !files.length)} title={L ? "भेजें" : "Send"}>{editing ? <Check className="size-5" /> : <Send className="size-5" />}</Button>
