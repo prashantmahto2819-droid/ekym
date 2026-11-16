@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-16 — Notifications like a social app, chat everywhere, editable posts, richer profiles
+- **Chat dock on every page** (`ChatDock`, mounted in `__root`): a direct message (cm_notifications `chat_dm`, realtime) opens a small window bottom-right on desktop, or a toast with "खोलें" on phones (full-screen window). Minimise, close, open full chat, mute; round chat button with unread count + recent chats. Global presence heartbeat so off-site alerts only go when the person is really away.
+- **Mute for a while**: `cm_chat_members.muted_until`, RPC `k1_chat_mute_for(room, minutes)` (1 h / 8 h / 1 day / 1 week / always / unmute), cron `k1-chat-unmute` every 5 min; `MuteMenu` in the chat page and the dock.
+- **Live toasts** for every new bell notification on any page (MemberBell); DM notifications carry `/community/chat?room=…` (trigger `trg_cm_notif_dm_link`).
+- **Per-type × channel settings** (/me/notifications): bell, phone/browser push, WhatsApp, email for each kind; all on by default (`k1_notification_prefs.channels`, `k1_pref_on`; `k1_notify_user2` and the DM alert respect it).
+- **Web Push**: `k1_push_subscriptions`, RPCs `k1_push_subscribe/unsubscribe/public_key`, edge function `push-send` (creates VAPID keys once; sends on each new notification via trigger `trg_cm_notif_push`, skips muted chats and people currently on the site), `sw.js` push + click handlers. iPhone needs the home-screen app (iOS 16.4+).
+- **Chat files & 30-day limit**: documents (PDF, Word, Excel, PPT, TXT/CSV, 10 MB) in private bucket `chat` (`<room>/<file>`, readable by room members only); every photo/file shows "server पर … तक" + download; `chat-cleanup` removes chat media after `k1_chat_media_days()` (30) days nightly; DM WhatsApp/email alert when the receiver is offline (30 min throttle; falls back to the receiver's organization channel).
+- **Posts**: authors can edit text, link and photos (remove / replace / edit / add) — `k1_post_edit`, re-moderated on change. **Photo editor** (`ImageEditor`: crop with ratios, rotate, filters, stickers, text) in new posts, post edit and stories; story text editable (`k1_story_edit`).
+- **Profiles**: sectioned About (`cm_user_profiles.about`, `k1_profile_save_about`): basic, work & education, places, family (privacy switch), community work; headline, "open to help" badges, completion %, LinkedIn / X links.
+- **Matrimony biodata** card in numbered sections (personal incl. birth date/time/place, family, horoscope, other) with usual ordering; more field suggestions.
+
 ## 2026-11-15 — मूल संस्था (base organization) + one membership per number
 - A person can belong to several organizations; exactly one is the मूल संस्था (`org_memberships.is_base`, one per account). The first membership becomes the base automatically; if it ends, the next active one takes over.
 - /me/profile → "मेरी संस्थाएँ": all memberships (⭐ मूल संस्था, status, number, site link), "मूल बनाएँ", "आवेदन वापस लें", "दूसरी संस्था से जुड़ें" (search organizations, optional message; the application carries the base membership's details and lands in that organization's normal approval list).
