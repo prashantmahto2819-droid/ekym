@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { EXTRA_GROUPS, type ExtraField, type ExtraGroup } from "./extraFields";
+import { EXTRA_GROUPS, inOrder, type ExtraField, type ExtraGroup } from "./extraFields";
 
 export function ExtraEditor({ rows, onChange, L }: { rows: ExtraField[]; onChange: (r: ExtraField[]) => void; L: boolean }) {
   const add = (g: ExtraGroup, k = "") => { if (rows.length >= 40) return; onChange([...rows, { g, k, v: "" }]); };
@@ -18,6 +18,7 @@ export function ExtraEditor({ rows, onChange, L }: { rows: ExtraField[]; onChang
   };
   return (
     <div className="space-y-3">
+      {rows.length > 1 ? <div className="flex justify-end"><Button type="button" size="sm" variant="outline" onClick={() => onChange(EXTRA_GROUPS.flatMap((g) => inOrder(rows.filter((r) => r.g === g.id))))}>↕ {L ? "सही क्रम में लगाएँ" : "Sort in usual order"}</Button></div> : null}
       <p className="text-xs text-muted-foreground">{L ? "अपनी जानकारी बिंदुवार जोड़ें — बाएँ शीर्षक (जैसे \"पिता का नाम\"), दाएँ जानकारी। ये बायोडाटा कार्ड और प्रोफ़ाइल पर इसी क्रम में दिखेंगी।" : "Add your details point by point — a label on the left (e.g. \"Father's name\") and the detail on the right. They show on the card and profile in this order."}</p>
       {EXTRA_GROUPS.map((g) => {
         const idx = rows.map((r, i) => [r, i] as const).filter(([r]) => r.g === g.id);

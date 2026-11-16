@@ -1,5 +1,5 @@
 // Read-only views: point-wise text and the owner's grouped details.
-import { EXTRA_GROUPS, points, type ExtraField } from "./extraFields";
+import { EXTRA_GROUPS, inOrder, points, type ExtraField } from "./extraFields";
 
 /** Free text shown as a bullet list when written point-wise, otherwise as a paragraph. */
 export function Points({ text, className = "" }: { text: string | null | undefined; className?: string }) {
@@ -15,7 +15,7 @@ export function ExtraList({ rows, L }: { rows: ExtraField[]; L: boolean }) {
   return (
     <div className="mt-2 space-y-2">
       {EXTRA_GROUPS.map((g) => {
-        const r = rows.filter((x) => x.g === g.id);
+        const r = inOrder(rows.filter((x) => x.g === g.id));
         if (!r.length) return null;
         return (
           <div key={g.id}>

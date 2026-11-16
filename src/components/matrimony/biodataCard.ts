@@ -9,7 +9,7 @@ import QRCode from "qrcode";
 
 import { toDevanagari, toLatin } from "@/design-engine/script";
 
-import { EXTRA_GROUPS, points, type ExtraField } from "./extraFields";
+import { EXTRA_GROUPS, inOrder, isBirthBasic, points, type ExtraField } from "./extraFields";
 
 export type FieldKey = "age" | "height" | "education" | "profession" | "income" | "city" | "gotra" | "native" | "created_for" | "interests" | "about" | "expectations" | "special_note" | "extra";
 export type FontKey = "rozha" | "tiro" | "yatra" | "kalam" | "notoserif" | "mukta";
@@ -329,8 +329,23 @@ export async function renderCard(d: CardData, o: CardOpts): Promise<HTMLCanvasEl
   if (F.created_for && d.created_for) cells.push({ k: L.created_for, v: d.created_for });
   if (F.interests && d.interests) cells.push({ k: L.interests, v: d.interests });
   if (o.showContact && d.contact_phone) cells.push({ k: L.contact, v: `+${d.contact_phone.replace(/\D/g, "")}` });
-  const panels: [string, Cell[]][] = [[L.details, cells]];
-  if (F.extra) for (const g of EXTRA_GROUPS) { const r = (d.extra ?? []).filter((x) => x.g === g.id); if (r.length) panels.push([hi ? g.hi : g.en, r.map((x) => ({ k: x.k, v: x.v }))]); }
+  // व्यवस्थित क्रम: 1. व्यक्तिगत (मूल खाने + जन्म तिथि/समय/स्थान + व्यक्तिगत बिंदु, सामान्य बायोडाटा क्रम में)
+  // 2. पारिवारिक 3. जन्म व कुंडली 4. अन्य — हर शीर्षक पर क्रमांक; संपर्क हमेशा व्यक्तिगत के आख़िर में
+  const ex = F.extra ? (d.extra ?? []) : [];
+  const contact = cells.filter((c) => c.k === L.contact);
+  const seen = new Set(cells.map((c) => c.k.trim()));
+  const personal = inOrder([
+    ...cells.filter((c) => c.k !== L.contact),
+    ...ex.filter((x) => x.g === "personal" || (x.g === "birth" && isBirthBasic(x.k))).filter((x) => !seen.has(x.k.trim())).map((x) => ({ k: x.k, v: x.v })),
+  ]).concat(contact);
+  const grp = (id: string, rows: ExtraField[]) => [hi ? EXTRA_GROUPS.find((g) => g.id === id)!.hi : EXTRA_GROUPS.find((g) => g.id === id)!.en, inOrder(rows).map((x) => ({ k: x.k, v: x.v }))] as [string, Cell[]];
+  const raw: [string, Cell[]][] = [
+    [L.details, personal],
+    grp("family", ex.filter((x) => x.g === "family")),
+    grp("birth", ex.filter((x) => x.g === "birth" && !isBirthBasic(x.k))),
+    grp("other", ex.filter((x) => x.g === "other")),
+  ];
+  const panels: [string, Cell[]][] = raw.filter(([, r]) => r.length).map(([t2, r], i) => [`${i + 1}. ${t2}`, r]);
   const paras: [string, string][] = [];
   if (F.about && d.about) paras.push([L.about, d.about]);
   if (F.expectations && d.expectations) paras.push([L.expectations, d.expectations]);
