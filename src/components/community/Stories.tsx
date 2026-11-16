@@ -8,6 +8,7 @@ import { Avatar } from "@/components/community/ChatBits";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageEditor } from "@/components/community/ImageEditor";
 import { call, timeAgo, useMe } from "@/community/chat";
 import { useConsent } from "@/components/community/ConsentGate";
 import { useTenant } from "@/core/tenant-context";
@@ -87,6 +88,11 @@ function StoryViewer({ groups, index, L, onClose, onIndex }: { groups: Group[]; 
   function next() { if (si < g.stories.length - 1) setSi(si + 1); else if (index < groups.length - 1) onIndex(index + 1); else { void qc.invalidateQueries({ queryKey: ["stories"] }); onClose(); } }
   function prev() { if (si > 0) setSi(si - 1); else if (index > 0) onIndex(index - 1); }
   async function del() { if (!confirm(L ? "यह स्टोरी हटाएँ?" : "Delete this story?")) return; try { await call("k1_story_delete", { p_story: s.id }); toast.success(L ? "हटा दी।" : "Deleted"); await qc.invalidateQueries({ queryKey: ["stories"] }); onClose(); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } }
+  async function editCaption() {
+    const c = prompt(L ? "स्टोरी का लिखा बदलें" : "Edit story text", s.caption ?? "");
+    if (c === null) return;
+    try { await call("k1_story_edit", { p_story: s.id, p_caption: c }); toast.success(L ? "बदल दिया" : "Updated"); await qc.invalidateQueries({ queryKey: ["stories"] }); } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  }
   async function showViewers() { setViewers(await call<typeof viewers>("k1_story_viewers", { p_story: s.id }).catch(() => [])); }
   const bg = BGS[s.bg ?? "classic"] ?? BGS["classic"];
   return (
@@ -96,7 +102,7 @@ function StoryViewer({ groups, index, L, onClose, onIndex }: { groups: Group[]; 
         <div className="absolute inset-x-0 top-4 z-10 flex items-center gap-2 p-2 text-white">
           <Avatar url={g.photo} name={g.name} size={9} />
           <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold drop-shadow">{g.name}</p><p className="text-[11px] opacity-80">{timeAgo(s.created_at, L)}{s.visibility === "friends" ? ` · 🤝 ${L ? "सिर्फ़ मित्र" : "friends"}` : ""}</p></div>
-          {g.mine ? <><button type="button" className="rounded-full bg-black/40 px-2 py-1 text-xs" onClick={() => void showViewers()}>👁 {s.views}</button><button type="button" className="rounded-full bg-black/40 p-1.5" onClick={() => void del()}><Trash2 className="size-4" /></button></> : null}
+          {g.mine ? <><button type="button" className="rounded-full bg-black/40 px-2 py-1 text-xs" onClick={() => void showViewers()}>👁 {s.views}</button><button type="button" className="rounded-full bg-black/40 px-2 py-1 text-xs" onClick={() => void editCaption()}>✏️</button><button type="button" className="rounded-full bg-black/40 p-1.5" onClick={() => void del()}><Trash2 className="size-4" /></button></> : null}
           <button type="button" className="rounded-full bg-black/40 p-1.5" onClick={onClose}><X className="size-5" /></button>
         </div>
         {s.path ? <img src={storyUrl(s.path)} alt="" className="h-full w-full object-contain" /> : <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${bg} p-8 text-center text-2xl font-semibold leading-relaxed text-white drop-shadow`}>{s.caption}</div>}
@@ -123,8 +129,9 @@ function StoryComposer({ L, onClose, onDone }: { L: boolean; onClose: () => void
   const [bg, setBg] = useState("classic");
   const [vis, setVis] = useState<"members" | "friends">("members");
   const [busy, setBusy] = useState(false);
+  const [editImg, setEditImg] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
-  function pick(f: File | undefined) { if (!f) return; setFile(f); setPreview(URL.createObjectURL(f)); }
+  function pick(f: File | undefined) { if (!f) return; setFile(f); setPreview(URL.createObjectURL(f)); if (f.type !== "image/gif") setEditImg(true); }
   async function post() {
     if (!user) return;
     if (!file && !caption.trim()) { toast.error(L ? "फोटो चुनिए या कुछ लिखिए" : "Pick a photo or write something"); return; }
@@ -157,7 +164,9 @@ function StoryComposer({ L, onClose, onDone }: { L: boolean; onClose: () => void
         <input ref={ref} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
         {preview ? <div className="relative"><img src={preview} alt="" className="max-h-72 w-full rounded-lg object-contain bg-black" /><button type="button" className="absolute right-2 top-2 rounded-full bg-black/60 p-1 text-white" onClick={() => { setFile(null); setPreview(null); }}><X className="size-4" /></button></div>
           : <div className={`grid h-48 place-items-center rounded-lg bg-gradient-to-br ${BGS[bg]} p-4 text-center text-xl font-semibold text-white`}>{caption || (L ? "फोटो चुनिए या नीचे लिखिए" : "Pick a photo or write below")}</div>}
+        {editImg && file ? <ImageEditor src={file} L={L} defaultAspect={9 / 16} maxSide={1080} onClose={() => setEditImg(false)} onDone={(f) => { setFile(f); setPreview(URL.createObjectURL(f)); setEditImg(false); }} /> : null}
         <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => ref.current?.click()}>🖼 {L ? "फोटो चुनें" : "Choose photo"}</Button>
+          {file && file.type !== "image/gif" ? <Button size="sm" variant="outline" onClick={() => setEditImg(true)}>✏️ {L ? "काटें · स्टिकर · लिखें" : "Crop · stickers · text"}</Button> : null}
           {!file ? <div className="flex gap-1">{Object.keys(BGS).map((k) => <button key={k} type="button" onClick={() => setBg(k)} className={`h-7 w-7 rounded-full bg-gradient-to-br ${BGS[k]} ${bg === k ? "ring-2 ring-primary ring-offset-2" : ""}`} />)}</div> : null}</div>
         <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={2} maxLength={300} placeholder={L ? "कुछ लिखिए (वैकल्पिक)" : "Say something (optional)"} />
         <div className="flex items-center justify-between gap-2 text-sm">

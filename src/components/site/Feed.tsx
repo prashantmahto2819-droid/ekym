@@ -12,6 +12,8 @@ import { catLabel, CATEGORIES, useBizFacets, useMyPages, type BizCardData } from
 import { BoostDialog } from "@/components/business/BoostDialog";
 import { BizEditor, BizFollowButton, BizLogo, TierBadge, Verified } from "@/components/business/BizUI";
 import { useConsent } from "@/components/community/ConsentGate";
+import { EditPost } from "@/components/community/EditPost";
+import { ImageEditor } from "@/components/community/ImageEditor";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -272,6 +274,7 @@ export function CreatePost({ org, L, start, onClose, onPosted, bizId }: { org: s
   const bizLeft = biz ? Math.max(0, biz.daily_limit - (biz.today_posts ?? 0)) : null;
   const asOpts = useQuery({ queryKey: ["post_as_options"], queryFn: () => rpc<{ id: string; name: string; name_hi: string | null; logo: string | null }[]>("k1_post_as_options", {}) });
   const [busy, setBusy] = useState(false);
+  const [editIdx, setEditIdx] = useState<number | null>(null);
   const [mentions, setMentions] = useState<{ user_id: string; full_name: string }[]>([]);
   const mq = /(?:^|\s)@([^\s@]{1,30})$/.exec(body);
   const sugg = useQuery({ queryKey: ["mention", org, mq?.[1]], enabled: !!mq, queryFn: () => rpc<{ user_id: string; full_name: string; org_name: string }[]>("k1_mention_search", { p_org: org, p_q: mq![1], p_limit: 8 }) });
@@ -335,6 +338,7 @@ export function CreatePost({ org, L, start, onClose, onPosted, bizId }: { org: s
                 <div key={u} className="relative aspect-square overflow-hidden rounded-lg">
                   <img src={u} alt="" className="size-full object-cover" />
                   <button type="button" aria-label="remove" onClick={() => setFiles((f) => f.filter((_, j) => j !== i))} className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white"><X className="size-3.5" /></button>
+                  <button type="button" onClick={() => setEditIdx(i)} className="absolute inset-x-1 bottom-1 rounded-md bg-black/60 py-1 text-[11px] font-medium text-white">✏️ {L ? "काटें · स्टिकर · लिखें" : "Crop · stickers · text"}</button>
                 </div>
               ))}
             </div>
@@ -351,6 +355,7 @@ export function CreatePost({ org, L, start, onClose, onPosted, bizId }: { org: s
           </div>
           {biz ? <p className={`rounded-lg px-3 py-2 text-xs ${bizLeft ? "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200" : "bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-200"}`}>{bizLeft ? (L ? `आज ${bizLeft} में से ${biz.daily_limit} पोस्ट बची हैं। व्यापार की पोस्ट "व्यापार" टैब और आपके फ़ॉलोअर्स को दिखती है।` : `${bizLeft} of ${biz.daily_limit} posts left today. Business posts appear in the Business tab and to your followers.`) : (L ? `आज की पोस्ट सीमा (${biz.daily_limit}) पूरी हो गई — कल फिर पोस्ट करें।${biz.tier === "free" ? " रोज़ 10 पोस्ट के लिए पैकेज जल्द आ रहा है।" : ""}` : `Today's limit (${biz.daily_limit}) is used — post again tomorrow.`)}</p> : null}
           <Button className="h-11 w-full rounded-xl text-base" onClick={() => void post()} disabled={busy || empty || bizLeft === 0}>{busy ? (L ? "पोस्ट हो रही है…" : "Posting…") : (L ? "पोस्ट करें" : "Post")}</Button>
+          {editIdx !== null && files[editIdx] ? <ImageEditor src={files[editIdx]!} L={L} onClose={() => setEditIdx(null)} onDone={(f) => { setFiles((fs) => fs.map((x, j) => (j === editIdx ? f : x))); setEditIdx(null); }} /> : null}
           <p className="text-center text-[11px] leading-snug text-muted-foreground">{L ? "विज्ञापन / व्यापारिक या चुनावी प्रचार वाली पोस्ट की पहुँच अपने-आप सीमित होती है। विज्ञापन के लिए " : "Advertising, business or political promotion gets limited reach automatically. To advertise, see "}<Link to="/sponsored" className="underline">{L ? "प्रायोजित सेक्शन" : "Sponsored"}</Link>.</p>
         </div>
       </DialogContent>
@@ -417,6 +422,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
   const [photo, setPhoto] = useState<number | null>(null);
   const [sharing, setSharing] = useState(false);
   const [boosting, setBoosting] = useState(false);
+  const [editing, setEditing] = useState(false);
   const seenRef = useSeen(p.id, signedIn && !p.mine);
   useEffect(() => { setLiked(p.liked); setLikes(p.like_count); setComments(p.comment_count); }, [p.liked, p.like_count, p.comment_count]);
   const url = typeof window !== "undefined" ? `${window.location.origin}/community/${p.id}` : `/community/${p.id}`;
@@ -502,6 +508,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
               {sponsored && !p.mine ? <DropdownMenuItem onClick={() => void hideBiz()}>{L ? "इस व्यापार के विज्ञापन न दिखाएँ" : "Hide ads from this business"}</DropdownMenuItem> : null}
               {p.can_moderate ? <><DropdownMenuItem onClick={() => void moderate(null, !p.pinned)}>{p.pinned ? (L ? "अनपिन करें" : "Unpin") : (L ? "ऊपर पिन करें" : "Pin to top")}</DropdownMenuItem><DropdownMenuItem onClick={() => void moderate("hidden", null)}>{L ? "छिपाएँ" : "Hide"}</DropdownMenuItem></> : null}
               {!p.mine ? <DropdownMenuItem onClick={() => void report()}>{L ? "रिपोर्ट करें" : "Report"}</DropdownMenuItem> : null}
+              {p.mine ? <DropdownMenuItem onClick={() => setEditing(true)}>✏️ {L ? "पोस्ट बदलें (पाठ / फोटो)" : "Edit post (text / photos)"}</DropdownMenuItem> : null}
               {p.mine || p.can_moderate ? <><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onClick={() => void remove()}>{L ? "पोस्ट हटाएँ" : "Delete post"}</DropdownMenuItem></> : null}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -540,6 +547,7 @@ export function PostCard({ p, L, signedIn, onChange, onTag, startOpen = false }:
       {photo !== null ? <Lightbox urls={urls} index={photo} onClose={() => setPhoto(null)} /> : null}
       {boosting && p.business ? <BoostDialog postId={p.id} pageName={p.business.name} postText={p.body} hi={L} onClose={() => setBoosting(false)} /> : null}
       {sharing ? <ShareToWall p={p} L={L} onClose={() => setSharing(false)} onDone={() => { setSharing(false); onChange(); }} /> : null}
+      {editing ? <EditPost p={p} L={L} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); onChange(); }} /> : null}
     </article>
   );
 }

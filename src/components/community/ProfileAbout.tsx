@@ -10,7 +10,8 @@ export type AboutKey =
   | "gender" | "blood_group" | "marital_status" | "languages"
   | "company" | "designation" | "work_place" | "education" | "college" | "skills"
   | "hometown" | "gotra" | "father_name" | "spouse_name" | "children"
-  | "social_work" | "achievements" | "linkedin" | "twitter" | "whatsapp_channel";
+  | "social_work" | "achievements" | "linkedin" | "twitter" | "whatsapp_channel"
+  | "headline" | "open_to" | "work_since" | "prev_work";
 
 type Field = { k: AboutKey; hi: string; en: string; ph?: [string, string]; opts?: [string, string][]; long?: boolean };
 export type SectionId = "basic" | "work" | "place" | "family" | "society";
@@ -27,6 +28,8 @@ export const ABOUT_SECTIONS: { id: SectionId; hi: string; en: string; icon: Reac
     { k: "work_place", hi: "कार्यस्थल (शहर)", en: "Work place (city)" },
     { k: "education", hi: "शिक्षा", en: "Education", ph: ["जैसे बी.कॉम., एम.बी.ए.", "e.g. B.Com, MBA"] },
     { k: "college", hi: "स्कूल / कॉलेज", en: "School / college" },
+    { k: "work_since", hi: "कब से (वर्ष)", en: "Since (year)", ph: ["जैसे 2018", "e.g. 2018"] },
+    { k: "prev_work", hi: "पहले कहाँ काम किया", en: "Previous work", ph: ["जैसे 2014–2018: XYZ कंपनी, रायपुर", "e.g. 2014–2018: XYZ Ltd, Raipur"], long: true },
     { k: "skills", hi: "कौशल / विशेषज्ञता", en: "Skills / expertise", ph: ["जैसे लेखा, डिज़ाइन, खेती, कंप्यूटर", "e.g. accounts, design, farming"], long: true },
   ] },
   { id: "place", hi: "स्थान", en: "Places", icon: <MapPin />, fields: [
@@ -108,4 +111,26 @@ function iconFor(k: AboutKey): ReactNode {
 export function workLine(a: About, occupation: string | null, L: boolean) {
   const role = [a.designation, a.company].filter(Boolean).join(L ? " · " : " at ");
   return role || occupation || "";
+}
+
+/** "मदद के लिए तैयार" — समाज के लोग जिस काम में मदद कर सकते हैं (LinkedIn के "Open to" जैसा) */
+export const OPEN_TO: [string, string, string][] = [
+  ["रक्तदान", "Blood donation", "🩸"], ["नौकरी में मदद", "Job referrals", "💼"], ["पढ़ाई का मार्गदर्शन", "Study guidance", "📚"], ["व्यापार सलाह", "Business advice", "📈"],
+  ["कानूनी सलाह", "Legal advice", "⚖️"], ["स्वास्थ्य सलाह", "Health advice", "🩺"], ["रिश्ते (वैवाहिक) में मदद", "Matrimony help", "💍"], ["स्वयंसेवा / कार्यक्रम", "Volunteering / events", "🤝"],
+  ["कंप्यूटर / मोबाइल मदद", "Tech help", "💻"], ["खेती की जानकारी", "Farming tips", "🌾"],
+];
+export const openToList = (a: About) => (a.open_to ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+export const openToLabel = (v: string, L: boolean) => { const o = OPEN_TO.find(([hi, en]) => hi === v || en === v); return o ? `${o[2]} ${L ? o[0] : o[1]}` : v; };
+
+/** प्रोफ़ाइल कितनी पूरी है (LinkedIn जैसा) — % और अगला सुझाव */
+export function completeness(x: { photo: boolean; cover: boolean; bio: boolean; place: boolean; work: boolean; interests: boolean; birthday: boolean; a: About }, L: boolean) {
+  const a = x.a;
+  const steps: [boolean, string, string][] = [
+    [x.photo, "प्रोफ़ाइल फोटो लगाएँ", "Add a profile photo"], [!!a.headline, "एक पंक्ति का परिचय लिखें", "Write a headline"], [x.bio, "अपने बारे में लिखें", "Write about yourself"],
+    [x.work || !!a.company, "कार्य / व्यवसाय भरें", "Add your work"], [!!a.education, "शिक्षा भरें", "Add education"], [x.place, "वर्तमान निवास भरें", "Add where you live"],
+    [!!a.hometown, "मूल ग्राम भरें", "Add your hometown"], [!!a.gotra, "गोत्र भरें", "Add gotra"], [x.birthday, "जन्मदिन भरें", "Add birthday"],
+    [x.interests, "रुचियाँ लिखें", "Add interests"], [openToList(a).length > 0, "बताएँ आप किस काम में मदद कर सकते हैं", "Say how you can help"], [x.cover, "कवर फोटो लगाएँ", "Add a cover photo"],
+  ];
+  const done = steps.filter(([ok]) => ok).length;
+  return { pct: Math.round((done / steps.length) * 100), next: steps.filter(([ok]) => !ok).slice(0, 3).map(([, hi, en]) => (L ? hi : en)) };
 }

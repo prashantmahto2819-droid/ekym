@@ -19,7 +19,7 @@ import { DistrictInput } from "@/components/site/DistrictInput";
 import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
 import { MyOrgs } from "@/components/site/MyOrgs";
-import { AboutEditor, type About } from "@/components/community/ProfileAbout";
+import { AboutEditor, completeness, OPEN_TO, openToList, type About } from "@/components/community/ProfileAbout";
 
 export const Route = createFileRoute("/_authenticated/me/profile")({
   head: () => ({ meta: [{ title: "मेरी प्रोफ़ाइल · My profile" }, { name: "robots", content: "noindex" }] }),
@@ -95,9 +95,19 @@ function EditProfile() {
             <div className="pb-2"><h1 className="font-display text-xl font-semibold">{L ? "मेरी प्रोफ़ाइल" : "My profile"}</h1><p className="text-xs text-muted-foreground"><Link to="/u/$id" params={{ id: user.id }} className="hover:underline">{L ? "जैसी दूसरों को दिखती है ↗" : "View as others see it ↗"}</Link></p></div>
           </div>
           <div className="mt-4"><ThemeEditor theme={f.theme} onChange={(t) => set("theme", t)} L={L} picked={picked} setPicked={setPicked} size={stSize} setSize={setStSize} /></div>
+          {(() => { const c = completeness({ photo: !!f.photo_url, cover: !!f.cover_url, bio: !!f.bio.trim(), place: !!(f.village || f.district), work: !!f.occupation.trim(), interests: !!f.interests.trim(), birthday: !!occ?.birthday, a: f.about }, L); return (
+            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-center justify-between text-sm font-semibold"><span>{L ? "प्रोफ़ाइल पूरी" : "Profile complete"}</span><span>{c.pct}%</span></div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${c.pct}%` }} /></div>
+              {c.next.length ? <p className="mt-1.5 text-xs text-muted-foreground">{L ? "आगे: " : "Next: "}{c.next.join(" · ")}</p> : <p className="mt-1.5 text-xs text-emerald-700">🎉 {L ? "बहुत बढ़िया — प्रोफ़ाइल पूरी है!" : "Great — your profile is complete!"}</p>}
+            </div>); })()}
           <div className="mt-4 grid gap-3">
             <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "दिखने वाला नाम" : "Display name"}</span><Input value={f.display_name} onChange={(e) => set("display_name", e.target.value)} placeholder={p.data?.name} /></label>
+            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "एक पंक्ति का परिचय (नाम के नीचे दिखेगा)" : "Headline (shown under your name)"}</span><Input maxLength={120} value={f.about.headline ?? ""} onChange={(e) => set("about", { ...f.about, headline: e.target.value })} placeholder={L ? "जैसे: सब इंजीनियर @ कोल इंडिया · समाज सेवक · कोरबा" : "e.g. Sub Engineer @ Coal India · Social worker · Korba"} /></label>
             <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपने बारे में (2–3 पंक्तियाँ)" : "About you (2–3 lines)"}</span><Textarea value={f.bio} onChange={(e) => set("bio", e.target.value)} rows={3} maxLength={1000} placeholder={L ? "जैसे: कोरबा से हूँ, मार्केटिंग में काम करता हूँ, युवा मंच से जुड़ा हूँ…" : "e.g. From Korba, work in marketing, active in the youth wing…"} /></label>
+            <div className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "मदद के लिए तैयार (जो चुनेंगे वह प्रोफ़ाइल पर बैज बनकर दिखेगा)" : "Open to help with (shown as badges)"}</span>
+              <div className="flex flex-wrap gap-1.5">{OPEN_TO.map(([hi, en, ic]) => { const on = openToList(f.about).includes(hi); return <button key={hi} type="button" onClick={() => { const cur = openToList(f.about); set("about", { ...f.about, open_to: (on ? cur.filter((x) => x !== hi) : [...cur, hi]).join(", ") }); }} className={`rounded-full border px-2.5 py-1 text-xs ${on ? "border-primary bg-primary/10 font-semibold text-primary" : "border-border"}`}>{ic} {L ? hi : en}</button>; })}</div>
+            </div>
             <p className="text-xs text-muted-foreground">{L ? "नीचे हर खंड भरें — जो भरेंगे वही प्रोफ़ाइल के \"परिचय\" में उसी खंड में दिखेगा। खाली छोड़ा खंड नहीं दिखेगा।" : "Fill each section below — whatever you fill shows under the same heading in your profile's About tab. Empty sections stay hidden."}</p>
             <AboutEditor a={f.about} onChange={(a) => set("about", a)} L={L} extras={{
               work: <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "कार्य / व्यवसाय (एक लाइन)" : "Work (one line)"}</span><Input value={f.occupation} onChange={(e) => set("occupation", e.target.value)} placeholder={L ? "जैसे नौकरी, व्यापार, खेती, शिक्षक" : "e.g. job, business, farming, teacher"} /></label>,

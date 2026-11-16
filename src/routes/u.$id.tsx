@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 import { Avatar, FollowButton, FollowListDialog, FriendButton, ProfileCard, useProfileSocial } from "@/components/community/ChatBits";
 import { WishesWall } from "@/components/community/Occasions";
-import { AboutSection, workLine } from "@/components/community/ProfileAbout";
+import { AboutSection, openToLabel, openToList, workLine } from "@/components/community/ProfileAbout";
 import { Cover, presetOf, type Theme } from "@/components/community/ProfileTheme";
 import { Composer, Lightbox, mediaUrl, PostCard, type Post } from "@/components/site/Feed";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +75,7 @@ function ProfilePage() {
               <span className={`relative z-10 -mt-16 inline-flex shrink-0 rounded-full border-4 bg-card shadow-md sm:-mt-20 ${centered ? "self-center" : "self-start sm:self-auto"} ${pre.ring}`}><Avatar url={d?.photo_url} name={d?.name ?? "?"} size={36} online={!!d?.online} /></span>
               <div className={`min-w-0 flex-1 sm:pb-2 ${centered ? "sm:text-center" : ""}`}>
                 <h1 className={`font-display text-3xl font-bold leading-tight ${pre.accent}`}>{d?.name ?? "…"}</h1>
+                {d?.about?.headline ? <p className="mt-0.5 text-sm text-foreground/80">{d.about.headline}</p> : null}
                 <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-sm font-semibold text-muted-foreground">
                   <button type="button" className="hover:underline" onClick={() => setTab("friends")}>{s?.friends ?? fr.length} {L ? "मित्र" : "friends"}</button>
                   {!d?.mine && s?.mutual ? <span className="font-normal">({s.mutual} {L ? "साझा" : "mutual"})</span> : null}
@@ -194,6 +195,7 @@ function Intro({ d, L, onMore, birthday }: { d: Profile; L: boolean; onMore: () 
         {d.orgs.slice(0, 2).map((o) => <Row key={o.id} icon={<Users />}>{L ? "सदस्य: " : "Member of "}<b>{L ? (o.name_hi || o.name) : o.name}</b>{o.member_no ? <span className="text-muted-foreground"> · {o.member_no}</span> : null}</Row>)}
         {birthday ? <Row icon={<Cake />}>{L ? "जन्मदिन: " : "Birthday: "}{fmtDay(birthday, L)}</Row> : null}
       </ul>
+      {openToList(a).length ? <div><p className="mb-1 text-xs font-semibold text-muted-foreground">{L ? "मदद के लिए तैयार" : "Open to help with"}</p><div className="flex flex-wrap gap-1">{openToList(a).map((t) => <span key={t} className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-200">{openToLabel(t, L)}</span>)}</div></div> : null}
       {d.interests.length ? <div className="flex flex-wrap gap-1">{d.interests.slice(0, 8).map((t) => <Badge key={t} variant="secondary">{t}</Badge>)}</div> : null}
       <Button variant="secondary" className="w-full" onClick={onMore}>{L ? "पूरा परिचय देखें" : "See full details"}</Button>
     </section>
@@ -222,7 +224,10 @@ function About({ d, L, birthday, anniversary }: { d: Profile; L: boolean; birthd
         <AboutSection id="work" a={a} L={L} box={box} extra={d.occupation ? [{ icon: <Briefcase />, label: L ? "कार्य / व्यवसाय" : "Work", value: d.occupation }] : []} />
         <AboutSection id="place" a={a} L={L} box={box} extra={lives ? [{ icon: <Home />, label: L ? "वर्तमान निवास" : "Lives in", value: lives }] : []} />
         <AboutSection id="family" a={a} L={L} box={box} extra={d.orgs.some((o) => o.family_id) ? [{ icon: <Network />, label: L ? "वंश वृक्ष" : "Family tree", value: <Link to="/admin/families/$id" params={{ id: d.orgs.find((o) => o.family_id)!.family_id! }} className="text-primary hover:underline">{L ? "वंश वृक्ष देखें" : "View family tree"}</Link> }] : []} />
-        <AboutSection id="society" a={a} L={L} box={box} extra={d.interests.length ? [{ icon: <Heart />, label: L ? "रुचियाँ" : "Interests", value: <span className="flex flex-wrap gap-1">{d.interests.map((t) => <Badge key={t} variant="outline">{t}</Badge>)}</span> }] : []} />
+        <AboutSection id="society" a={a} L={L} box={box} extra={[
+          ...(openToList(a).length ? [{ icon: <Users />, label: L ? "मदद के लिए तैयार" : "Open to help with", value: <span className="flex flex-wrap gap-1">{openToList(a).map((t) => <Badge key={t} variant="secondary">{openToLabel(t, L)}</Badge>)}</span> }] : []),
+          ...(d.interests.length ? [{ icon: <Heart />, label: L ? "रुचियाँ" : "Interests", value: <span className="flex flex-wrap gap-1">{d.interests.map((t) => <Badge key={t} variant="outline">{t}</Badge>)}</span> }] : []),
+        ]} />
         {contact.length || links.length ? (
           <section className={`${box} space-y-3 text-sm`}>
             <h2 className="flex items-center gap-2 font-display text-lg font-semibold"><Phone className="size-5 text-primary" />{L ? "संपर्क व लिंक" : "Contact & links"}</h2>
