@@ -5,7 +5,7 @@ export type ExtraField = { g: ExtraGroup; k: string; v: string };
 export const EXTRA_GROUPS: { id: ExtraGroup; hi: string; en: string; icon: string; suggest: [string, string][] }[] = [
   { id: "family", hi: "पारिवारिक विवरण", en: "Family details", icon: "👨‍👩‍👧", suggest: [
     ["पिता का नाम", "Father's name"], ["पिता का व्यवसाय", "Father's occupation"], ["माता का नाम", "Mother's name"], ["माता का व्यवसाय", "Mother's occupation"],
-    ["भाई", "Brothers"], ["बहन", "Sisters"], ["परिवार में सदस्य संख्या", "Family members"], ["दादा", "Grandfather"], ["मामा (ननिहाल)", "Maternal uncle"], ["परिवार का प्रकार", "Family type"], ["पारिवारिक पता", "Family address"],
+    ["भाई", "Brothers"], ["बहन", "Sisters"], ["भाई-बहन (विवाहित / अविवाहित)", "Siblings (married / unmarried)"], ["परिवार में सदस्य संख्या", "Family members"], ["दादा", "Grandfather"], ["मामा (ननिहाल)", "Maternal uncle"], ["परिवार का प्रकार", "Family type"], ["पारिवारिक पता (ग्राम, तहसील, ज़िला, पिन)", "Family address (village, tehsil, district, PIN)"],
   ] },
   { id: "birth", hi: "जन्म व कुंडली", en: "Birth & horoscope", icon: "🪔", suggest: [
     ["जन्म तिथि", "Date of birth"], ["जन्म समय", "Time of birth"], ["जन्म स्थान", "Place of birth"], ["राशि", "Rashi"], ["नक्षत्र", "Nakshatra"], ["मांगलिक", "Manglik"], ["नाड़ी", "Nadi"], ["गण", "Gana"],
