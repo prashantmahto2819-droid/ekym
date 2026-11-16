@@ -4,12 +4,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { PostSkeleton } from "@/components/site/Skeletons";
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, Cake, Heart, Home, Images, Info, Link2, Mail, MoreHorizontal, Network, Pencil, Phone, Send, Users } from "lucide-react";
+import { Briefcase, Cake, GraduationCap, Heart, Home, Images, Info, Link2, Mail, MapPin, MoreHorizontal, Network, Pencil, Phone, Send, Users } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Avatar, FollowButton, FollowListDialog, FriendButton, ProfileCard, useProfileSocial } from "@/components/community/ChatBits";
 import { WishesWall } from "@/components/community/Occasions";
+import { AboutSection, workLine } from "@/components/community/ProfileAbout";
 import { Cover, presetOf, type Theme } from "@/components/community/ProfileTheme";
 import { Composer, Lightbox, mediaUrl, PostCard, type Post } from "@/components/site/Feed";
 import { Badge } from "@/components/ui/badge";
@@ -178,6 +179,7 @@ const fmtDay = (iso: string, L: boolean) => new Date(`${iso.slice(0, 10)}T00:00:
 
 /** Left-column intro card (Facebook's "Intro"). */
 function Intro({ d, L, onMore, birthday }: { d: Profile; L: boolean; onMore: () => void; birthday: string | null }) {
+  const a = d.about ?? {};
   const lives = placeLine([d.village, d.district, d.state], L);
   const Row = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => <li className="flex gap-2.5"><span className="mt-0.5 text-muted-foreground [&>svg]:size-5">{icon}</span><span className="min-w-0">{children}</span></li>;
   return (
@@ -185,8 +187,10 @@ function Intro({ d, L, onMore, birthday }: { d: Profile; L: boolean; onMore: () 
       <h2 className="font-display text-lg font-semibold">{L ? "परिचय" : "Intro"}</h2>
       {d.bio ? <p className="whitespace-pre-wrap text-center">{d.bio}</p> : d.mine ? <Link to="/me/profile" className="block rounded-lg bg-secondary py-2 text-center font-semibold hover:bg-secondary/70">{L ? "अपने बारे में लिखें" : "Add a bio"}</Link> : null}
       <ul className="space-y-2.5">
-        {d.occupation ? <Row icon={<Briefcase />}>{d.occupation}</Row> : null}
+        {workLine(a, d.occupation, L) ? <Row icon={<Briefcase />}>{workLine(a, d.occupation, L)}</Row> : null}
+        {a.education ? <Row icon={<GraduationCap />}>{L ? "शिक्षा: " : "Studied "}{a.education}{a.college ? ` · ${a.college}` : ""}</Row> : null}
         {lives ? <Row icon={<Home />}>{L ? "निवास: " : "Lives in "}<b>{lives}</b></Row> : null}
+        {a.hometown ? <Row icon={<MapPin />}>{L ? "मूल ग्राम: " : "From "}<b>{a.hometown}</b></Row> : null}
         {d.orgs.slice(0, 2).map((o) => <Row key={o.id} icon={<Users />}>{L ? "सदस्य: " : "Member of "}<b>{L ? (o.name_hi || o.name) : o.name}</b>{o.member_no ? <span className="text-muted-foreground"> · {o.member_no}</span> : null}</Row>)}
         {birthday ? <Row icon={<Cake />}>{L ? "जन्मदिन: " : "Birthday: "}{fmtDay(birthday, L)}</Row> : null}
       </ul>
@@ -197,35 +201,43 @@ function Intro({ d, L, onMore, birthday }: { d: Profile; L: boolean; onMore: () 
 }
 
 function About({ d, L, birthday, anniversary }: { d: Profile; L: boolean; birthday: string | null; anniversary: string | null }) {
+  const a = d.about ?? {};
   const lives = placeLine([d.village, d.district, d.state], L);
+  const LINK: Record<string, string> = { facebook: "Facebook", instagram: "Instagram", youtube: "YouTube", linkedin: "LinkedIn", x: "X", website: L ? "वेबसाइट" : "Website" };
   const links = Object.entries(d.links).filter(([, v]) => v);
-  const Item = ({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) => (
-    <li className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground [&>svg]:size-5">{icon}</span><span className="min-w-0"><span className="block">{children}</span><span className="block text-xs text-muted-foreground">{label}</span></span></li>
-  );
+  const filled = !!(d.bio || d.occupation || lives || birthday || d.phone || d.email || Object.keys(a).some((k) => k !== "show_family" && a[k as keyof typeof a]));
+  const contact = [
+    ...(d.phone ? [{ icon: <Phone />, label: L ? "मोबाइल" : "Mobile", value: <a href={`tel:${d.phone}`} className="hover:underline">{d.phone}</a> }] : []),
+    ...(d.email ? [{ icon: <Mail />, label: L ? "ईमेल" : "Email", value: <a href={`mailto:${d.email}`} className="break-all hover:underline">{d.email}</a> }] : []),
+  ];
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <section className={`${box} space-y-4`}>
-        <h2 className="font-display text-lg font-semibold">{L ? "परिचय" : "Overview"}</h2>
-        {d.bio ? <p className="whitespace-pre-wrap text-sm">{d.bio}</p> : null}
-        <ul className="space-y-3 text-sm">
-          {d.occupation ? <Item icon={<Briefcase />} label={L ? "कार्य" : "Work"}>{d.occupation}</Item> : null}
-          {lives ? <Item icon={<Home />} label={L ? "निवास" : "Lives in"}>{lives}</Item> : null}
-          {birthday ? <Item icon={<Cake />} label={L ? "जन्मदिन" : "Birthday"}>{fmtDay(birthday, L)}</Item> : null}
-          {anniversary ? <Item icon={<Heart />} label={L ? "विवाह वर्षगाँठ" : "Anniversary"}>{fmtDay(anniversary, L)}</Item> : null}
-          {d.phone ? <Item icon={<Phone />} label={L ? "मोबाइल" : "Mobile"}><a href={`tel:${d.phone}`} className="hover:underline">{d.phone}</a></Item> : null}
-          {d.email ? <Item icon={<Mail />} label={L ? "ईमेल" : "Email"}><a href={`mailto:${d.email}`} className="break-all hover:underline">{d.email}</a></Item> : null}
-          {!d.occupation && !lives && !birthday && !d.phone && !d.email ? <li className="text-muted-foreground">{d.mine ? <Link to="/me/profile" className="underline">{L ? "अपनी जानकारी भरें" : "Add your details"}</Link> : "—"}</li> : null}
-        </ul>
-        {d.interests.length ? <div><p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{L ? "रुचियाँ" : "Interests"}</p><div className="flex flex-wrap gap-1">{d.interests.map((t) => <Badge key={t} variant="outline">{t}</Badge>)}</div></div> : null}
-        {links.length ? <div className="flex flex-wrap gap-2 text-xs">{links.map(([k, v]) => <a key={k} href={v} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 capitalize hover:bg-secondary"><Link2 className="size-3" />{k}</a>)}</div> : null}
-      </section>
-      <section className={`${box} space-y-4 text-sm`}>
-        <div>
-          <h2 className="font-display text-lg font-semibold">{L ? "संगठन" : "Organizations"}</h2>
-          <ul className="mt-2 space-y-2">{d.orgs.map((o) => <li key={o.id} className="flex items-center justify-between gap-2 rounded-xl bg-secondary/50 px-3 py-2"><span><b>{L ? (o.name_hi || o.name) : o.name}</b>{o.since ? <span className="block text-xs text-muted-foreground">{L ? "सदस्य " : "since "}{new Date(o.since).getFullYear()}</span> : null}</span>{o.member_no ? <Badge variant="secondary">{o.member_no}</Badge> : null}</li>)}{!d.orgs.length ? <li className="text-muted-foreground">—</li> : null}</ul>
-        </div>
-        {d.roles.length ? <div><h2 className="font-display text-lg font-semibold">{L ? "जिम्मेदारियाँ" : "Roles"}</h2><ul className="mt-2 space-y-1">{d.roles.map((r, i) => <li key={i}>🏅 {L ? (r.role || r.role_en) : r.role_en} <span className="text-muted-foreground">· {L ? (r.org || r.org_en) : r.org_en}</span></li>)}</ul></div> : null}
-      </section>
+    <div className="space-y-4">
+      {d.bio ? <section className={box}><h2 className="mb-2 font-display text-lg font-semibold">{L ? "परिचय" : "About"}</h2><p className="whitespace-pre-wrap text-sm">{d.bio}</p></section> : null}
+      {!filled ? <p className={`${box} text-sm text-muted-foreground`}>{d.mine ? <Link to="/me/profile" className="underline">{L ? "अपनी जानकारी भरें — कार्य, शिक्षा, परिवार, समाज सेवा…" : "Add your details — work, education, family, community work…"}</Link> : (L ? "अभी कोई जानकारी नहीं भरी गई।" : "No details yet.")}</p> : null}
+      <div className="grid gap-4 md:grid-cols-2">
+        <AboutSection id="basic" a={a} L={L} box={box} extra={[
+          ...(birthday ? [{ icon: <Cake />, label: L ? "जन्मदिन" : "Birthday", value: fmtDay(birthday, L) }] : []),
+          ...(anniversary ? [{ icon: <Heart />, label: L ? "विवाह वर्षगाँठ" : "Anniversary", value: fmtDay(anniversary, L) }] : []),
+        ]} />
+        <AboutSection id="work" a={a} L={L} box={box} extra={d.occupation ? [{ icon: <Briefcase />, label: L ? "कार्य / व्यवसाय" : "Work", value: d.occupation }] : []} />
+        <AboutSection id="place" a={a} L={L} box={box} extra={lives ? [{ icon: <Home />, label: L ? "वर्तमान निवास" : "Lives in", value: lives }] : []} />
+        <AboutSection id="family" a={a} L={L} box={box} extra={d.orgs.some((o) => o.family_id) ? [{ icon: <Network />, label: L ? "वंश वृक्ष" : "Family tree", value: <Link to="/admin/families/$id" params={{ id: d.orgs.find((o) => o.family_id)!.family_id! }} className="text-primary hover:underline">{L ? "वंश वृक्ष देखें" : "View family tree"}</Link> }] : []} />
+        <AboutSection id="society" a={a} L={L} box={box} extra={d.interests.length ? [{ icon: <Heart />, label: L ? "रुचियाँ" : "Interests", value: <span className="flex flex-wrap gap-1">{d.interests.map((t) => <Badge key={t} variant="outline">{t}</Badge>)}</span> }] : []} />
+        {contact.length || links.length ? (
+          <section className={`${box} space-y-3 text-sm`}>
+            <h2 className="flex items-center gap-2 font-display text-lg font-semibold"><Phone className="size-5 text-primary" />{L ? "संपर्क व लिंक" : "Contact & links"}</h2>
+            <ul className="space-y-3">{contact.map((r, i) => <li key={i} className="flex gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-muted-foreground [&>svg]:size-5">{r.icon}</span><span className="min-w-0"><span className="block">{r.value}</span><span className="block text-xs text-muted-foreground">{r.label}</span></span></li>)}</ul>
+            {links.length ? <div className="flex flex-wrap gap-2 text-xs">{links.map(([k, v]) => <a key={k} href={v} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 hover:bg-secondary"><Link2 className="size-3" />{LINK[k] ?? k}</a>)}</div> : null}
+          </section>
+        ) : null}
+        <section className={`${box} space-y-4 text-sm`}>
+          <div>
+            <h2 className="flex items-center gap-2 font-display text-lg font-semibold"><Users className="size-5 text-primary" />{L ? "संगठन" : "Organizations"}</h2>
+            <ul className="mt-2 space-y-2">{d.orgs.map((o) => <li key={o.id} className="flex items-center justify-between gap-2 rounded-xl bg-secondary/50 px-3 py-2"><span><b>{L ? (o.name_hi || o.name) : o.name}</b>{o.since ? <span className="block text-xs text-muted-foreground">{L ? "सदस्य " : "since "}{new Date(o.since).getFullYear()}</span> : null}</span>{o.member_no ? <Badge variant="secondary">{o.member_no}</Badge> : null}</li>)}{!d.orgs.length ? <li className="text-muted-foreground">—</li> : null}</ul>
+          </div>
+          {d.roles.length ? <div><h2 className="font-display text-lg font-semibold">{L ? "जिम्मेदारियाँ" : "Roles"}</h2><ul className="mt-2 space-y-1">{d.roles.map((r, i) => <li key={i}>🏅 {L ? (r.role || r.role_en) : r.role_en} <span className="text-muted-foreground">· {L ? (r.org || r.org_en) : r.org_en}</span></li>)}</ul></div> : null}
+        </section>
+      </div>
     </div>
   );
 }

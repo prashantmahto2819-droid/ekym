@@ -19,13 +19,14 @@ import { DistrictInput } from "@/components/site/DistrictInput";
 import { useConsent } from "@/components/community/ConsentGate";
 import { useAuth } from "@/hooks/use-auth";
 import { MyOrgs } from "@/components/site/MyOrgs";
+import { AboutEditor, type About } from "@/components/community/ProfileAbout";
 
 export const Route = createFileRoute("/_authenticated/me/profile")({
   head: () => ({ meta: [{ title: "मेरी प्रोफ़ाइल · My profile" }, { name: "robots", content: "noindex" }] }),
   component: EditProfile,
 });
 
-type Form = { display_name: string; bio: string; photo_url: string; cover_url: string; theme: Theme; village: string; district: string; state: string; occupation: string; interests: string; links: Record<string, string>; show_phone: boolean; show_email: boolean; dm_from: string };
+type Form = { display_name: string; bio: string; photo_url: string; cover_url: string; theme: Theme; village: string; district: string; state: string; occupation: string; interests: string; links: Record<string, string>; show_phone: boolean; show_email: boolean; dm_from: string; about: About };
 
 function EditProfile() {
   const { lang } = useLang(); const L = lang === "hi";
@@ -42,7 +43,7 @@ function EditProfile() {
   useEffect(() => { if (occQ.data && !occ) setOcc(occQ.data); }, [occQ.data, occ]);
   useEffect(() => {
     const d: Profile | null = p.data ?? null;
-    if (d && !f) setF({ display_name: d.mine ? (d.name === "Member" ? "" : d.name) : "", bio: d.bio ?? "", photo_url: d.photo_url ?? "", cover_url: d.cover_url ?? "", theme: d.theme ?? {}, village: d.village ?? "", district: d.district ?? "", state: d.state ?? "", occupation: d.occupation ?? "", interests: d.interests.join(", "), links: { facebook: d.links["facebook"] ?? "", instagram: d.links["instagram"] ?? "", youtube: d.links["youtube"] ?? "", website: d.links["website"] ?? "" }, show_phone: d.show_phone, show_email: d.show_email, dm_from: d.dm_from });
+    if (d && !f) setF({ display_name: d.mine ? (d.name === "Member" ? "" : d.name) : "", bio: d.bio ?? "", photo_url: d.photo_url ?? "", cover_url: d.cover_url ?? "", theme: d.theme ?? {}, village: d.village ?? "", district: d.district ?? "", state: d.state ?? "", occupation: d.occupation ?? "", interests: d.interests.join(", "), links: { facebook: d.links["facebook"] ?? "", instagram: d.links["instagram"] ?? "", youtube: d.links["youtube"] ?? "", website: d.links["website"] ?? "", linkedin: d.links["linkedin"] ?? "", x: d.links["x"] ?? "" }, show_phone: d.show_phone, show_email: d.show_email, dm_from: d.dm_from, about: d.about ?? {} });
   }, [p.data, f]);
   if (!user || !f) return <section className="container-page py-10 text-sm text-muted-foreground">…</section>;
   const set = (k: keyof Form, v: unknown) => setF({ ...f, [k]: v } as Form);
@@ -62,7 +63,9 @@ function EditProfile() {
     if (!consent.accepted) { consent.ensure(() => void save()); return; }
     setBusy(true);
     try {
-      await call("k1_profile_save", { p: { ...f, interests: f.interests.split(",").map((x) => x.trim()).filter(Boolean) } });
+      const { about, ...rest } = f;
+      await call("k1_profile_save", { p: { ...rest, interests: f.interests.split(",").map((x) => x.trim()).filter(Boolean) } });
+      await call("k1_profile_save_about", { p: about });
       if (occ) await call("k1_profile_save_occasions", { p_birthday: occ.birthday || null, p_anniversary: occ.anniversary || null, p_show_birthday: occ.show_birthday, p_show_birth_year: occ.show_birth_year, p_show_anniversary: occ.show_anniversary }).catch(() => undefined);
       await qc.invalidateQueries({ queryKey: ["profile_occasions"] }); await qc.invalidateQueries({ queryKey: ["occasions"] });
       await qc.invalidateQueries({ queryKey: ["profile"] }); await qc.invalidateQueries({ queryKey: ["feed"] });
@@ -92,15 +95,25 @@ function EditProfile() {
             <div className="pb-2"><h1 className="font-display text-xl font-semibold">{L ? "मेरी प्रोफ़ाइल" : "My profile"}</h1><p className="text-xs text-muted-foreground"><Link to="/u/$id" params={{ id: user.id }} className="hover:underline">{L ? "जैसी दूसरों को दिखती है ↗" : "View as others see it ↗"}</Link></p></div>
           </div>
           <div className="mt-4"><ThemeEditor theme={f.theme} onChange={(t) => set("theme", t)} L={L} picked={picked} setPicked={setPicked} size={stSize} setSize={setStSize} /></div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "दिखने वाला नाम" : "Display name"}</span><Input value={f.display_name} onChange={(e) => set("display_name", e.target.value)} placeholder={p.data?.name} /></label>
-            <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपने बारे में" : "About you"}</span><Textarea value={f.bio} onChange={(e) => set("bio", e.target.value)} rows={3} maxLength={1000} placeholder={L ? "परिचय, रुचियाँ, समाज के लिए क्या करते हैं…" : "Introduction, interests, what you do for the community…"} /></label>
-            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "कार्य / व्यवसाय" : "Work"}</span><Input value={f.occupation} onChange={(e) => set("occupation", e.target.value)} /></label>
-            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "गाँव / शहर" : "Village / city"}</span><Input value={f.village} onChange={(e) => set("village", e.target.value)} /></label>
-            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "ज़िला" : "District"}</span><DistrictInput value={f.district} state={f.state || null} hi={L} onChange={(v) => setF((x) => (x ? { ...x, district: v } : x))} onPick={(d, st) => setF((x) => (x ? { ...x, district: d, state: x.state || st } : x))} /></label>
-            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "राज्य" : "State"}</span><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={f.state} onChange={(e) => set("state", e.target.value)}><option value="">{L ? "— राज्य चुनें —" : "— choose state —"}</option>{f.state && !(INDIAN_STATES as readonly string[]).includes(f.state) ? <option value={f.state}>{f.state}</option> : null}{INDIAN_STATES.map((st) => <option key={st} value={st}>{placeName(st, L)}</option>)}</select></label>
-            <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "रुचियाँ (कॉमा से अलग)" : "Interests (comma separated)"}</span><Input value={f.interests} onChange={(e) => set("interests", e.target.value)} placeholder={L ? "समाज सेवा, संगीत, खेती…" : "Social work, music, farming…"} /></label>
-            {(["facebook", "instagram", "youtube", "website"] as const).map((k) => <label key={k} className="text-sm"><span className="mb-1 block text-xs capitalize text-muted-foreground">{k}</span><Input value={f.links[k] ?? ""} onChange={(e) => set("links", { ...f.links, [k]: e.target.value })} placeholder="https://…" /></label>)}
+          <div className="mt-4 grid gap-3">
+            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "दिखने वाला नाम" : "Display name"}</span><Input value={f.display_name} onChange={(e) => set("display_name", e.target.value)} placeholder={p.data?.name} /></label>
+            <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "अपने बारे में (2–3 पंक्तियाँ)" : "About you (2–3 lines)"}</span><Textarea value={f.bio} onChange={(e) => set("bio", e.target.value)} rows={3} maxLength={1000} placeholder={L ? "जैसे: कोरबा से हूँ, मार्केटिंग में काम करता हूँ, युवा मंच से जुड़ा हूँ…" : "e.g. From Korba, work in marketing, active in the youth wing…"} /></label>
+            <p className="text-xs text-muted-foreground">{L ? "नीचे हर खंड भरें — जो भरेंगे वही प्रोफ़ाइल के \"परिचय\" में उसी खंड में दिखेगा। खाली छोड़ा खंड नहीं दिखेगा।" : "Fill each section below — whatever you fill shows under the same heading in your profile's About tab. Empty sections stay hidden."}</p>
+            <AboutEditor a={f.about} onChange={(a) => set("about", a)} L={L} extras={{
+              work: <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "कार्य / व्यवसाय (एक लाइन)" : "Work (one line)"}</span><Input value={f.occupation} onChange={(e) => set("occupation", e.target.value)} placeholder={L ? "जैसे नौकरी, व्यापार, खेती, शिक्षक" : "e.g. job, business, farming, teacher"} /></label>,
+              place: <>
+                <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "वर्तमान गाँव / शहर" : "Current village / city"}</span><Input value={f.village} onChange={(e) => set("village", e.target.value)} /></label>
+                <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "ज़िला" : "District"}</span><DistrictInput value={f.district} state={f.state || null} hi={L} onChange={(v) => setF((x) => (x ? { ...x, district: v } : x))} onPick={(d, st) => setF((x) => (x ? { ...x, district: d, state: x.state || st } : x))} /></label>
+                <label className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{L ? "राज्य" : "State"}</span><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={f.state} onChange={(e) => set("state", e.target.value)}><option value="">{L ? "— राज्य चुनें —" : "— choose state —"}</option>{f.state && !(INDIAN_STATES as readonly string[]).includes(f.state) ? <option value={f.state}>{f.state}</option> : null}{INDIAN_STATES.map((st) => <option key={st} value={st}>{placeName(st, L)}</option>)}</select></label>
+              </>,
+              society: <label className="text-sm sm:col-span-2"><span className="mb-1 block text-xs text-muted-foreground">{L ? "रुचियाँ / शौक (कॉमा से अलग)" : "Interests / hobbies (comma separated)"}</span><Input value={f.interests} onChange={(e) => set("interests", e.target.value)} placeholder={L ? "समाज सेवा, संगीत, खेती…" : "Social work, music, farming…"} /></label>,
+            }} />
+            <fieldset className="rounded-xl border border-border p-3">
+              <legend className="px-1 text-sm font-semibold">🔗 {L ? "सोशल मीडिया व वेबसाइट" : "Social media & website"}</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {([["facebook", "Facebook"], ["instagram", "Instagram"], ["youtube", "YouTube"], ["linkedin", "LinkedIn"], ["x", "X (Twitter)"], ["website", L ? "वेबसाइट" : "Website"]] as const).map(([k, lb]) => <label key={k} className="text-sm"><span className="mb-1 block text-xs text-muted-foreground">{lb}</span><Input value={f.links[k] ?? ""} onChange={(e) => set("links", { ...f.links, [k]: e.target.value })} placeholder="https://…" /></label>)}
+              </div>
+            </fieldset>
           </div>
           <div className="mt-4 rounded-lg border border-amber-300/60 bg-amber-50/50 p-3 text-sm dark:bg-amber-950/20">
             <p className="mb-2 font-semibold">🎉 {L ? "जन्मदिन और विवाह वर्षगाँठ" : "Birthday & anniversary"}</p>
