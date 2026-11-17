@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-17 — Suspension also on Kalchuri One
+
+- A suspended family-tree member (matched by mobile number) gets no Kalchuri One WhatsApp or e-mail: event invitations, notices, campaigns, digests and chat alerts are saved as "blocked". Login OTP, donation and payment receipts and blood-emergency requests still go. Nobody can send them a direct chat message. Their queued messages are stopped at the moment of suspension (migration `shok_20_suspension_k1_messages`, check `suspension_k1.sql`).
+- Family page in Kalchuri One: admins get "Suspend membership" / "Lift suspension" on the selected member, and a red badge on the member card.
+
 ## 2026-11-17 — Shokpatra: member suspension
 
 - Admins can suspend a family-tree member's membership, with a reason and an optional end date. The name stays visible, but no condolence letter, notice or invitation goes to them by WhatsApp or e-mail, and nobody else's letter is routed through their number. Their queued messages stop too. History is kept privately (migration `shok_19_member_suspension`, check `suspension.sql`).

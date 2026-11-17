@@ -19,7 +19,13 @@ export type Person = {
   phone2?: string | null;
   photo_path?: string | null;
   created_at?: string;
+  suspended_at?: string | null; // सदस्यता निलंबित (कोई पत्र / सूचना / संदेश नहीं)
+  suspended_until?: string | null;
 };
+
+/** Membership suspended right now (an end date in the past means it is over). */
+export const isSuspended = (p: Pick<Person, "suspended_at" | "suspended_until">) =>
+  !!p.suspended_at && (!p.suspended_until || p.suspended_until >= new Date().toISOString().slice(0, 10));
 
 export const BOX_W = 168;
 export const BOX_H = 64;

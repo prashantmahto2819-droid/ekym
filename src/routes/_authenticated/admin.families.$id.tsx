@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useLang } from "@/core/i18n";
 import { ANCESTOR_RELATION, DecidedMsg, ensureVillage, loadOrigins, loadVillages, rpc, validPhone, type Origin } from "@/family/api";
 import { useFamilyCtx, useFamilyMembers, useSimilarMembers } from "@/family/hooks";
-import { ancestorsOf, buildUnits, descendantsOf, type Person, type Unit } from "@/family/layout";
+import { ancestorsOf, buildUnits, descendantsOf, isSuspended, type Person, type Unit } from "@/family/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { normPhone } from "@/lib/comms";
@@ -92,6 +92,17 @@ export function FamilyView({ id, member = false }: { id: string; member?: boolea
     if (j < 0 || j >= sibs.length) return;
     const arr = [...sibs]; const [x] = arr.splice(i, 1); arr.splice(j, 0, x!);
     await run("", async () => { for (let k = 0; k < arr.length; k++) { const { error } = await supabase.from("members").update({ sort_order: k } as never).eq("id", arr[k]!.id); if (error) throw error; } });
+  }
+  async function suspend(p: Person) {
+    const reason = prompt(L ? `"${p.name}" की सदस्यता निलंबित करने का कारण (सिर्फ़ एडमिन देखेंगे)। नाम दिखता रहेगा, पर इन्हें कोई पत्र, सूचना, निमंत्रण या संदेश नहीं जाएगा।` : `Reason for suspending "${p.name}" (admins only). The name stays visible, but no letter, notice, invitation or message will go to them.`);
+    if (!reason?.trim()) return;
+    const until = prompt(L ? "कब तक? तारीख YYYY-MM-DD में लिखें, या खाली छोड़ें (जब तक आप न हटाएँ)" : "Until when? Date as YYYY-MM-DD, or leave empty (until you lift it)") ?? "";
+    if (until.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(until.trim())) { toast.error(L ? "तारीख YYYY-MM-DD में लिखें" : "Use YYYY-MM-DD"); return; }
+    await run(L ? "सदस्यता निलंबित की गई।" : "Membership suspended", () => rpc("shok_member_suspend", { p_member: p.id, p_reason: reason.trim(), p_until: until.trim() || null }));
+  }
+  async function resume(p: Person) {
+    if (!confirm(L ? `"${p.name}" का निलंबन हटाएँ? इसके बाद इन्हें फिर से पत्र, सूचना और संदेश जा सकेंगे।` : `Lift the suspension of "${p.name}"? They will get letters, notices and messages again.`)) return;
+    await run(L ? "निलंबन हटाया गया।" : "Suspension lifted", () => rpc("shok_member_resume", { p_member: p.id, p_note: null }));
   }
   async function addAncestor(p: Person) {
     const name = prompt(L ? `${p.name} के पिता / पूर्वज का नाम (खाली = नाम याद नहीं)` : `Name of ${p.name}'s father / ancestor (empty = not known)`);
@@ -244,6 +255,9 @@ export function FamilyView({ id, member = false }: { id: string; member?: boolea
           {selCur.is_head && people.filter((m) => m.is_head).length > 1 ? <Button size="sm" variant="outline" onClick={() => unmakeHead(selCur)} disabled={busy}>{L ? "मुखिया हटाएँ" : "Unset head"}</Button> : null}
           {selSibs.length > 1 ? <><Button size="sm" variant="ghost" disabled={busy || selIdx <= 0} onClick={() => reorder(selCur, -1)} title={L ? "क्रम ऊपर (बड़ा)" : "older"}>◀</Button><span>{selIdx + 1}/{selSibs.length}</span><Button size="sm" variant="ghost" disabled={busy || selIdx >= selSibs.length - 1} onClick={() => reorder(selCur, 1)} title={L ? "क्रम नीचे (छोटा)" : "younger"}>▶</Button></> : null}
           {isAdmin && !selCur.is_head && !selSide ? <Button size="sm" variant="ghost" onClick={() => move(selCur)} disabled={busy}>{L ? "ले जाएँ" : "Move"}</Button> : null}
+          {isAdmin && !selCur.is_deceased && !selCur.name_unknown ? (isSuspended(selCur)
+            ? <Button size="sm" variant="outline" onClick={() => resume(selCur)} disabled={busy}>{L ? "निलंबन हटाएँ" : "Lift suspension"}</Button>
+            : <Button size="sm" variant="ghost" onClick={() => suspend(selCur)} disabled={busy} title={L ? "नाम दिखेगा, पर कोई पत्र / सूचना / संदेश नहीं जाएगा" : "Name stays, but no letters / notices / messages"}>{L ? "सदस्यता निलंबित करें" : "Suspend membership"}</Button>) : null}
           <Button size="sm" variant="ghost" className="text-destructive" onClick={() => remove(selCur)} disabled={busy}>{L ? "हटाएँ" : "Remove"}</Button>
         </div>
       ) : null}
@@ -301,6 +315,7 @@ function PersonPanel({ p, people, L, onPick, withPhones }: { p: Person | null; p
     <aside className="space-y-3 rounded-lg border border-border bg-background p-4 text-sm">
       <div>
         <p className="font-display text-lg font-semibold">{p.is_deceased ? "स्व. " : ""}{p.name}</p>
+        {isSuspended(p) ? <Badge variant="destructive" className="mt-1">{L ? "सदस्यता निलंबित" : "Membership suspended"}{p.suspended_until ? ` · ${L ? "" : "until "}${p.suspended_until}${L ? " तक" : ""}` : ""}</Badge> : null}
         <p className="text-xs text-muted-foreground">{[p.relation, p.member_kind === "spouse" ? (L ? "पत्नी" : "wife") : p.member_kind === "daughter" ? (L ? "पुत्री" : "daughter") : p.member_kind === "woman" ? (L ? "स्वतंत्र महिला" : "independent woman") : null, p.is_head ? (L ? "मुखिया" : "head") : null].filter(Boolean).join(" · ")}</p>
       </div>
       <dl className="space-y-2">
