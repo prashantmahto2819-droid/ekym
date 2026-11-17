@@ -25,20 +25,23 @@ const SERVICES: [string, string, string, string, string, string][] = [
   ["🏛️", "संस्थाएँ", "Organizations", "समाज की सभी संस्थाएँ और उनकी शाखाएँ एक जगह।", "All community organizations and branches in one place.", "/organizations"],
 ];
 
-const FOR_ORGS: [string, string, string][] = [
-  ["🌐", "अपनी वेबसाइट", "आपकी संस्था की अपनी साइट (जैसे संस्था.kalchuri.org) — होम पेज, टीम, आयोजन, समाचार, गैलरी।"],
-  ["👥", "सदस्य व मंज़ूरी", "ऑनलाइन आवेदन, मंज़ूरी, सदस्य क्रमांक, ID कार्ड, नवीनीकरण की याद।"],
-  ["🛡️", "एडमिन व भूमिकाएँ", "अध्यक्ष, सचिव, कोषाध्यक्ष, क्षेत्र-वार एडमिन — हर किसी को उतनी ही पहुँच जितनी ज़रूरी।"],
-  ["📲", "WhatsApp व ईमेल संदेश", "अपने नंबर से सभी सदस्यों या चुने हुए लोगों को सूचना, निमंत्रण और शोक पत्र।"],
-  ["🌳", "वंश वृक्ष व शोक पत्र", "संस्था-वार अलग वंश वृक्ष; शोक पत्र और निमंत्रण गाँव-वार भेजना।"],
-  ["📊", "हिसाब-किताब व रिपोर्ट", "चंदा, रसीद, खर्च और रिपोर्ट; डैशबोर्ड पर पूरी स्थिति।"],
+const FOR_ORGS: [string, string, string, string, string][] = [
+  // [icon, हिंदी शीर्षक, English title, हिंदी विवरण, English description]
+  ["🌐", "अपनी वेबसाइट — निःशुल्क", "Your own website — free", "आपकी संस्था की अपनी साइट (जैसे संस्था.kalchuri.org), हिंदी और अंग्रेज़ी दोनों में — होम पेज, टीम, आयोजन, समाचार, गैलरी।", "Your organization's own site (like name.kalchuri.org) in Hindi and English — home page, team, events, news, gallery."],
+  ["👥", "सदस्य व मंज़ूरी", "Members & approvals", "ऑनलाइन आवेदन, मंज़ूरी, सदस्य क्रमांक, ID कार्ड, नवीनीकरण की याद।", "Online applications, approvals, member numbers, ID cards, renewal reminders."],
+  ["🛡️", "एडमिन व भूमिकाएँ", "Admins & roles", "अध्यक्ष, सचिव, कोषाध्यक्ष, क्षेत्र-वार एडमिन — हर किसी को उतनी ही पहुँच जितनी ज़रूरी।", "President, secretary, treasurer, area admins — each gets only the access they need."],
+  ["📲", "WhatsApp व ईमेल संदेश", "WhatsApp & email messages", "अपने नंबर से सभी सदस्यों या चुने हुए लोगों को सूचना, निमंत्रण और शोक पत्र।", "Send notices, invitations and condolence letters to all or selected members from your own number."],
+  ["🌳", "वंश वृक्ष व शोक पत्र", "Family trees & condolence letters", "संस्था-वार अलग वंश वृक्ष; शोक पत्र और निमंत्रण गाँव-वार भेजना।", "Separate family trees per organization; send condolence letters and invitations village-wise."],
+  ["📊", "हिसाब-किताब व रिपोर्ट", "Accounts & reports", "चंदा, रसीद, खर्च और रिपोर्ट; डैशबोर्ड पर पूरी स्थिति।", "Donations, receipts, expenses and reports; everything on one dashboard."],
 ];
 
-const FAQ: [string, string][] = [
-  ["क्या Kalchuri One का कोई शुल्क है?", "सदस्यों के लिए नहीं। संस्थाएँ अपनी साइट और सेवाएँ चलाने के लिए मंच के प्रबंधकों से बात कर सकती हैं।"],
-  ["मैं एक से ज़्यादा संस्थाओं का सदस्य हूँ", "एक खाते से कई संस्थाओं से जुड़ सकते हैं। आपकी एक ‘मूल संस्था’ रहती है; बाकी संस्थाओं में वहाँ के एडमिन की मंज़ूरी से जुड़ते हैं।"],
-  ["मेरी जानकारी कौन देख सकता है?", "मोबाइल नंबर और पता सिर्फ़ आपकी सेटिंग के हिसाब से दिखते हैं; संस्था के एडमिन सिर्फ़ अपने सदस्यों की जानकारी देखते हैं।"],
-  ["अपनी संस्था को Kalchuri One पर कैसे लाएँ?", "‘संपर्क करें’ पेज से बताइए — संस्था की साइट, एडमिन और सदस्य-सूची तैयार करने में मदद की जाती है।"],
+const FAQ: [string, string, string, string][] = [
+  // [हिंदी सवाल, English question, हिंदी जवाब, English answer]
+  ["क्या Kalchuri One का कोई शुल्क है?", "Does Kalchuri One cost anything?", "नहीं। सदस्यों के लिए सारी सेवाएँ और संस्थाओं के लिए अपनी वेबसाइट — दोनों निःशुल्क हैं।", "No. All member services and each organization's own website are free."],
+  ["मैं एक से ज़्यादा संस्थाओं का सदस्य हूँ", "I belong to more than one organization", "एक खाते से कई संस्थाओं से जुड़ सकते हैं। आपकी एक ‘मूल संस्था’ रहती है; बाकी संस्थाओं में वहाँ के एडमिन की मंज़ूरी से जुड़ते हैं।", "One account can join several organizations. You keep one ‘base organization’; others are joined with their admins' approval."],
+  ["मेरी जानकारी कौन देख सकता है?", "Who can see my details?", "मोबाइल नंबर और पता सिर्फ़ आपकी सेटिंग के हिसाब से दिखते हैं; संस्था के एडमिन सिर्फ़ अपने सदस्यों की जानकारी देखते हैं।", "Your mobile number and address follow your privacy settings; an organization's admins see only their own members."],
+  ["क्या साइट अंग्रेज़ी में भी है?", "Is the site available in English?", "हाँ। ऊपर ‘हिंदी / English’ बटन से पूरी साइट की भाषा बदलें।", "Yes. Use the ‘हिंदी / English’ button at the top to switch the whole site."],
+  ["अपनी संस्था को Kalchuri One पर कैसे लाएँ?", "How do I bring my organization to Kalchuri One?", "‘संपर्क करें’ पेज से बताइए — संस्था की निःशुल्क साइट, एडमिन और सदस्य-सूची तैयार करने में मदद की जाती है।", "Tell us on the ‘Contact’ page — we help set up your free site, admins and member list."],
 ];
 
 export function PlatformHome({ L }: { L: boolean }) {
@@ -54,7 +57,7 @@ export function PlatformHome({ L }: { L: boolean }) {
       <section className="border-b border-border bg-gradient-to-b from-amber-50/70 to-background py-14 dark:from-amber-950/20">
         <div className="container-page grid items-center gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Kalchuri One · कलचुरी वन</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{L ? "कलचुरी वन" : "Kalchuri One"}</p>
             <h2 className="mt-2 font-display text-3xl font-bold leading-tight sm:text-4xl">{L ? "एक समाज, एक मंच — कलचुरी / कलार समाज की हर संस्था और हर परिवार के लिए" : "One community, one platform — for every Kalchuri / Kalar organization and family"}</h2>
             <p className="mt-4 max-w-2xl text-base text-muted-foreground">{L ? "Kalchuri One समाज का साझा डिजिटल मंच है। हर संस्था की अपनी वेबसाइट, सदस्य और एडमिन हैं; और सदस्यों को एक ही खाते से चौपाल, चैट, वैवाहिक, रक्त सेवा, आयोजन, परीक्षा, वंश वृक्ष और शोक पत्र जैसी सेवाएँ मिलती हैं — मोबाइल पर ऐप की तरह।" : "Kalchuri One is the community's shared digital platform. Each organization has its own website, members and admins; members use one account for the wall, chat, matrimony, blood seva, events, exams, family trees and condolence letters — like an app on the phone."}</p>
             <div className="mt-6 flex flex-wrap gap-2">
@@ -95,17 +98,17 @@ export function PlatformHome({ L }: { L: boolean }) {
       <section className="bg-[#14213d] py-14 text-white">
         <div className="container-page">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">{L ? "संस्थाओं के लिए" : "For organizations"}</p>
-          <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">{L ? "अपनी संस्था का पूरा काम एक जगह" : "Run your whole organization in one place"}</h2>
+          <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl">{L ? "अपनी संस्था का पूरा काम एक जगह — वेबसाइट निःशुल्क" : "Run your whole organization in one place — website free"}</h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {FOR_ORGS.map(([ic, t, d]) => (
-              <div key={t} className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                <p className="font-semibold"><span className="mr-1.5">{ic}</span>{t}</p>
-                <p className="mt-1 text-sm text-white/75">{d}</p>
+            {FOR_ORGS.map(([ic, thi, ten, dhi, den]) => (
+              <div key={ten} className="rounded-2xl border border-white/15 bg-white/5 p-4">
+                <p className="font-semibold"><span className="mr-1.5">{ic}</span>{L ? thi : ten}</p>
+                <p className="mt-1 text-sm text-white/75">{L ? dhi : den}</p>
               </div>
             ))}
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button asChild className="bg-amber-300 text-[#14213d] hover:bg-amber-200"><Link to="/contact">{L ? "अपनी संस्था जोड़ें — संपर्क करें" : "Add your organization — contact us"}</Link></Button>
+            <Button asChild className="bg-amber-300 text-[#14213d] hover:bg-amber-200"><Link to="/contact">{L ? "अपनी संस्था जोड़ें (निःशुल्क) — संपर्क करें" : "Add your organization (free) — contact us"}</Link></Button>
             <Button asChild variant="outline" className="border-white/40 bg-transparent text-white hover:bg-white/10"><Link to="/organizations">{L ? "जुड़ी हुई संस्थाएँ" : "Member organizations"}</Link></Button>
           </div>
         </div>
@@ -139,6 +142,7 @@ export function PlatformHome({ L }: { L: boolean }) {
               <li>🏛️ {L ? "हर संस्था का डेटा अलग — एडमिन सिर्फ़ अपनी संस्था के सदस्य देखते हैं।" : "Each organization's data is separate."}</li>
               <li>✅ {L ? "सदस्य, वैवाहिक प्रोफ़ाइल और व्यापार पेज एडमिन की जाँच के बाद ही दिखते हैं।" : "Members, matrimony profiles and business pages are verified first."}</li>
               <li>🧹 {L ? "चैट की फोटो-फ़ाइलें 30 दिन बाद अपने-आप हटती हैं; सूचनाएँ आप खुद चुनते हैं।" : "Chat files auto-delete after 30 days; you choose your notifications."}</li>
+              <li>🎁 {L ? "सदस्यों की सेवाएँ और संस्थाओं की वेबसाइट — दोनों निःशुल्क।" : "Member services and organization websites are both free."}</li>
             </ul>
           </div>
         </div>
@@ -149,8 +153,8 @@ export function PlatformHome({ L }: { L: boolean }) {
         <div className="container-page max-w-3xl">
           <h2 className="font-display text-2xl font-bold">{L ? "अक्सर पूछे जाने वाले सवाल" : "Frequently asked questions"}</h2>
           <div className="mt-4 divide-y divide-border rounded-2xl border border-border bg-card">
-            {FAQ.map(([q, a]) => (
-              <details key={q} className="group p-4"><summary className="cursor-pointer font-medium">{q}</summary><p className="mt-2 text-sm text-muted-foreground">{a}</p></details>
+            {FAQ.map(([qhi, qen, ahi, aen]) => (
+              <details key={qen} className="group p-4"><summary className="cursor-pointer font-medium">{L ? qhi : qen}</summary><p className="mt-2 text-sm text-muted-foreground">{L ? ahi : aen}</p></details>
             ))}
           </div>
         </div>
