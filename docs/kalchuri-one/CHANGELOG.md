@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — No welcome to a family's main number
+
+- Shokpatra welcome WhatsApps now go only to members' own numbers, not to the family's main number; queued ones were skipped (migration `shok_22_no_welcome_family_main`).
+
 ## 2026-11-17 — Shokpatra welcome messages: backfill
 
 - The daily welcome cap goes from 30 to 200 (the owner's Vivid Relay allows 1000 a day), and the settings field now allows up to 500. Numbers added before the welcome feature existed (about 66) were queued; they go 3 every 2 minutes. Suspended members get no welcome (migration `shok_21_welcome_backfill`).
