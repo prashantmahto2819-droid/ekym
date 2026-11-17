@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { homeMeta } from "@/core/seo";
@@ -26,6 +27,7 @@ import { moduleOn, NAV_MODULE } from "@/core/modules";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
 import { AchievementsSection } from "@/components/home/Achievements";
+import { PlatformHome } from "@/components/home/PlatformHome";
 import { homePageQuery, homeQuery, organizationQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/")({
@@ -53,8 +55,14 @@ function Home() {
     (s: any) => s.slug?.includes("bhojan") || s.name?.toLowerCase().includes("bhojan"),
   );
 
+  // मुख्य साइट (kalchuri.org): मंच का पूरा परिचय — hero के ठीक बाद, hero न हो तो सबसे ऊपर
+  const root = !tenant.parent_id;
+  const hasHero = home.sections.some((x: any) => x.section_key === "hero");
+  const platform = root ? <PlatformHome key="platform" L={lang === "hi"} /> : null;
+
   return (
     <>
+      {hasHero ? null : platform}
       {home.sections.filter((section: any) => !NAV_MODULE[section.section_key as string] || moduleOn(tenant.branding, NAV_MODULE[section.section_key as string]!)).map((section: any) => {
         const key = section.section_key as string;
         const title = (lang === "hi" && section.title_hi ? section.title_hi : section.title) as string;
@@ -62,7 +70,7 @@ function Home() {
 
         switch (key) {
           case "hero":
-            return <HeroSlider key={key} slides={home.slides} />;
+            return <Fragment key={key}><HeroSlider slides={home.slides} />{platform}</Fragment>;
           case "network":
             return <NetworkSection key={key} title={title} subtitle={subtitle} />;
           case "activities":
