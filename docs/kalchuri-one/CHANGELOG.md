@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Shokpatra: Vidhan Sabha (assembly constituency)
+
+- New optional `vidhansabha` on origin villages (social regions), residence villages and user profiles. RPCs `set_origin_vidhansabha(ids, text)` (admin) and `vidhansabha_names()` (suggestions). Shokpatra: regions page, villages page, "मेरी जानकारी" form, people list column and filter (migration `shok_23_vidhansabha`).
+
 ## 2026-11-17 — No welcome to a family's main number
 
 - Shokpatra welcome WhatsApps now go only to members' own numbers, not to the family's main number; queued ones were skipped (migration `shok_22_no_welcome_family_main`).
