@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Slider 1: clean artwork
+
+- Slide 1 now uses the owner's new clean picture with no printed labels (`/slides/k1-1b.jpg`, migration `k1_slide1_clean_art`).
+
 ## 2026-11-17 — Home slider: 5 new banners, split layout
 
 - Kalchuri One home slider now uses the owner's 5 new banners in a "split" layout. The left side has real text that switches with the language: tagline, title, description, feature chips and two buttons. The right side shows the artwork, with the baked English text cut out and its left edge faded into navy. On phones the picture sits on top and the text below.
