@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Shokpatra welcome messages: backfill
+
+- The daily welcome cap goes from 30 to 200 (the owner's Vivid Relay allows 1000 a day), and the settings field now allows up to 500. Numbers added before the welcome feature existed (about 66) were queued; they go 3 every 2 minutes. Suspended members get no welcome (migration `shok_21_welcome_backfill`).
+
 ## 2026-11-17 — Slider 6: heritage & knowledge
 
 - New 6th home slide, "Our Heritage. Our Knowledge. Our Future.", with the owner's text in Hindi and English. Buttons go to the library and the magazine (migration `k1_slide6_heritage`).
