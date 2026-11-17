@@ -119,13 +119,13 @@ function SplitSlide({ s, hi, first }: { s: any; hi: boolean; first: boolean }) {
     url.startsWith("http") ? <a href={url} className={cls}>{body}</a> : <Link to={url as never} className={cls}>{body}</Link>;
   return (
     <div className="relative h-full overflow-hidden bg-gradient-to-b from-[#00245c] to-[#022f6b] text-white">
-      <div className="relative aspect-[16/10] w-full md:absolute md:inset-y-0 md:right-0 md:aspect-auto md:w-[56%] lg:w-[58%]">
+      <div className="relative aspect-[9/5] w-full md:absolute md:inset-y-0 md:right-0 md:aspect-auto md:w-[64%] lg:w-[66%]">
         {s.image ? <img src={s.image} alt="" className="size-full object-cover object-right" loading={first ? "eager" : "lazy"} fetchPriority={first ? "high" : undefined} /> : null}
         <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#00245c] to-transparent md:hidden" />
-        <div aria-hidden className="absolute inset-y-0 left-0 hidden w-24 bg-gradient-to-r from-[#00245c] to-transparent md:block" />
+        <div aria-hidden className="absolute inset-y-0 left-0 hidden w-2/5 bg-gradient-to-r from-[#00245c] via-[#00245c]/70 to-transparent md:block" />
       </div>
-      <div className="container-page relative -mt-10 pb-12 md:mt-0 md:flex md:min-h-[32rem] md:items-center md:py-12 lg:min-h-[35rem]">
-        <div className="md:max-w-[50%] lg:max-w-[45%]">
+      <div className="container-page relative -mt-10 pb-12 md:mt-0 md:flex md:min-h-[30rem] md:items-center md:py-12 lg:min-h-[33rem]">
+        <div className="md:max-w-[48%] lg:max-w-[44%]">
           {pick("subtitle") ? (
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-200 md:text-sm">
               <span aria-hidden className="h-0.5 w-6 rounded bg-amber-300" />{pick("subtitle")}
