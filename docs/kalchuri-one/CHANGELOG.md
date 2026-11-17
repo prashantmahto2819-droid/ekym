@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Slider 6: heritage & knowledge
+
+- New 6th home slide, "Our Heritage. Our Knowledge. Our Future.", with the owner's text in Hindi and English. Buttons go to the library and the magazine (migration `k1_slide6_heritage`).
+
 ## 2026-11-17 — Suspension also on Kalchuri One
 
 - A suspended family-tree member (matched by mobile number) gets no Kalchuri One WhatsApp or e-mail: event invitations, notices, campaigns, digests and chat alerts are saved as "blocked". Login OTP, donation and payment receipts and blood-emergency requests still go. Nobody can send them a direct chat message. Their queued messages are stopped at the moment of suspension (migration `shok_20_suspension_k1_messages`, check `suspension_k1.sql`).
