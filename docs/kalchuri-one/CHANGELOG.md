@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Shokpatra: member suspension
+
+- Admins can suspend a family-tree member's membership, with a reason and an optional end date. The name stays visible, but no condolence letter, notice or invitation goes to them by WhatsApp or e-mail, and nobody else's letter is routed through their number. Their queued messages stop too. History is kept privately (migration `shok_19_member_suspension`, check `suspension.sql`).
+
 ## 2026-11-17 — Slider: clean artwork
 
 - Slide 4 is now membership & digital ID, slide 5 the social network; the research slide was dropped (migration `k1_slide45_clean_art`).
