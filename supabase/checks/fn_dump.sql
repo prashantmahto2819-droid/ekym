@@ -1,5 +1,5 @@
 do $$ declare r record; begin
-  for r in select v.name, (select count(*) from public.families f where f.village_id = v.id and f.status <> 'deleted') fa, (select count(*) from public.members m where m.village_id = v.id) me
-             from public.villages v where v.name in ('पन्तोरा','पंतोरा','मनगांव दीपका','मनगांव, दीपका','DIPKA','दीपका','ऐंटिपिसि','एन टी पी सी') loop
-    raise notice 'V % families=% members=%', r.name, r.fa, r.me; end loop;
+  for r in select o.name, (select count(*) from public.members m where m.origin_village_id = o.id) n from public.origin_villages o
+            where o.name in ('दिपका','दीपका','नवगांव','नवागाँव','नवागांव','पन्तोरा','पंतोरा','सलिहाभांठा','सलिहाभाँठा','संडैल','सन्डैल','गाडापाली','गांडापाली','गाड़ापाली','चाम्पा','चांपा','सिवनी','शिवनी','मनगांव दीपका','मनगांव, दीपका') order by 1 loop
+    raise notice 'O % %', r.name, r.n; end loop;
 end $$;
