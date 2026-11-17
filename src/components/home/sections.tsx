@@ -54,6 +54,7 @@ export function HeroSlider({ slides }: { slides: any[] }) {
   }, [api]);
   const donate = moduleOn(tenant.branding, "donate");
   if (!slides.length) return <DefaultHero />;
+  const split = slides.every((s) => s.layout === "split");
   return (
     <>
     <section aria-label="Highlights" className="relative">
@@ -61,6 +62,7 @@ export function HeroSlider({ slides }: { slides: any[] }) {
         <CarouselContent>
           {slides.map((s, i) => (
             <CarouselItem key={s.id}>
+              {s.layout === "split" ? <SplitSlide s={s} hi={hi} first={i === 0} /> : (
               <div className="relative min-h-[26rem] w-full overflow-hidden bg-[#12383a] md:min-h-[34rem]">
                 {s.image ? (
                   <img src={s.image} alt="" className="absolute inset-0 size-full object-cover object-[70%_center]" loading={i === 0 ? "eager" : "lazy"} fetchPriority={i === 0 ? "high" : undefined} />
@@ -83,24 +85,76 @@ export function HeroSlider({ slides }: { slides: any[] }) {
                   </div>
                 </div>
               </div>
+              )}
             </CarouselItem>
           ))}
         </CarouselContent>
         {slides.length > 1 ? (
           <>
-            <CarouselPrevious className="left-4 hidden md:flex" />
-            <CarouselNext className="right-4 hidden md:flex" />
+            <CarouselPrevious className={split ? "bottom-4 left-auto right-16 top-auto hidden translate-y-0 border-amber-300/50 bg-[#00245c]/80 text-amber-200 hover:bg-[#00245c] md:flex" : "left-4 hidden md:flex"} />
+            <CarouselNext className={split ? "bottom-4 right-4 top-auto hidden translate-y-0 border-amber-300/50 bg-[#00245c]/80 text-amber-200 hover:bg-[#00245c] md:flex" : "right-4 hidden md:flex"} />
           </>
         ) : null}
       </Carousel>
       {slides.length > 1 ? (
-        <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-2 md:bottom-20">
+        <div className={`absolute left-0 right-0 flex justify-center gap-2 ${split ? "bottom-4" : "bottom-16 md:bottom-20"}`}>
           {slides.map((s, i) => <button key={s.id} type="button" aria-label={`Slide ${i + 1}`} onClick={() => api?.scrollTo(i)} className={`h-2 rounded-full transition-all ${i === cur ? "w-6 bg-amber-300" : "w-2 bg-white/50"}`} />)}
         </div>
       ) : null}
     </section>
     <QuickActions />
     </>
+  );
+}
+
+/** Slide with real (bilingual) text on the left and the artwork on the right; on phones the picture sits on top. */
+function SplitSlide({ s, hi, first }: { s: any; hi: boolean; first: boolean }) {
+  const pick = (k: string) => ((hi && s[`${k}_hi`]) || s[k] || "") as string;
+  const title = pick("title");
+  const parts = title.split(/(?<=[.।])\s+/);
+  const lead = parts[0] ?? "";
+  const rest = parts.slice(1).join(" ");
+  const feats = pick("features").split("\n").map((x) => x.trim()).filter(Boolean);
+  const go = (url: string, cls: string, body: ReactNode) =>
+    url.startsWith("http") ? <a href={url} className={cls}>{body}</a> : <Link to={url as never} className={cls}>{body}</Link>;
+  return (
+    <div className="relative h-full overflow-hidden bg-gradient-to-b from-[#00245c] to-[#022f6b] text-white">
+      <div className="relative aspect-[16/10] w-full md:absolute md:inset-y-0 md:right-0 md:aspect-auto md:w-[56%] lg:w-[58%]">
+        {s.image ? <img src={s.image} alt="" className="size-full object-cover object-right md:object-left" loading={first ? "eager" : "lazy"} fetchPriority={first ? "high" : undefined} /> : null}
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#00245c] to-transparent md:hidden" />
+        <div aria-hidden className="absolute inset-y-0 left-0 hidden w-24 bg-gradient-to-r from-[#00245c] to-transparent md:block" />
+      </div>
+      <div className="container-page relative -mt-10 pb-12 md:mt-0 md:flex md:min-h-[32rem] md:items-center md:py-12 lg:min-h-[35rem]">
+        <div className="md:max-w-[50%] lg:max-w-[45%]">
+          {pick("subtitle") ? (
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-200 md:text-sm">
+              <span aria-hidden className="h-0.5 w-6 rounded bg-amber-300" />{pick("subtitle")}
+            </p>
+          ) : null}
+          <h1 className="mt-2 text-balance font-display text-3xl font-bold leading-tight drop-shadow md:text-4xl lg:text-5xl">
+            {lead}{rest ? <><br /><span className="bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 bg-clip-text text-transparent">{rest}</span></> : null}
+          </h1>
+          {pick("description") ? <p className="mt-3 max-w-xl text-sm text-white/85 md:text-base">{pick("description")}</p> : null}
+          {feats.length ? (
+            <ul className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-2">
+              {feats.map((f, k) => (
+                <li key={k} className={`${k >= 4 ? "hidden sm:flex" : "flex"} items-center gap-2 rounded-lg border border-amber-300/35 bg-white/5 px-2.5 py-1.5 text-xs leading-snug backdrop-blur-sm md:text-[13px]`}>
+                  <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-amber-300" />{f}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <div className="mt-5 flex flex-wrap gap-3">
+            {s.button_url && pick("button_text")
+              ? go(String(s.button_url), "inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-b from-amber-200 to-amber-400 px-6 text-sm font-bold text-[#0b1f4d] shadow-lg shadow-amber-500/20 ring-1 ring-amber-100/60 hover:brightness-105 md:h-12 md:text-base", <>{pick("button_text")} <ArrowRight className="size-4" /></>)
+              : null}
+            {s.button2_url && pick("button2_text")
+              ? go(String(s.button2_url), "inline-flex h-11 items-center rounded-full bg-[#00153d]/70 px-6 text-sm font-semibold text-white ring-1 ring-amber-300/70 hover:bg-[#00153d] md:h-12 md:text-base", pick("button2_text"))
+              : null}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

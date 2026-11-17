@@ -20,6 +20,9 @@ function HomepageAdmin() {
             { key: "subtitle", label: "Subtitle (English)" }, { key: "subtitle_hi", label: "उपशीर्षक (हिंदी)" },
             { key: "description", label: "Description (English)", type: "textarea", full: true }, { key: "description_hi", label: "विवरण (हिंदी)", type: "textarea", full: true },
             { key: "button_text", label: "Button text" }, { key: "button_text_hi", label: "बटन (हिंदी)" }, { key: "button_url", label: "Button link (e.g. /join)" },
+            { key: "layout", label: "Layout", hint: "empty = full photo with text on it; split = text on the left, picture on the right (picture's left edge should fade into dark blue)" },
+            { key: "features", label: "Feature list (English, one per line)", type: "textarea" }, { key: "features_hi", label: "सुविधाएँ (हिंदी, हर पंक्ति में एक)", type: "textarea" },
+            { key: "button2_text", label: "Second button text" }, { key: "button2_text_hi", label: "दूसरा बटन (हिंदी)" }, { key: "button2_url", label: "Second button link" },
             { key: "start_date", label: "Show from", type: "date" }, { key: "end_date", label: "Show until", type: "date" },
             { key: "display_order", label: "Order", type: "number" }, { key: "active", label: "Active", type: "checkbox" },
           ]} />

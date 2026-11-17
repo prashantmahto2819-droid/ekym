@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-17 — Home slider: 5 new banners, split layout
+
+- Kalchuri One home slider now uses the owner's 5 new banners in a "split" layout. The left side has real text that switches with the language: tagline, title, description, feature chips and two buttons. The right side shows the artwork, with the baked English text cut out and its left edge faded into navy. On phones the picture sits on top and the text below.
+- New optional `homepage_slides` columns: `layout` ('split'), `features`/`features_hi` (one per line), `button2_text`/`_hi`/`url`. Admin → Homepage → Hero slides has the new fields. The old slides were switched off, not deleted (migration `k1_hero_slides_split`).
+
 ## 2026-11-17 — शोक पत्र / वंश वृक्ष संस्था-वार अलग
 - Owner's decision: family trees are per organization, not shared. `/shok` on every organization site: Pragatishil → shokpatra.kalchuri.org (both addresses work); other organizations → their own page (my families, new family in this organization, the organization's approved families, admin links); kalchuri.org/shok → choose organization. Member tree editor at `/shok/family/$id` (same `FamilyView` as the admin panel). Menu / footer / account links point to `/shok`.
 - Migration `shok_14_org_separation`: `shok_home_org()`; families/letters without an organization (made in the shokpatra app) belong to Pragatishil; shokpatra admins manage only Pragatishil families (super / platform admins all); Kalchuri One role admins only their own organization tree (`shok_org_in`); `k1_families(..., p_org)`; `k1_family_create(org, name, whatsapp, village)` (member or family.manage); `shok_org_info()`.
