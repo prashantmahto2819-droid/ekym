@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Shokpatra: merge look-alike villages
+
+- New RPC `merge_origin_villages(from, to)` (admin) moves members, suggestions and links to the kept origin village and deletes the duplicate (migration `shok_25_merge_origin_villages`). Shokpatra villages and regions pages list look-alike names (same name after ignoring nukta, chandrabindu, half न/म, short/long इ-उ and spaces, or one letter apart) with one-click merge buttons.
+
 ## 2026-11-17 — Assembly constituencies list
 
 - New table `assembly_constituencies` (about 3,880 Vidhan Sabha seats with state and district; readable by everyone). Source: DataMeet / ECI, 2008 delimitation, CC BY 2.5 India. Jammu & Kashmir and Assam are left out because they were re-delimited. Chhattisgarh's 90 seats also have Hindi names. Shokpatra uses it for the Vidhan Sabha pick lists (migration `shok_24_assembly_constituencies`).
