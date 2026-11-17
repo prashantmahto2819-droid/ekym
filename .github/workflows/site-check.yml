@@ -8,6 +8,10 @@ on:
         description: "Space-separated URLs (empty = default list)"
         type: string
         default: ""
+      find:
+        description: "Comma-separated texts to look for on each page (optional)"
+        type: string
+        default: ""
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -19,6 +23,7 @@ jobs:
       - name: Check
         env:
           URLS: ${{ inputs.urls }}
+          FIND: ${{ inputs.find }}
         run: cp scripts/site-check.mjs /tmp/pw/ && cd /tmp/pw && node site-check.mjs && cp -r site-check "$GITHUB_WORKSPACE"/ || { cp -r site-check "$GITHUB_WORKSPACE"/ 2>/dev/null; exit 1; }
       - uses: actions/upload-artifact@v4
         if: always()

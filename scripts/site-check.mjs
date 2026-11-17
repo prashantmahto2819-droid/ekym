@@ -27,6 +27,8 @@ for (const url of urls) {
     title = await page.title();
     const text = (await page.evaluate(() => document.body?.innerText || "")).replace(/\s+/g, " ").slice(0, 160);
     console.log(`\n### ${url}\nstatus=${status} title="${title}" final=${page.url()}\ntext: ${text}`);
+    const body = await page.evaluate(() => document.body?.innerText || "");
+    for (const f of (process.env.FIND || "").split(",").map((x) => x.trim()).filter(Boolean)) console.log(`  find "${f}": ${body.includes(f) ? "YES" : "no"}`);
   } catch (e) { console.log(`\n### ${url}\nLOAD FAILED: ${e.message.slice(0, 200)}`); bad++; }
   for (const e of errs) console.log("  console-error: " + e);
   for (const f of fails) console.log("  request-failed: " + f);
