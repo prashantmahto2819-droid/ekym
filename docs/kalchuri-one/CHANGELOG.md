@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Fix: WhatsApp OTP login for e-mail accounts
+
+- An account made with e-mail that had its mobile only in the profile got "Database error saving new user" on WhatsApp OTP login. The OTP tried to create a second account with the same number. The profile mobile is now copied to the login account (existing ones fixed, and a trigger keeps it in step), so OTP opens the same account (migration `shok_28_sync_profile_phone_to_auth`).
+
 ## 2026-11-17 — Shokpatra: merge look-alike villages
 
 - New RPC `merge_origin_villages(from, to)` (admin) moves members, suggestions and links to the kept origin village and deletes the duplicate (migration `shok_25_merge_origin_villages`). Shokpatra villages and regions pages list look-alike names (same name after ignoring nukta, chandrabindu, half न/म, short/long इ-उ and spaces, or one letter apart) with one-click merge buttons.
