@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-17 — शोक पत्र / वंश वृक्ष संस्था-वार अलग
+- Owner's decision: family trees are per organization, not shared. `/shok` on every organization site: Pragatishil → shokpatra.kalchuri.org (both addresses work); other organizations → their own page (my families, new family in this organization, the organization's approved families, admin links); kalchuri.org/shok → choose organization. Member tree editor at `/shok/family/$id` (same `FamilyView` as the admin panel). Menu / footer / account links point to `/shok`.
+- Migration `shok_14_org_separation`: `shok_home_org()`; families/letters without an organization (made in the shokpatra app) belong to Pragatishil; shokpatra admins manage only Pragatishil families (super / platform admins all); Kalchuri One role admins only their own organization tree (`shok_org_in`); `k1_families(..., p_org)`; `k1_family_create(org, name, whatsapp, village)` (member or family.manage); `shok_org_info()`.
+- shokpatra app branded "प्रगतिशील जायसवाल कन्नौजिया कलार समाज" (home, login, menu, dashboard) with a note for members of other organizations pointing to their site's /shok. Checks: `supabase/checks/shok_org_sep*.sql`.
+
 ## 2026-11-16 — Notifications like a social app, chat everywhere, editable posts, richer profiles
 - **Chat dock on every page** (`ChatDock`, mounted in `__root`): a direct message (cm_notifications `chat_dm`, realtime) opens a small window bottom-right on desktop, or a toast with "खोलें" on phones (full-screen window). Minimise, close, open full chat, mute; round chat button with unread count + recent chats. Global presence heartbeat so off-site alerts only go when the person is really away.
 - **Mute for a while**: `cm_chat_members.muted_until`, RPC `k1_chat_mute_for(room, minutes)` (1 h / 8 h / 1 day / 1 week / always / unmute), cron `k1-chat-unmute` every 5 min; `MuteMenu` in the chat page and the dock.
