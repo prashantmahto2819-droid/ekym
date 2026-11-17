@@ -1,5 +1,11 @@
 do $$ declare r record; begin
-  raise notice 'CHECK total=% cg=% cg_hi=%', (select count(*) from public.assembly_constituencies), (select count(*) from public.assembly_constituencies where state='Chhattisgarh'), (select count(*) from public.assembly_constituencies where name_hi is not null);
-  for r in select state, count(*) n from public.assembly_constituencies group by 1 order by 1 loop raise notice 'S % %', r.state, r.n; end loop;
-  raise notice 'CHECK korba: %', (select string_agg(name_hi, ', ' order by ac_no) from public.assembly_constituencies where district = 'Korba');
+  for r in select v.id, v.name, (select count(*) from public.families f where f.village_id = v.id and f.status <> 'deleted') fams,
+                  (select count(*) from public.members m where m.village_id = v.id) mems,
+                  (select count(*) from public.profiles p where lower(btrim(p.village)) = lower(btrim(v.name))) users
+             from public.villages v order by v.name loop
+    raise notice 'V|%|%|%|%|%', r.id, r.name, r.fams, r.mems, r.users;
+  end loop;
+  for r in select o.id, o.name, s.name reg, (select count(*) from public.members m where m.origin_village_id = o.id) mems from public.origin_villages o left join public.social_regions s on s.id = o.region_id order by o.name loop
+    raise notice 'O|%|%|%|%', r.id, r.name, coalesce(r.reg,'-'), r.mems;
+  end loop;
 end $$;
