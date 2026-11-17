@@ -120,7 +120,7 @@ function SplitSlide({ s, hi, first }: { s: any; hi: boolean; first: boolean }) {
   return (
     <div className="relative h-full overflow-hidden bg-gradient-to-b from-[#00245c] to-[#022f6b] text-white">
       <div className="relative aspect-[16/10] w-full md:absolute md:inset-y-0 md:right-0 md:aspect-auto md:w-[56%] lg:w-[58%]">
-        {s.image ? <img src={s.image} alt="" className="size-full object-cover object-right md:object-left" loading={first ? "eager" : "lazy"} fetchPriority={first ? "high" : undefined} /> : null}
+        {s.image ? <img src={s.image} alt="" className="size-full object-cover object-right" loading={first ? "eager" : "lazy"} fetchPriority={first ? "high" : undefined} /> : null}
         <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#00245c] to-transparent md:hidden" />
         <div aria-hidden className="absolute inset-y-0 left-0 hidden w-24 bg-gradient-to-r from-[#00245c] to-transparent md:block" />
       </div>

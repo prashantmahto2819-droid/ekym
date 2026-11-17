@@ -1,8 +1,8 @@
 # Changelog
 
-## 2026-11-17 — Slider 1: clean artwork
+## 2026-11-17 — Slider: clean artwork
 
-- Slide 1 now uses the owner's new clean picture with no printed labels (`/slides/k1-1b.jpg`, migration `k1_slide1_clean_art`).
+- Slides 1–3 now use the owner's new clean pictures with no printed labels (`/slides/k1-1b.jpg`, `k1-2b`, `k1-3b`; migrations `k1_slide1_clean_art`, `k1_slide23_clean_art`). On wide screens the picture is anchored to the right so the right-hand icons never get cut.
 
 ## 2026-11-17 — Home slider: 5 new banners, split layout
 
