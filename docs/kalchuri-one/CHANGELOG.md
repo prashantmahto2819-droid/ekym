@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-17 — Assembly constituencies list
+
+- New table `assembly_constituencies` (about 3,880 Vidhan Sabha seats with state and district; readable by everyone). Source: DataMeet / ECI, 2008 delimitation, CC BY 2.5 India. Jammu & Kashmir and Assam are left out because they were re-delimited. Chhattisgarh's 90 seats also have Hindi names. Shokpatra uses it for the Vidhan Sabha pick lists (migration `shok_24_assembly_constituencies`).
+
 ## 2026-11-17 — Shokpatra: Vidhan Sabha (assembly constituency)
 
 - New optional `vidhansabha` on origin villages (social regions), residence villages and user profiles. RPCs `set_origin_vidhansabha(ids, text)` (admin) and `vidhansabha_names()` (suggestions). Shokpatra: regions page, villages page, "मेरी जानकारी" form, people list column and filter (migration `shok_23_vidhansabha`).
