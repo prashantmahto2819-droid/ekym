@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLang } from "@/core/i18n";
-import { ensureVillage, loadVillages, phoneCheck, validPhone } from "@/family/api";
-import { useAuth } from "@/hooks/use-auth";
+import { useTenant } from "@/core/tenant-context";
+import { loadVillages, phoneCheck, validPhone } from "@/family/api";
 import { normPhone } from "@/lib/comms";
 import { useFamilyCtx } from "@/family/hooks";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin/families/")({ compon
 type Row = { id: string; family_name: string; village_name: string | null; main_whatsapp: string | null; status: string; members: number; head_name: string | null; owner_id: string; created_at: string; mine: boolean; managed: boolean };
 
 function FamiliesPage() {
+  const tenant = useTenant();
   const { lang } = useLang();
   const L = lang === "hi";
   const [q, setQ] = useState("");
@@ -52,10 +53,10 @@ function FamiliesPage() {
   });
   const toggleCmp = (id: string) => setCmp((c) => c.includes(id) ? c.filter((x) => x !== id) : c.length >= 3 ? (toast.error(L ? "एक बार में ज़्यादा से ज़्यादा 3 वंश वृक्ष" : "At most 3 trees at once"), c) : [...c, id]);
   const rows = useQuery({
-    queryKey: ["k1_families", status, q, limit],
+    queryKey: ["k1_families", status, q, limit, tenant.organization_id],
     enabled: ctx.data?.approved === true,
     placeholderData: (prev) => prev,
-    queryFn: async () => { const { data, error } = await supabase.rpc("k1_families", { p_status: status || null, p_q: q.trim() || null, p_limit: limit } as never); if (error) throw error; return (data ?? []) as unknown as Row[]; },
+    queryFn: async () => { const { data, error } = await supabase.rpc("k1_families", { p_status: status || null, p_q: q.trim() || null, p_limit: limit, p_org: tenant.organization_id } as never); if (error) throw error; return (data ?? []) as unknown as Row[]; },
   });
 
   if (ctx.data && !ctx.data.approved) {
@@ -139,9 +140,10 @@ function FamiliesPage() {
   );
 }
 
-function NewFamilyDialog({ open, onClose, L }: { open: boolean; onClose: () => void; L: boolean }) {
+/** नया परिवार — इसी संस्था (साइट) में बनता है (RPC k1_family_create); onCreated न दें तो एडमिन वाले पेज पर खुलता है */
+export function NewFamilyDialog({ open, onClose, L, onCreated }: { open: boolean; onClose: () => void; L: boolean; onCreated?: (id: string) => void }) {
   const nav = useNavigate();
-  const { user } = useAuth();
+  const tenant = useTenant();
   const [name, setName] = useState("");
   const [wa, setWa] = useState("");
   const [village, setVillage] = useState("");
@@ -155,11 +157,11 @@ function NewFamilyDialog({ open, onClose, L }: { open: boolean; onClose: () => v
     try {
       const hits = await phoneCheck(wa);
       if (hits.length && !confirm(L ? `यह नंबर पहले से "${hits[0]!.name ?? ""} ${hits[0]!.family_name ?? ""}" के पास है। फिर भी बनाएँ?` : `This number already belongs to "${hits[0]!.name ?? ""} ${hits[0]!.family_name ?? ""}". Create anyway?`)) { setBusy(false); return; }
-      const village_id = await ensureVillage(village, villages.data ?? []);
-      const { data, error } = await supabase.from("families").insert({ family_name: name.trim(), main_whatsapp: normPhone(wa), village_id, owner_id: user!.id } as never).select("id").single();
-      if (error) throw error;
+      const { data, error } = await supabase.rpc("k1_family_create" as never, { p_org: tenant.organization_id, p_name: name.trim(), p_whatsapp: normPhone(wa), p_village: village.trim() } as never);
+      if (error) throw new Error(error.message);
+      const id = data as unknown as string;
       onClose();
-      nav({ to: "/admin/families/$id", params: { id: (data as { id: string }).id } });
+      if (onCreated) onCreated(id); else nav({ to: "/admin/families/$id", params: { id } });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); } finally { setBusy(false); }
   }
   return (

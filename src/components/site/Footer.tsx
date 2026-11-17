@@ -29,7 +29,7 @@ const sevaLinks: { key: TKey; to: string }[] = [
 const getInvolved: { key: TKey; to: string }[] = [
   { key: "join", to: "/join" },
   { key: "community", to: "/community" },
-  { key: "shok", to: "https://shokpatra.kalchuri.org/app.html" },
+  { key: "shok", to: "/shok" },
   { key: "events", to: "/events" },
   { key: "team", to: "/team" },
   { key: "internship", to: "/internship" },

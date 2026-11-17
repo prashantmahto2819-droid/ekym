@@ -74,7 +74,7 @@ function AccountPage() {
     { to: "/events", icon: <CalendarDays />, hi: "आयोजन", en: "Events", mod: "events" },
     { to: "/blood", icon: <Droplet />, hi: "रक्त सेवा", en: "Blood seva", mod: "blood" },
     { to: "/me/notifications", icon: <Bell />, hi: "सूचना सेटिंग", en: "Notification settings" },
-    { to: "https://shokpatra.kalchuri.org/app.html", icon: <Network />, hi: "वंश वृक्ष / शोकपत्र", en: "Family tree / shokpatra", mod: "shok", ext: true },
+    { to: "/shok", icon: <Network />, hi: "वंश वृक्ष / शोकपत्र", en: "Family tree / shokpatra", mod: "shok" },
   ];
 
   return (

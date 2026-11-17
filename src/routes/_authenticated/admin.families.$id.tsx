@@ -18,13 +18,18 @@ import { normPhone } from "@/lib/comms";
 
 export const Route = createFileRoute("/_authenticated/admin/families/$id")({ component: FamilyPage });
 
+function FamilyPage() {
+  const { id } = Route.useParams();
+  return <FamilyView id={id} />;
+}
+
 type Family = { id: string; family_name: string; status: string; main_whatsapp: string | null; village_id: string | null; owner_id: string; villages: { name: string } | null; admin_note: string | null };
 type LinkInfo = { link_id: string; direction: string; status: string; other_family_id: string; other_family_name: string; member_id: string; member_name: string; note: string | null };
 type Member = Person & { village_id?: string | null };
 
 
-function FamilyPage() {
-  const { id } = Route.useParams();
+/** एक परिवार का वंश वृक्ष (एडमिन पैनल में, और सदस्यों के लिए /shok/family/$id पर — member=true) */
+export function FamilyView({ id, member = false }: { id: string; member?: boolean }) {
   const { lang } = useLang();
   const L = lang === "hi";
   const ctx = useFamilyCtx();
@@ -198,7 +203,7 @@ function FamilyPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground"><Link to="/admin/families" className="hover:underline">{L ? "वंश वृक्ष" : "Family trees"}</Link> · {f.villages?.name ?? "—"}</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">{member ? <Link to="/shok" className="hover:underline">{L ? "शोक पत्र व वंश वृक्ष" : "Family trees"}</Link> : <Link to="/admin/families" className="hover:underline">{L ? "वंश वृक्ष" : "Family trees"}</Link>} · {f.villages?.name ?? "—"}</p>
           <h1 className="font-display text-2xl font-semibold">{f.family_name} <Badge variant={f.status === "approved" ? "default" : f.status === "rejected" ? "destructive" : "secondary"} className="ml-2 align-middle">{f.status}</Badge></h1>
           <p className="text-sm text-muted-foreground">
             {head ? `${L ? "मुखिया" : "Head"}: ${people.filter((p) => p.is_head).map((p) => p.name).join(", ")}` : (L ? "मुखिया दर्ज नहीं" : "No head")}{f.main_whatsapp && !hideContacts ? ` · ${f.main_whatsapp}` : ""} · {stats.total} {L ? "सदस्य" : "members"} ({stats.living} {L ? "जीवित" : "living"}, {stats.deceased} {L ? "दिवंगत" : "late"}) · {stats.gens} {L ? "पीढ़ियाँ" : "generations"}
@@ -260,7 +265,7 @@ function FamilyPage() {
             {links.data!.map((l) => (
               <li key={l.link_id}>
                 {l.direction === "up" ? (L ? "ऊपर: " : "Above: ") : (L ? "नीचे: " : "Below: ")}
-                <Link to="/admin/families/$id" params={{ id: l.other_family_id }} className="text-foreground hover:underline">{l.other_family_name}</Link>
+                <Link to={member ? "/shok/family/$id" : "/admin/families/$id"} params={{ id: l.other_family_id }} className="text-foreground hover:underline">{l.other_family_name}</Link>
                 {" · "}{l.member_name} <Badge variant={l.status === "approved" ? "default" : "secondary"} className="ml-1">{l.status}</Badge>
               </li>
             ))}

@@ -25,7 +25,7 @@ import type { MenuItem } from "@/lib/public.functions";
 const primaryNav: { key: TKey; to: string }[] = [
   { key: "about", to: "/about" },
   { key: "community", to: "/community" },
-  { key: "shok", to: "https://shokpatra.kalchuri.org/app.html" },
+  { key: "shok", to: "/shok" },
   { key: "events", to: "/events" },
   { key: "join", to: "/join" },
   { key: "news", to: "/news" },
