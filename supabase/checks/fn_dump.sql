@@ -1,8 +1,8 @@
-do $$ declare r record; l text; begin
-  for r in select p.oid, p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-           where n.nspname = 'public' and p.proname in ('phone_taken','phone_check','trg_members_phone_dup','trg_families_phone_dup') loop
-    raise notice '#### %', r.proname;
-    foreach l in array string_to_array(pg_get_functiondef(r.oid), E'\n') loop raise notice '| %', l; end loop;
-  end loop;
-  for r in select tgname, tgrelid::regclass t, p.proname from pg_trigger g join pg_proc p on p.oid = g.tgfoid where not tgisinternal and p.proname ilike '%dup%' loop raise notice 'TRG % on % -> %', r.tgname, r.t, r.proname; end loop;
+do $$ declare f record; begin
+  select fa.id, m.phone into f from public.families fa join public.members m on m.family_id = fa.id and m.is_head
+   where fa.status <> 'deleted' and coalesce(m.phone,'') <> '' and m.phone is distinct from fa.main_whatsapp limit 1;
+  begin
+    update public.families set main_whatsapp = f.phone where id = f.id;
+    raise notice 'CHECK family main := head phone OK';
+  exception when others then raise notice 'CHECK family main := head phone FAILED % %', sqlstate, sqlerrm; end;
 end $$;
