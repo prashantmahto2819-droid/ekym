@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-19 — Shokpatra: welcome WhatsApp on account approval
+
+- When a Shokpatra user's account goes from pending to approved, whether by an admin or automatically through their number, they get one WhatsApp welcome with the login link. Suspended numbers get nothing (migration `shok_29_approval_welcome`).
+
 ## 2026-11-17 — Fix: WhatsApp OTP login for e-mail accounts
 
 - An account made with e-mail that had its mobile only in the profile got "Database error saving new user" on WhatsApp OTP login. The OTP tried to create a second account with the same number. The profile mobile is now copied to the login account (existing ones fixed, and a trigger keeps it in step), so OTP opens the same account (migration `shok_28_sync_profile_phone_to_auth`).
