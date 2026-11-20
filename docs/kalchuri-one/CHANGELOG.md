@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-20 — Shokpatra: backup sender number, death anniversaries, reports, tree printing
+
+- `send-letters`: when the sending number is not connected in Vivid Relay (503 `not_connected` / 404), the rest of the run goes through `app_settings.relay_session_backup` (owner's gateway only); without a backup the letter waits in the queue with a clear message instead of every recipient failing.
+- Migration `shok_33_death_date_punyatithi`: optional `members.death_date`; RPC `shok_upcoming_punyatithi(days)` feeds a dashboard panel (in-app only, no messages).
+- Shokpatra site: admin "रिपोर्ट" page (village-wise numbers, letters of 90 days with delivered / read, monthly growth, CSV), printable tree chart, R2 uploads switched on with automatic fallback to Supabase Storage.
+- Dropped by the owner: asking family heads for missing numbers over WhatsApp (would feel like spam).
+
 ## 2026-11-20 — Shokpatra: delivered / read status of letters
 
 - `send-letters` stores the gateway's message id (`letter_recipients.wa_message_id`). New edge function `shok-receipt` (verify_jwt off, HMAC-signed) receives Vivid Relay `message.receipt` webhooks and RPC `shok_receipt` fills `delivered_at` / `read_at` (also for welcome messages). Super admin saves the webhook secret in Shokpatra → सेटिंग (`shok_receipt_secret_set`, `shok_receipt_status`). Letters page shows पहुँचा / पढ़ा गया per person with count filters. Migration `shok_32_delivery_receipts`.

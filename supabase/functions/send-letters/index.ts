@@ -77,7 +77,11 @@ async function work(db: Db, baseCfg: Cfg, letterId: string) {
   const cfg = await cfgForOrg(db, baseCfg, (letter as { organization_id?: string | null }).organization_id ?? null);
   const relay = (cfg.relay_url || "").replace(/\/+$/, "");
   const key = cfg.relay_key || "";
-  const session = cfg.relay_session || "";
+  let session = cfg.relay_session || "";
+  // दूसरा (बैकअप) नंबर: पहला नंबर जुड़ा न हो (QR टूट गया / फ़ोन बंद) तो इसी बार से बाकी पत्र इससे जाते हैं। सिर्फ़ अपने गेटवे पर।
+  const b = baseCfg as unknown as Record<string, string | undefined>;
+  let backup = cfg.relay_url === baseCfg.relay_url ? String(b.relay_session_backup || "").trim() : "";
+  if (backup === session) backup = "";
   const relayHeaders = { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Requested-With": "vivid" };
   const gapMin = Math.max(3, Number(cfg.gap_min) || 6);
   const gapMax = Math.min(25, Math.max(gapMin + 1, Number(cfg.gap_max) || 14));
@@ -112,16 +116,29 @@ async function work(db: Db, baseCfg: Cfg, letterId: string) {
         }
       }
       let ok = false, err = "", waId: string | null = null;
-      try {
-        const res = await fetch(`${relay}/api/sessions/${encodeURIComponent(session)}/send`, {
-          method: "POST", headers: relayHeaders, body: JSON.stringify(msg), signal: AbortSignal.timeout(60000),
-        });
-        const j = await res.json().catch(() => ({}));
-        ok = res.ok && j.ok !== false;
-        if (ok && j.message && typeof j.message.id === "string") waId = j.message.id; // पहुँचा / पढ़ा की रसीद इसी id से जुड़ती है
-        if (!ok) err = (j.error || `HTTP ${res.status}`).toString().slice(0, 300);
-        if (res.status === 401 || res.status === 402 || res.status === 403) fatal = `Vivid Relay: ${err}`;
-      } catch (e) { err = (e as Error).message.slice(0, 300); }
+      for (let attempt = 0; attempt < 2; attempt++) {
+        let down = false;
+        try {
+          const res = await fetch(`${relay}/api/sessions/${encodeURIComponent(session)}/send`, {
+            method: "POST", headers: relayHeaders, body: JSON.stringify(msg), signal: AbortSignal.timeout(60000),
+          });
+          const j = await res.json().catch(() => ({}));
+          ok = res.ok && j.ok !== false;
+          if (ok && j.message && typeof j.message.id === "string") waId = j.message.id; // पहुँचा / पढ़ा की रसीद इसी id से जुड़ती है
+          if (!ok) err = (j.error || `HTTP ${res.status}`).toString().slice(0, 300);
+          if (res.status === 401 || res.status === 402 || res.status === 403) fatal = `Vivid Relay: ${err}`;
+          // भेजने वाला नंबर ही जुड़ा नहीं है: यह पाने वाले की गलती नहीं, इसलिए पत्र को असफल नहीं करते
+          down = !ok && (res.status === 503 || res.status === 404) && /not_connected|session_not_found|not connected|not found/i.test(err + " " + (j.code || ""));
+        } catch (e) { err = (e as Error).message.slice(0, 300); }
+        if (!down) break;
+        if (backup) {
+          const old = session; session = backup; backup = "";
+          await db.from("letters").update({ last_error: `पहला WhatsApp नंबर (${old}) जुड़ा नहीं है — बैकअप नंबर (${session}) से भेजा जा रहा है।` }).eq("id", letterId);
+          continue;
+        }
+        fatal = `भेजने वाला WhatsApp नंबर (${session}) Vivid Relay में जुड़ा नहीं है — वहाँ QR दोबारा जोड़िए। पत्र कतार में सुरक्षित हैं, जुड़ते ही अपने आप जाएँगे।`;
+        break;
+      }
 
       if (fatal) { await db.from("letter_recipients").update({ status: "queued" }).eq("id", r.id); break; }
       // number not on WhatsApp → remember it and re-route the card (eldest son → branch head → family main number)
