@@ -13,6 +13,7 @@ type Profile = { member_id: string; photo: string | null; bio: string | null };
 type Marriage = { daughter_id: string; daughter_name: string; daughter_family_id: string; daughter_family_name: string; father_name: string | null; husband_id: string; husband_name: string; husband_family_id: string; husband_family_name: string };
 type History = { at: string; actor_name: string; action: string; summary: string };
 type Extra = { gotra: string | null; kuldevi: string | null };
+type Age = { member_id: string; age: number | null; at_death: boolean; can_set: boolean; approx: boolean };
 type Mem = { id: string; name: string; is_deceased?: boolean | null; name_unknown?: boolean | null };
 
 /** Square, small JPEG data URL of a picked photo (kept in the row, no file storage). */
@@ -47,6 +48,9 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
   const [bio, setBio] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dobFor, setDobFor] = useState("");
+  const [dob, setDob] = useState("");
+  const [ageIn, setAgeIn] = useState("");
 
   const extra = useQuery({
     queryKey: ["family_extra", familyId],
@@ -55,6 +59,10 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
   const profiles = useQuery({
     queryKey: ["family_profiles", familyId],
     queryFn: async () => { const { data } = await sb.rpc("shok_member_profiles", { p_family: familyId }); return (data ?? []) as Profile[]; },
+  });
+  const ages = useQuery({
+    queryKey: ["family_ages", familyId],
+    queryFn: async () => { const { data } = await sb.rpc("shok_member_ages", { p_family: familyId }); return (data ?? []) as Age[]; },
   });
   const marriages = useQuery({
     queryKey: ["family_marriages", familyId],
@@ -79,6 +87,22 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
     toast.success(L ? "सहेज लिया" : "Saved");
     void qc.invalidateQueries({ queryKey: ["family_extra", familyId] });
   }
+
+  async function saveBirth() {
+    if (!dobFor) return;
+    const n = dob || ageIn.trim() === "" ? null : Number.parseInt(ageIn, 10);
+    if (n !== null && !(n >= 0 && n <= 125)) { toast.error(L ? "उम्र 0 से 125 के बीच लिखिए" : "Age must be between 0 and 125"); return; }
+    setBusy(true);
+    const { error } = await sb.rpc("shok_member_birth_set", { p_member: dobFor, p_dob: dob || null, p_age: n });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(L ? "सहेज लिया — क्रम उम्र के हिसाब से लग गया" : "Saved — siblings are now ordered by age");
+    setDobFor(""); setDob(""); setAgeIn("");
+    void qc.invalidateQueries({ queryKey: ["family_ages", familyId] });
+    void qc.invalidateQueries({ queryKey: ["family_members", familyId] });
+  }
+  const withAge = (ages.data ?? []).filter((x) => x.age !== null && nameOf.has(x.member_id));
+  const settable = (ages.data ?? []).filter((x) => x.can_set && nameOf.has(x.member_id));
 
   function startEdit(memberId: string) {
     const p = (profiles.data ?? []).find((x) => x.member_id === memberId);
@@ -156,6 +180,29 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
               ) : null}
             </div>
           ) : null}
+        </div>
+      ) : null}
+
+      {withAge.length || settable.length ? (
+        <div>
+          <p className="font-semibold">{L ? "उम्र" : "Ages"}</p>
+          {withAge.length ? (
+            <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              {withAge.map((x) => <span key={x.member_id}>{nameOf.get(x.member_id)}: <b>{x.approx ? (L ? "लगभग " : "about ") : ""}{x.age}</b>{x.at_death ? (L ? " (निधन के समय)" : " (at death)") : ""}</span>)}
+            </p>
+          ) : null}
+          {settable.length ? (
+            <div className="mt-2 grid gap-2 sm:grid-cols-4">
+              <select className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:col-span-2" value={dobFor} onChange={(e) => { setDobFor(e.target.value); setDob(""); setAgeIn(""); }}>
+                <option value="">{L ? "— किसकी जन्म तिथि / उम्र भरनी है —" : "— Enter date of birth / age for —"}</option>
+                {settable.map((x) => <option key={x.member_id} value={x.member_id}>{nameOf.get(x.member_id)}</option>)}
+              </select>
+              {dobFor ? <input type="date" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={dob} onChange={(e) => setDob(e.target.value)} aria-label={L ? "जन्म तिथि" : "Date of birth"} /> : null}
+              {dobFor ? <input type="number" min={0} max={125} className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={ageIn} onChange={(e) => setAgeIn(e.target.value)} placeholder={L ? "या उम्र (वर्ष)" : "or age (years)"} /> : null}
+              {dobFor ? <Button size="sm" onClick={() => void saveBirth()} disabled={busy}>{L ? "सहेजें" : "Save"}</Button> : null}
+            </div>
+          ) : null}
+          <p className="mt-1 text-xs text-muted-foreground">{L ? "जन्म तिथि किसी को नहीं दिखती, सिर्फ़ उम्र दिखती है। भरते ही भाइयों / बहनों का क्रम उम्र के हिसाब से लग जाता है।" : "The date of birth is never shown, only the age. Saving puts brothers / sisters in order of age."}</p>
         </div>
       ) : null}
 

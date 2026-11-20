@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Family tree: age entry and automatic sibling order
+
+- Migration `shok_41_age_entry_auto_order`: an age can be entered when the date of birth is unknown (approximate, shown as "about NN"); saving a date or an age orders the sons (and the daughters) of that parent by age, eldest first. Family page (`FamilyExtras`) shows ages and lets the owner / admin / the person enter them.
+
 ## 2026-11-20 — Family tree: date of birth (private) and age (visible)
 
 - Migration `shok_40_member_birth_age`: private `member_births`; RPCs `shok_member_ages(family)` (age only), `shok_member_dob_get / _set` (the person himself by matching mobile, the family owner, or an admin in scope). The date of birth is never returned to anyone else.
