@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Shokpatra: delivered / read status of letters
+
+- `send-letters` stores the gateway's message id (`letter_recipients.wa_message_id`). New edge function `shok-receipt` (verify_jwt off, HMAC-signed) receives Vivid Relay `message.receipt` webhooks and RPC `shok_receipt` fills `delivered_at` / `read_at` (also for welcome messages). Super admin saves the webhook secret in Shokpatra → सेटिंग (`shok_receipt_secret_set`, `shok_receipt_status`). Letters page shows पहुँचा / पढ़ा गया per person with count filters. Migration `shok_32_delivery_receipts`.
+
 ## 2026-11-20 — Owner's WhatsApp gateway only for the home organization
 
 - Owner's decision: the platform owner's Vivid Relay is used only for प्रगतिशील समाज. Another organization's letters go through its own Messaging channel; without one they are not sent, unless the super admin allows that organization in Shokpatra → सेटिंग (`shok_relay_allot`, `shok_owner_relay_ok`, migration `shok_30_relay_allotment`). Welcome messages follow the same rule. EKYM and the Kalchuri One root organization are allowed too (migration `shok_31`); organizations created later are not. Opening full Shokpatra features to other organizations is on hold.

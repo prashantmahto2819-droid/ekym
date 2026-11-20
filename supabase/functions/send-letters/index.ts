@@ -111,13 +111,14 @@ async function work(db: Db, baseCfg: Cfg, letterId: string) {
           if (signed?.signedUrl) msg.media = { type: "image", url: signed.signedUrl };
         }
       }
-      let ok = false, err = "";
+      let ok = false, err = "", waId: string | null = null;
       try {
         const res = await fetch(`${relay}/api/sessions/${encodeURIComponent(session)}/send`, {
           method: "POST", headers: relayHeaders, body: JSON.stringify(msg), signal: AbortSignal.timeout(60000),
         });
         const j = await res.json().catch(() => ({}));
         ok = res.ok && j.ok !== false;
+        if (ok && j.message && typeof j.message.id === "string") waId = j.message.id; // पहुँचा / पढ़ा की रसीद इसी id से जुड़ती है
         if (!ok) err = (j.error || `HTTP ${res.status}`).toString().slice(0, 300);
         if (res.status === 401 || res.status === 402 || res.status === 403) fatal = `Vivid Relay: ${err}`;
       } catch (e) { err = (e as Error).message.slice(0, 300); }
@@ -135,6 +136,7 @@ async function work(db: Db, baseCfg: Cfg, letterId: string) {
       await db.from("letter_recipients").update({
         status: ok ? "sent" : "failed", error: ok ? null : err,
         attempts: Number(r.attempts || 0) + 1, sent_at: ok ? new Date().toISOString() : null,
+        ...(ok && waId ? { wa_message_id: waId } : {}),
       }).eq("id", r.id);
       if (Date.now() - start + gapMax * 1000 < BUDGET_MS) await sleep((gapMin + Math.random() * (gapMax - gapMin)) * 1000);
       else break;
