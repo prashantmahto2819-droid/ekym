@@ -1,10 +1,12 @@
 // सभी वंश वृक्ष एक पन्ने पर + खोज — हर संस्था के लिए (उसी संस्था के मंज़ूर वृक्ष)।
+// "रिश्ता खोजें": दो नाम चुनने पर रिश्ता (जुड़े हुए वंश और विवाह की कड़ी समेत)।
 // खिसकाना (खींचकर), बड़ा-छोटा (पहिया / बटन), नाम खोजना; नाम पर दबाने से उसका परिवार खुलता है।
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 
+import { lineageRoot, relation } from "@/components/family/relation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/core/i18n";
@@ -29,10 +31,11 @@ function layout(members: Person[], links: Link2[]) {
   for (const p of members) if (p.member_kind !== "spouse") byId.set(p.id, { ...p, kids: [], w: 0, x: 0, y: 0, d: 0 });
   const linkOf = new Map(links.map((l) => [l.child_family_id, l.parent_member_id] as const));
   const roots: N[] = [];
+  const up = new Map<string, Person>(); // हर व्यक्ति, जुड़े वंश का पिता समेत — रिश्ता गिनने के लिए
   for (const n of byId.values()) {
     let par = n.parent_id ? byId.get(n.parent_id) : undefined;
     if (!par && n.family_id && linkOf.has(n.family_id)) { par = byId.get(linkOf.get(n.family_id)!); if (par) n.linked = true; }
-    if (par && par !== n) par.kids.push(n); else roots.push(n);
+    if (par && par !== n) { par.kids.push(n); up.set(n.id, { ...n, kids: [], parent_id: par.id } as Person); } else { roots.push(n); up.set(n.id, { ...n, kids: [], parent_id: null } as Person); }
   }
   const rank = (n: N) => (n.member_kind === "daughter" ? 1 : 0);
   const seen = new Set<string>();
@@ -62,7 +65,7 @@ function layout(members: Person[], links: Link2[]) {
     place(r, x, y);
     x += r.w + 70; rowH = Math.max(rowH, depth(r) * (NH + VG)); W = Math.max(W, x);
   }
-  return { all, roots, wifeOf, W: Math.max(W, 600), H: y + rowH + 40, byId };
+  return { all, roots, wifeOf, W: Math.max(W, 600), H: y + rowH + 40, byId, up };
 }
 
 function ForestPage() {
@@ -78,6 +81,8 @@ function ForestPage() {
   const [view, setView] = useState({ x: 0, y: 0, k: 0.6 });
   const [term, setTerm] = useState("");
   const [hit, setHit] = useState<string | null>(null);
+  const [relMode, setRelMode] = useState(false);
+  const [pick, setPick] = useState<string[]>([]);
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
   const box = useRef<HTMLDivElement>(null);
 
@@ -109,6 +114,21 @@ function ForestPage() {
     });
   }
 
+  const relText = useMemo(() => {
+    const a = pick[0] ? lay.up.get(pick[0]) : undefined, b = pick[1] ? lay.up.get(pick[1]) : undefined;
+    if (!a || !b) return "";
+    const ra = lineageRoot(a, lay.up), rb = lineageRoot(b, lay.up);
+    if (ra === rb) return relation(a, b, lay.up, L);
+    const m = (mq.data ?? []).find((x) => {
+      const d = lay.up.get(x.daughter_id), h = lay.up.get(x.husband_id);
+      if (!d || !h) return false;
+      const rd = lineageRoot(d, lay.up), rh = lineageRoot(h, lay.up);
+      return (rd === ra && rh === rb) || (rd === rb && rh === ra);
+    });
+    if (m) return L ? `ये दोनों अलग वंश के हैं, पर विवाह से संबंधी हैं: ${m.daughter_name} का विवाह ${m.husband_name} से हुआ है।` : `These two are of different lineages but related by marriage: ${m.daughter_name} is married to ${m.husband_name}.`;
+    return L ? "इन दोनों के बीच कोई साझा पूर्वज या विवाह की कड़ी दर्ज नहीं है।" : "No common ancestor or marriage link is recorded between these two.";
+  }, [pick, lay, mq.data, L]);
+
   const families = new Set((q.data?.members ?? []).map((m) => m.family_id)).size;
   return (
     <section className="container-page space-y-3 py-6">
@@ -122,6 +142,7 @@ function ForestPage() {
           <Button size="sm" variant="outline" onClick={() => zoom(1.25)}>+</Button>
           <Button size="sm" variant="outline" onClick={() => zoom(0.8)}>−</Button>
           <Button size="sm" variant="outline" onClick={fit}>{L ? "पूरा दिखाएँ" : "Fit all"}</Button>
+          <Button size="sm" variant={relMode ? "default" : "outline"} onClick={() => { setRelMode((v) => !v); setPick([]); }}>🔗 {relMode ? (L ? "रिश्ता खोजना बंद करें" : "Stop finding relations") : (L ? "रिश्ता खोजें" : "Find a relation")}</Button>
         </div>
       </div>
       <div className="relative max-w-md">
@@ -136,6 +157,14 @@ function ForestPage() {
           </ul>
         ) : null}
       </div>
+      {relMode ? (
+        <p className="rounded-md bg-secondary p-2 text-sm">
+          {pick.length < 2
+            ? (L ? `किन्हीं दो नामों पर दबाइए (${pick.length}/2 चुने)।` : `Click any two names (${pick.length}/2 chosen).`)
+            : relText}
+          {pick.length ? <button type="button" className="ml-2 underline" onClick={() => setPick([])}>{L ? "फिर से चुनें" : "Choose again"}</button> : null}
+        </p>
+      ) : null}
       {q.isLoading ? <p className="text-muted-foreground">…</p> : q.error ? <p className="text-destructive">{(q.error as Error).message}</p> : !lay.all.length ? <p className="text-muted-foreground">{L ? "अभी कोई मंज़ूर वंश वृक्ष नहीं है।" : "No approved family trees yet."}</p> : (
         <div
           ref={box}
@@ -162,8 +191,8 @@ function ForestPage() {
                 const w = lay.wifeOf.get(n.id);
                 const girl = n.member_kind === "daughter" || n.member_kind === "woman";
                 return (
-                  <g key={n.id} transform={`translate(${n.x},${n.y})`} style={{ cursor: "pointer" }} onClick={() => { if (drag.current?.moved) return; if (n.family_id) void nav({ to: "/shok/family/$id", params: { id: n.family_id } }); }}>
-                    <rect width={NW} height={NH} rx={8} fill={hit === n.id ? "#fff3c4" : n.is_deceased ? "#f1efe9" : girl ? "#fdf1f4" : "#ffffff"} stroke={hit === n.id ? "#d97706" : n.is_head ? "#14213d" : "#b8924a"} strokeWidth={hit === n.id ? 3 : n.is_head ? 2.2 : 1.2} />
+                  <g key={n.id} transform={`translate(${n.x},${n.y})`} style={{ cursor: "pointer" }} onClick={() => { if (drag.current?.moved) return; if (relMode) { setPick((v) => (v.includes(n.id) ? v.filter((i) => i !== n.id) : v.length >= 2 ? [n.id] : [...v, n.id])); return; } if (n.family_id) void nav({ to: "/shok/family/$id", params: { id: n.family_id } }); }}>
+                    <rect width={NW} height={NH} rx={8} fill={pick.includes(n.id) ? "#dbeafe" : hit === n.id ? "#fff3c4" : n.is_deceased ? "#f1efe9" : girl ? "#fdf1f4" : "#ffffff"} stroke={pick.includes(n.id) ? "#1d4ed8" : hit === n.id ? "#d97706" : n.is_head ? "#14213d" : "#b8924a"} strokeWidth={pick.includes(n.id) || hit === n.id ? 3 : n.is_head ? 2.2 : 1.2} />
                     <text x={NW / 2} y={w ? 18 : 26} textAnchor="middle" fontSize={13} fontWeight={700} fill="#14213d">{cut(late(n), 18)}</text>
                     {w && !w.name_unknown ? <text x={NW / 2} y={34} textAnchor="middle" fontSize={10.5} fill="#6b7385">{cut((L ? "पत्नी: " : "Wife: ") + w.name, 22)}</text> : null}
                   </g>

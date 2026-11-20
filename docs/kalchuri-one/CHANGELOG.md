@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Forest: find a relation; change history in English
+
+- `/shok/forest`: button "Find a relation" — click two names to get the named relation, common ancestor and chain. Counts through linked lineages; two different lineages joined by a marriage link are reported as related by marriage. Shared logic moved to `src/components/family/relation.ts`.
+- Family page change history: the stored Hindi sentences are shown in English when the site language is English (fixed phrases translated in `FamilyExtras.tsx`; names stay as written).
+
 ## 2026-11-20 — Matrimony share page shows the marital status
 
 - `/m/$token`: a remarriage profile shows "Widowed / Divorced / Separated" among its details.

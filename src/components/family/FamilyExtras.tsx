@@ -36,6 +36,24 @@ function shrink(file: File, max = 220, maxChars = 80000): Promise<string> {
   });
 }
 
+/** The change history is stored as Hindi sentences; for English readers the fixed phrases are translated (names stay as written). */
+const HISTORY_EN: [RegExp, string][] = [
+  [/नया नाम जोड़ा: /g, "Added: "], [/नाम हटाया: /g, "Removed: "], [/परिवार बनाया: /g, "Family created: "],
+  [/परिवार का नाम: /g, "Family name: "], [/निधन की तारीख: /g, "Date of death: "], [/मूल ग्राम: /g, "Native village: "],
+  [/मोबाइल नंबर जोड़ा/g, "mobile number added"], [/मोबाइल नंबर हटाया/g, "mobile number removed"], [/मोबाइल नंबर बदला/g, "mobile number changed"],
+  [/जगह बदली: (.*?) के नीचे से (.*?) के नीचे/g, "moved from under $1 to under $2"], [/सबसे ऊपर/g, "the top"],
+  [/दूसरे परिवार से यहाँ लाया गया/g, "brought here from another family"],
+  [/मुखिया का निशान हटाया/g, "no longer marked as head"], [/मुखिया बनाया/g, "made head"],
+  [/दिवंगत का निशान हटाया/g, "no longer marked as deceased"], [/दिवंगत दर्ज किया/g, "marked as deceased"],
+  [/निवास: परिवार वाला/g, "residence: same as the family"], [/निवास: /g, "residence: "],
+  [/रिश्ते का प्रकार बदला/g, "relation type changed"], [/निलंबन हटाया/g, "suspension lifted"], [/सदस्यता निलंबित की/g, "membership suspended"],
+  [/मुख्य व्हाट्सएप नंबर बदला/g, "main WhatsApp number changed"], [/परिवार का गाँव बदला/g, "family's village changed"],
+  [/परिवार दूसरे खाते को सौंपा गया/g, "family handed over to another account"],
+  [/स्थिति: /g, "Status: "], [/मंज़ूरी के लिए भेजा/g, "sent for approval"], [/ड्राफ़्ट/g, "draft"], [/अस्वीकार/g, "rejected"], [/मंज़ूर/g, "approved"], [/कचरे में/g, "in trash"],
+  [/अपने आप \(सिस्टम\)/g, "Automatic (system)"], [/^यूज़र$/g, "User"], [/^नाम: /g, "Name: "], [/ — नाम: /g, " — name: "], [/; नाम: /g, "; name: "], [/: हटाई$/g, ": removed"], [/: हटाया/g, ": removed"],
+];
+const historyText = (t: string, L: boolean) => (L ? t : HISTORY_EN.reduce((a, [re, to]) => a.replace(re, to), t));
+
 /**
  * Extra family-tree features shared by every organization's family page:
  * gotra / kuldevi, member photos + short bios, marriage links to other trees and the change history.
@@ -220,8 +238,8 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
               <ul className="mt-1 max-h-80 space-y-1.5 overflow-auto">
                 {history.data.map((r, i) => (
                   <li key={i} className="border-b border-border pb-1.5">
-                    {r.summary}
-                    <span className="block text-xs text-muted-foreground">{new Date(r.at).toLocaleString(L ? "hi-IN" : "en-IN")} · {r.actor_name}</span>
+                    {historyText(r.summary, L)}
+                    <span className="block text-xs text-muted-foreground">{new Date(r.at).toLocaleString(L ? "hi-IN" : "en-IN")} · {historyText(r.actor_name, L)}</span>
                   </li>
                 ))}
               </ul>
