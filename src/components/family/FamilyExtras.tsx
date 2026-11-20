@@ -51,6 +51,7 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
   const [dobFor, setDobFor] = useState("");
   const [dob, setDob] = useState("");
   const [ageIn, setAgeIn] = useState("");
+  const [deathIn, setDeathIn] = useState("");
 
   const extra = useQuery({
     queryKey: ["family_extra", familyId],
@@ -94,10 +95,13 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
     if (n !== null && !(n >= 0 && n <= 125)) { toast.error(L ? "उम्र 0 से 125 के बीच लिखिए" : "Age must be between 0 and 125"); return; }
     setBusy(true);
     const { error } = await sb.rpc("shok_member_birth_set", { p_member: dobFor, p_dob: dob || null, p_age: n });
+    // निधन की तारीख (सिर्फ़ दिवंगत के लिए, भरी हो तो): पुण्यतिथि की याद इसी से आती है
+    const dead = members.find((m) => m.id === dobFor)?.is_deceased;
+    const e2 = !error && dead && deathIn ? (await sb.from("members").update({ death_date: deathIn }).eq("id", dobFor)).error : null;
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (error || e2) { toast.error((error ?? e2)!.message); return; }
     toast.success(L ? "सहेज लिया — क्रम उम्र के हिसाब से लग गया" : "Saved — siblings are now ordered by age");
-    setDobFor(""); setDob(""); setAgeIn("");
+    setDobFor(""); setDob(""); setAgeIn(""); setDeathIn("");
     void qc.invalidateQueries({ queryKey: ["family_ages", familyId] });
     void qc.invalidateQueries({ queryKey: ["family_members", familyId] });
   }
@@ -199,6 +203,7 @@ export function FamilyExtras({ familyId, members, L, canEdit, canProfile }: { fa
               </select>
               {dobFor ? <input type="date" className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={dob} onChange={(e) => setDob(e.target.value)} aria-label={L ? "जन्म तिथि" : "Date of birth"} /> : null}
               {dobFor ? <input type="number" min={0} max={125} className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={ageIn} onChange={(e) => setAgeIn(e.target.value)} placeholder={L ? "या उम्र (वर्ष)" : "or age (years)"} /> : null}
+              {dobFor && members.find((m) => m.id === dobFor)?.is_deceased ? <label className="text-xs text-muted-foreground sm:col-span-2">{L ? "निधन की तारीख (पुण्यतिथि की याद के लिए)" : "Date of passing (for the anniversary reminder)"}<input type="date" className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground" value={deathIn} onChange={(e) => setDeathIn(e.target.value)} /></label> : null}
               {dobFor ? <Button size="sm" onClick={() => void saveBirth()} disabled={busy}>{L ? "सहेजें" : "Save"}</Button> : null}
             </div>
           ) : null}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Report and upcoming death anniversaries for every organization
+
+- Migration `shok_43_org_report_punyatithi`: `shok_report(org)` (admins of that organization: families, living members, phone numbers, village table, letters of 90 days with delivered / read, monthly growth) and `shok_upcoming_punyatithi_org(org, days)`.
+- Admin → Shok → Report (`/admin/shok/report`, CSV + print); `/shok` shows upcoming death anniversaries (in-app only); the family page lets the owner / admin enter a deceased member's date of passing.
+
 ## 2026-11-20 — All family trees on one page, with search (every organization)
 
 - `/shok/forest`: every approved tree of the organization on one canvas (drag, zoom, fit), search by name / family / village that centres on the person, click a name to open the family; linked lineages (gold dashed) and marriage links (pink dotted). Migration `shok_42_forest_rpc` (`shok_forest(org)`: names and relations only).

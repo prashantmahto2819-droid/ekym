@@ -36,6 +36,7 @@ function ShokHome() {
   const root = !tenant.parent_id;
   useEffect(() => { if (home) window.location.replace(SHOK_APP); }, [home]);
 
+  const tithi = useQuery({ queryKey: ["shok_punyatithi", tenant.organization_id], enabled: !!user, queryFn: async () => { const { data } = await supabase.rpc("shok_upcoming_punyatithi_org" as never, { p_org: tenant.organization_id, p_days: 30 } as never); return (data ?? []) as unknown as { member_id: string; name: string; family_id: string; family_name: string; village_name: string | null; next_date: string; years: number }[]; } });
   const member = useQuery({ queryKey: ["is_member", tenant.organization_id, user?.id], enabled: !!user && !home && !root, queryFn: async () => { const { data } = await supabase.rpc("k1_is_member", { p_org: tenant.organization_id }); return !!data; } });
   const rows = useQuery({
     queryKey: ["k1_families_org", tenant.organization_id, user?.id], enabled: !!user && !home && !root,
@@ -74,6 +75,20 @@ function ShokHome() {
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-5 dark:bg-amber-950/30"><p>{L ? `वंश वृक्ष ${orgName} के सदस्य ही बना सकते हैं। पहले सदस्य बनें — मंज़ूरी के बाद यहाँ आएँ।` : `Only members of ${orgName} can build family trees here. Become a member first.`}</p><Button asChild className="mt-3"><Link to="/join">{L ? "सदस्य बनें" : "Become a member"}</Link></Button></div>
         ) : (
           <>
+            {tithi.data?.length ? (
+              <div className="rounded-xl border border-border bg-card p-4 text-sm">
+                <h2 className="font-display text-lg font-semibold">🪔 {L ? "आने वाली पुण्यतिथियाँ (30 दिन)" : "Upcoming death anniversaries (30 days)"}</h2>
+                <ul className="mt-2 divide-y divide-border">
+                  {tithi.data.slice(0, 30).map((t) => (
+                    <li key={t.member_id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
+                      <span><b>{new Date(t.next_date).toLocaleDateString(L ? "hi-IN" : "en-IN", { day: "numeric", month: "long" })}</b> — {L ? "स्व." : "Late"} {t.name} <span className="text-muted-foreground">· {[t.family_name, t.village_name].filter(Boolean).join(" · ")}{t.years > 0 ? (L ? ` · ${t.years}वीं` : ` · year ${t.years}`) : ""}</span></span>
+                      <Link to="/shok/family/$id" params={{ id: t.family_id }} className="text-primary hover:underline">{L ? "परिवार" : "Family"}</Link>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1 text-xs text-muted-foreground">{L ? "यह सिर्फ़ याद के लिए है — किसी को अपने आप संदेश नहीं जाता।" : "A reminder only — no message is sent automatically."}</p>
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-xl font-semibold">👪 {L ? "मेरे परिवार" : "My families"}</h2>
               <div className="flex flex-wrap gap-2">

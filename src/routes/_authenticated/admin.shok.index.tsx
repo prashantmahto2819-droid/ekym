@@ -67,7 +67,7 @@ function ShokList() {
           <h1 className="font-display text-2xl font-semibold">{L ? "शोक संदेश" : "Condolence messages (शोक संदेश)"}</h1>
           <p className="text-sm text-muted-foreground">{L ? "शोकपत्र बनाकर गाँव/परिवार/वंश के लोगों को WhatsApp पर भेजें। भेजना सर्वर पर अपने आप चलता है।" : "Create a condolence letter and send it on WhatsApp village-, family- or lineage-wise. Sending runs on the server automatically."}</p>
         </div>
-        <Button asChild><Link to="/admin/shok/send">+ {L ? "नया शोक संदेश" : "New shok sandesh"}</Link></Button>
+        <div className="flex flex-wrap gap-2"><Button variant="outline" asChild><Link to="/admin/shok/report">📊 {L ? "रिपोर्ट" : "Report"}</Link></Button><Button asChild><Link to="/admin/shok/send">+ {L ? "नया शोक संदेश" : "New shok sandesh"}</Link></Button></div>
       </header>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-sm">
