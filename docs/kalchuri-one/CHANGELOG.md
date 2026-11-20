@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Matrimony is shared across the whole platform
+
+- Owner's decision: membership stays per organization, but matrimony profiles of ALL organizations are shown in one place to any active member of any organization. Migration `cm_15_matrimony_platform_wide`: `k1_is_any_member()`; browse / inbox / tree request / tree / public "members" mode no longer limited to one organization; `k1_matrimony_meta` also returns the profile's organization; photos readable by any member. Verification stays with the admin of the organization where the profile was created; the phone number is still shown only after mutual acceptance.
+- `/matrimony`: organization name on every profile and an organization filter.
+
 ## 2026-11-20 — Matrimony: remarriage section, family tree with profiles, tree share links
 
 - Migration `cm_14_remarriage_tree_share`: `cm_matrimony_profiles.marital_status` (never / widowed / divorced / separated) and `tree_share` (off / ask / open); `cm_matrimony_tree_requests` with RPCs `k1_matrimony_meta`, `k1_matrimony_tree_request / _respond / _inbox`, `k1_matrimony_tree`, `k1_matrimony_my_trees`, `k1_matrimony_set_tree`; public tree share links `family_shares` (`shok_tree_share_create / _list / _revoke`, anon `shok_tree_shared`). Trees are returned as names / relations / villages only.
