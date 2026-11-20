@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Tribute pages for every organization
+
+- `/shok/tributes` (signed-in members: create, edit, share, hide, remove, approve visitor messages) and the public page `/shradhanjali/$slug` on each organization's own site. Same tables / RPCs as the Shokpatra app, per organization. Migration `shok_39`: an organization's own admin sees all tribute pages of its organization.
+
 ## 2026-11-20 — Family tree (all organizations): print, relation finder, adding marriage links
 
 - `FamilyTools` on the family page: print the tree as a one-page chart / PDF (no phone numbers), find the relation between two people of the tree, and (admins) add or remove a daughter's marriage link to another tree.
