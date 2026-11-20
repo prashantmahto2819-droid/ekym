@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UseFormReturn } from "react-hook-form";
 
 import { Field } from "@/components/site/Field";
 import { Input } from "@/components/ui/input";
 import { placeName, useFt } from "@/core/formText";
 import { useLang } from "@/core/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import { INDIAN_STATES } from "@/lib/locations";
 import type { PinInfo } from "@/lib/pincode";
 
@@ -12,6 +14,17 @@ import { DistrictInput } from "./DistrictInput";
 
 const selectClass =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50";
+
+type Ac = { state: string; district: string | null; district_hi: string | null; name: string; name_hi: string | null };
+const acCache = new Map<string, Ac[]>();
+/** Assembly constituencies of one state (public table, read once per state). */
+async function loadAc(state: string): Promise<Ac[]> {
+  if (acCache.has(state)) return acCache.get(state)!;
+  const { data } = await (supabase as unknown as SupabaseClient).from("assembly_constituencies").select("state,district,district_hi,name,name_hi").eq("state", state).order("ac_no");
+  const rows = (data ?? []) as unknown as Ac[];
+  if (rows.length) acCache.set(state, rows);
+  return rows;
+}
 
 const pinCache = new Map<string, PinInfo | null>();
 async function lookupPin(pin: string): Promise<PinInfo | null | "error"> {
@@ -41,6 +54,7 @@ export function LocationFields({
   required,
   includePin = true,
   savePin = false,
+  includeAc = false,
 }: {
   form: UseFormReturn<any>;
   includeDistrict?: boolean;
@@ -49,6 +63,8 @@ export function LocationFields({
   includePin?: boolean;
   /** Keep the PIN in the form as `pincode` (the table has that column). */
   savePin?: boolean;
+  /** Show an optional "Assembly constituency" box (form field `vidhansabha`), with the seats of the chosen state. */
+  includeAc?: boolean;
 }) {
   const { register, setValue, formState, getValues, watch } = form;
   const t = useFt();
@@ -62,6 +78,17 @@ export function LocationFields({
   const [pinState, setPinState] = useState<"idle" | "busy" | "none" | "error">("idle");
   const lastPin = useRef("");
   if (savePin) register("pincode");
+  const [acs, setAcs] = useState<Ac[]>([]);
+  useEffect(() => {
+    if (!includeAc || !state) { setAcs([]); return; }
+    let live = true;
+    void loadAc(state).then((r) => { if (live) setAcs(r); });
+    return () => { live = false; };
+  }, [includeAc, state]);
+  const acDistrict = String(watch("district") ?? "").trim().toLowerCase();
+  // the chosen district's seats first; label carries the district so same-named seats stay apart
+  const acList = [...acs].sort((a, b) => Number(!(acDistrict && (a.district ?? "").toLowerCase().includes(acDistrict))) - Number(!(acDistrict && (b.district ?? "").toLowerCase().includes(acDistrict))))
+    .map((a) => (hi ? `${a.name_hi || a.name} (${a.district_hi || a.district || "—"}, ${placeName(a.state, true)})` : `${a.name} (${a.district || "—"}, ${a.state})`));
 
   useEffect(() => {
     if (!/^[1-9]\d{5}$/.test(pin) || pin === lastPin.current) return;
@@ -146,6 +173,13 @@ export function LocationFields({
             onChange={(v) => setValue("district", v, { shouldDirty: true, shouldValidate: !!errors["district"] })}
             onPick={(_d, st) => { if (!state) { setState(st); setValue("state", st, { shouldDirty: true }); } }}
           />
+        </Field>
+      ) : null}
+
+      {includeAc ? (
+        <Field label={hi ? "विधानसभा क्षेत्र" : "Assembly constituency"} hint={state ? (hi ? "कुछ अक्षर लिखकर सूची से चुनें (ज़रूरी नहीं)" : "Type a few letters and pick from the list (optional)") : (hi ? "पहले राज्य चुनें" : "Choose the state first")}>
+          <Input list="k1-ac-list" autoComplete="off" {...register("vidhansabha")} />
+          <datalist id="k1-ac-list">{acList.map((x) => <option key={x} value={x} />)}</datalist>
         </Field>
       ) : null}
 

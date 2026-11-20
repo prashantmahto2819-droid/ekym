@@ -213,6 +213,7 @@ function MembersPage() {
           { key: "family_id", label: "परिवार (वंश वृक्ष)", type: "select", fk: { table: "families", label: "family_name" }, hint: "वंश वृक्ष में दर्ज परिवार से जोड़ें" },
           { key: "family_head_name", label: "परिवार के मुखिया का नाम", hint: "यदि वंश वृक्ष में अभी नहीं" },
           { key: "native_place", label: "मूल ग्राम" },
+          { key: "vidhansabha", label: "विधानसभा क्षेत्र" },
           { key: "category", label: "Category", type: "select", options: CATEGORIES },
           { key: "status", label: "Status", type: "select", options: ["active", "applied", "lapsed", "expelled", "rejected"] },
           { key: "member_no", label: "Member no.", hint: "Leave empty to assign automatically on approval", only: "edit" },

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Assembly constituency on the membership form
+
+- `org_memberships.vidhansabha` (migration `org_vidhansabha`); `LocationFields` got `includeAc` (optional box with the seats of the chosen state from `assembly_constituencies`, chosen district first, Hindi labels when Hindi is selected); used on `/join`, editable in Admin → Members.
+
 ## 2026-11-20 — Shokpatra: member photo + bio, daughter's children, wife / daughter suggestions, site search
 
 - Migration `shok_36_photo_bio_daughter_line_suggest_kinds`: `member_profiles` + RPCs; children allowed under a daughter only while she has no marriage link (and no marriage link while she has children); `member_suggestions.member_kind` + `shok_suggest_member`, `decide_suggestion` keeps the kind; `directory_members` / letter trigger drop the "father" name for a daughter's children. Owner's village decisions applied: "मनगांव, दीपका" → मनगांव, "दीपका/कटघोरा" → दीपका; कुकदा / कुरदा stay separate. Check: `supabase/checks/shok36.sql`.

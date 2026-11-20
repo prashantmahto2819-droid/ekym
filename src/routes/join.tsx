@@ -130,7 +130,7 @@ function JoinPage() {
               <Field label={hi ? "गाँव" : "Village"}>
                 <Input {...register("village")} />
               </Field>
-              <LocationFields form={form} />
+              <LocationFields form={form} includeAc />
               <Field label={hi ? "पिनकोड" : "Pincode"}>
                 <Input inputMode="numeric" {...register("pincode")} />
               </Field>

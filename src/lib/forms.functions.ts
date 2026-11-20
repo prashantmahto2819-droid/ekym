@@ -289,6 +289,7 @@ const membershipSchema = z.object({
   blood_group: optional,
   category: z.enum(["general", "life", "patron"]).default("general"),
   native_place: optional,
+  vidhansabha: optional,
   family_head_name: optional,
   in_family_tree: z.boolean().optional(),
   volunteer: z.object({ interested: z.boolean().optional(), areas: z.array(z.string()).optional(), availability: z.string().optional(), skills: z.string().optional() }).optional(),
