@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { FamilyChart } from "@/components/family/FamilyChart";
 import { MatchHints, similarToHint } from "@/components/family/FamilyCompare";
 import { FamilyExtras } from "@/components/family/FamilyExtras";
+import { FamilyTools } from "@/components/family/FamilyTools";
 import { MemberDialog, type MemberDialogProps } from "@/components/family/MemberDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -287,6 +288,7 @@ export function FamilyView({ id, member = false }: { id: string; member?: boolea
           </ul>
         </section>
       ) : null}
+      <FamilyTools familyId={id} familyName={f.family_name} subtitle={f.villages?.name ?? ""} people={people} L={L} isAdmin={isAdmin} />
       <FamilyExtras familyId={id} members={people} L={L} canEdit={canEdit} canProfile={isAdmin || isOwner} />
       {similar.data?.length ? <MatchHints rows={similar.data.map((r) => similarToHint(id, f.family_name, f.status, r))} L={L} isAdmin={isAdmin} title={L ? "इस वंश वृक्ष के नाम दूसरे वंश वृक्षों में भी हैं" : "Names from this tree also appear in other trees"} onChanged={reload} /> : null}
       <p className="text-xs text-muted-foreground">{L ? "वंश जोड़ना (दूसरे परिवार से कड़ी), परिवार मिलाना और नाम सुझाव अभी शोकपत्र ऐप में हैं।" : "Linking lineages, merging families and name suggestions are still in the shokpatra app."}</p>

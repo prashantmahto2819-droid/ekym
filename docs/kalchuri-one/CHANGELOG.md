@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Family tree (all organizations): print, relation finder, adding marriage links
+
+- `FamilyTools` on the family page: print the tree as a one-page chart / PDF (no phone numbers), find the relation between two people of the tree, and (admins) add or remove a daughter's marriage link to another tree.
+
 ## 2026-11-20 — Family tree (all organizations): gotra, photos + profiles, marriage links, change history
 
 - `FamilyExtras` on the family page (`/admin/families/$id`, `/shok/family/$id`): gotra / kuldevi (edit), member photos + short profiles (add / change), marriage links to other trees, change history. Same data and RPCs as the Shokpatra app, scoped to each organization.
