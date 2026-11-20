@@ -79,6 +79,7 @@ function ShokHome() {
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" onClick={() => setNewOpen(true)}>+ {L ? "नया परिवार (वंश वृक्ष)" : "New family"}</Button>
                 <Button size="sm" variant="outline" asChild><Link to="/shok/tributes">🪔 {L ? "श्रद्धांजलि पेज" : "Tribute pages"}</Link></Button>
+                <Button size="sm" variant="outline" asChild><Link to="/shok/forest">🌳 {L ? "सभी वंश वृक्ष / खोज" : "All trees / search"}</Link></Button>
                 {admin ? <Button size="sm" variant="outline" asChild><Link to="/admin/families">{L ? "सभी परिवार (एडमिन)" : "All families (admin)"}</Link></Button> : null}
                 {admin ? <Button size="sm" variant="outline" asChild><Link to="/admin/shok/send">✉️ {L ? "शोक पत्र भेजें" : "Send letter"}</Link></Button> : null}
               </div>

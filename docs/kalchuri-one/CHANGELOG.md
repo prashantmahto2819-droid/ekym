@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — All family trees on one page, with search (every organization)
+
+- `/shok/forest`: every approved tree of the organization on one canvas (drag, zoom, fit), search by name / family / village that centres on the person, click a name to open the family; linked lineages (gold dashed) and marriage links (pink dotted). Migration `shok_42_forest_rpc` (`shok_forest(org)`: names and relations only).
+
 ## 2026-11-20 — Matrimony: shortlist, same-gotra warning, reports, clearer verification list
 
 - Migration `cm_16_matrimony_saved_reports`: `cm_matrimony_saved` (own rows) and `cm_matrimony_reports` with `k1_matrimony_report`, `k1_matrimony_reports(org)`, `k1_matrimony_report_close`.
