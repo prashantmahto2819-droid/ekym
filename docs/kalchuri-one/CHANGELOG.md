@@ -2,7 +2,7 @@
 
 ## 2026-11-20 — Owner's WhatsApp gateway only for the home organization
 
-- Owner's decision: the platform owner's Vivid Relay is used only for प्रगतिशील समाज. Another organization's letters go through its own Messaging channel; without one they are not sent, unless the super admin allows that organization in Shokpatra → सेटिंग (`shok_relay_allot`, `shok_owner_relay_ok`, migration `shok_30_relay_allotment`). Welcome messages follow the same rule. Opening full Shokpatra features to other organizations is on hold.
+- Owner's decision: the platform owner's Vivid Relay is used only for प्रगतिशील समाज. Another organization's letters go through its own Messaging channel; without one they are not sent, unless the super admin allows that organization in Shokpatra → सेटिंग (`shok_relay_allot`, `shok_owner_relay_ok`, migration `shok_30_relay_allotment`). Welcome messages follow the same rule. EKYM and the Kalchuri One root organization are allowed too (migration `shok_31`); organizations created later are not. Opening full Shokpatra features to other organizations is on hold.
 
 ## 2026-11-20 — Shokpatra letter images on Cloudflare R2 (prepared)
 
