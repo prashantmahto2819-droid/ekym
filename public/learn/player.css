@@ -1,4 +1,4 @@
-/* चलता-फिरता ट्यूटोरियल (js/tutorial-player.js)। यही फ़ाइल Kalchuri One में public/tutorial/player.css है। */
+/* चलता-फिरता ट्यूटोरियल (js/tutorial-player.js)। यही फ़ाइल Kalchuri One में public/learn/player.css है। */
 .tut{--t-paper:#fcfbf8;--t-ink:#14213d;--t-slate:#5b657c;--t-line:#e5dcc6;--t-gold:#b8924a;--t-soft:#f6efdc;--t-flame:#f4b547;--t-ok:#2f6b4a;
   color:var(--t-ink);font-family:Mukta,"Noto Sans Devanagari",system-ui,sans-serif;font-size:17px;line-height:1.55}
 .tut *{box-sizing:border-box}
