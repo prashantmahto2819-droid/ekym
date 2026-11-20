@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Shokpatra letter images on Cloudflare R2 (prepared)
+
+- `send-letters` is now also kept in this repo (copied from shokpatra) so it deploys with the other functions. Images whose path starts with `r2/` are sent as `https://shokpatra.kalchuri.org/f/…` (served from R2 by the shokpatra Worker); old paths still use Supabase signed URLs. `letters-cleanup` leaves `r2/` paths to the Worker's daily cron. Uploads switch to R2 only when the Worker var `R2_UPLOADS` is "on".
+
 ## 2026-11-19 — Shokpatra: welcome WhatsApp on account approval
 
 - When a Shokpatra user's account goes from pending to approved, whether by an admin or automatically through their number, they get one WhatsApp welcome with the login link. Suspended numbers get nothing (migration `shok_29_approval_welcome`).

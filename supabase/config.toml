@@ -2,7 +2,7 @@ project_id = "udxdxkyfrqlgdwwqaucu"
 
 # Edge functions deployed from this repo by .github/workflows/functions-deploy.yml.
 # Each one checks its own caller (cron secret / webhook signature / user token), so the gateway JWT check stays off,
-# exactly as they run today. (send-letters and whatsapp-otp-hook live in the shokpatra repo.)
+# exactly as they run today. (whatsapp-otp-hook lives in the shokpatra repo; send-letters is copied here from shokpatra so it deploys with the others.)
 [functions.cm-moderate]
 verify_jwt = false
 
@@ -25,4 +25,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.push-send]
+verify_jwt = false
+
+[functions.send-letters]
 verify_jwt = false

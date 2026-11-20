@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
     const rows = (data ?? []) as { letter_id: string; path: string | null }[];
     if (!rows.length) break;
     const ids = [...new Set(rows.map((r) => r.letter_id))];
-    const paths = [...new Set(rows.map((r) => r.path).filter((p): p is string => !!p))];
+    // R2 वाली तस्वीरें ("r2/…") shokpatra worker का रोज़ाना cron खुद हटाता है; यहाँ सिर्फ़ Supabase Storage वाली
+    const paths = [...new Set(rows.map((r) => r.path).filter((p): p is string => !!p && !p.startsWith("r2/")))];
     for (let i = 0; i < paths.length; i += 500) {
       const { error: e } = await db.storage.from("letters").remove(paths.slice(i, i + 500));
       if (e) { failed += paths.length; console.error("remove", e.message); return json({ ok: false, removed, letters, failed, error: e.message }, 500); }
