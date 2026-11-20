@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Letters list: delivered / read
+
+- Admin → Shok letters shows how many of the sent letters were delivered and read (from the gateway's receipts), for every organization.
+
 ## 2026-11-20 — Tribute pages for every organization
 
 - `/shok/tributes` (signed-in members: create, edit, share, hide, remove, approve visitor messages) and the public page `/shradhanjali/$slug` on each organization's own site. Same tables / RPCs as the Shokpatra app, per organization. Migration `shok_39`: an organization's own admin sees all tribute pages of its organization.

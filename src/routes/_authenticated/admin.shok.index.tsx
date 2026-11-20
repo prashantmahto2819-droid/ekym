@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -13,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin/shok/")({ component: ShokList });
 
-type Letter = { id: string; deceased_name: string; death_date: string | null; ceremony_date: string | null; venue: string | null; status: string; created_at: string; created_by: string; admin_note: string | null; last_error: string | null; letter_recipients: { status: string }[] };
+type Letter = { id: string; deceased_name: string; death_date: string | null; ceremony_date: string | null; venue: string | null; status: string; created_at: string; created_by: string; admin_note: string | null; last_error: string | null; letter_recipients: { status: string; delivered_at?: string | null; read_at?: string | null }[] };
 
 const dmy = (iso: string | null) => (iso ? iso.split("-").reverse().join(".") : "—");
 
@@ -29,7 +30,7 @@ function ShokList() {
     queryKey: ["shok_letters", limit],
     enabled: ctx.data?.approved === true,
     refetchInterval: 15000,
-    queryFn: async () => { const { data, error } = await supabase.from("letters").select("id,deceased_name,death_date,ceremony_date,venue,status,created_at,created_by,admin_note,last_error,letter_recipients(status)").order("created_at", { ascending: false }).limit(limit); if (error) throw error; return (data ?? []) as unknown as Letter[]; },
+    queryFn: async () => { const { data, error } = await (supabase as unknown as SupabaseClient).from("letters").select("id,deceased_name,death_date,ceremony_date,venue,status,created_at,created_by,admin_note,last_error,letter_recipients(status,delivered_at,read_at)").order("created_at", { ascending: false }).limit(limit); if (error) throw error; return (data ?? []) as unknown as Letter[]; },
     placeholderData: (prev) => prev,
   });
   const isAdmin = !!ctx.data?.shok_admin;
@@ -56,7 +57,7 @@ function ShokList() {
   }
 
   if (ctx.data && !ctx.data.approved) return <p className="text-sm text-muted-foreground">{L ? "अनुमति नहीं" : "Not allowed"}</p>;
-  const counts = (l: Letter) => { const c = { sent: 0, failed: 0, left: 0, total: l.letter_recipients.length }; l.letter_recipients.forEach((r) => (r.status === "sent" ? c.sent++ : r.status === "failed" ? c.failed++ : c.left++)); return c; };
+  const counts = (l: Letter) => { const c = { sent: 0, failed: 0, left: 0, delivered: 0, read: 0, total: l.letter_recipients.length }; l.letter_recipients.forEach((r) => { if (r.status === "sent") { c.sent++; if (r.delivered_at || r.read_at) c.delivered++; if (r.read_at) c.read++; } else if (r.status === "failed") c.failed++; else c.left++; }); return c; };
   const statusVariant = (s: string) => (s === "done" ? "default" : s === "failed" || s === "rejected" ? "destructive" : "secondary");
 
   return (
@@ -78,7 +79,7 @@ function ShokList() {
                 <td className="p-2 whitespace-nowrap">{dmy(l.ceremony_date)}</td>
                 <td className="p-2 whitespace-nowrap text-xs">{new Date(l.created_at).toLocaleString("en-IN")}</td>
                 <td className="p-2"><Badge variant={statusVariant(l.status)}>{l.status.replace(/_/g, " ")}</Badge></td>
-                <td className="p-2 whitespace-nowrap">{c.sent} / {c.failed} / {c.left} <span className="text-xs text-muted-foreground">({c.total})</span></td>
+                <td className="p-2 whitespace-nowrap">{c.sent} / {c.failed} / {c.left} <span className="text-xs text-muted-foreground">({c.total})</span>{c.delivered ? <span className="block text-xs text-emerald-700">✓✓ {c.delivered} {L ? "पहुँचे" : "delivered"} · {c.read} {L ? "पढ़े" : "read"}</span> : null}</td>
                 <td className="p-2">
                   <div className="flex flex-wrap gap-1">
                     {isAdmin && l.status === "pending_approval" ? <><Button size="sm" onClick={() => decide(l, true)} disabled={busy === l.id}>{L ? "मंज़ूर" : "Approve"}</Button><Button size="sm" variant="outline" onClick={() => decide(l, false)} disabled={busy === l.id}>{L ? "अस्वीकार" : "Reject"}</Button></> : null}
