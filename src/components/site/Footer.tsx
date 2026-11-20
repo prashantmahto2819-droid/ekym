@@ -52,6 +52,7 @@ const legalLinks: { key: TKey; to: string }[] = [
   { key: "privacy", to: "/privacy-policy" },
   { key: "terms", to: "/terms" },
   { key: "refund", to: "/refund-policy" },
+  { key: "tutorial", to: "/tutorial" },
 ];
 
 export function Footer() {

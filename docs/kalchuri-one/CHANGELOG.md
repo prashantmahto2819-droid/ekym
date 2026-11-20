@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-20 — Animated tutorial page; privacy policy and terms brought up to date
+
+- New public route `/tutorial` ("Learn by watching", Hindi / English): animated lessons on drawn sample screens — a cursor moves, types and clicks, a caption bar says what is happening, written steps sit beside it (click a step to jump, play / step controls, auto-plays when scrolled into view). Player `public/learn/player.js` + `player.css` are the same files as the Shokpatra app's `js/tutorial-player.js` / `css/tutorial.css` (keep equal); lessons are data in `public/learn/lessons-k1.js` (`{hi,en}` texts). Linked in the footer (Policies column) and the sitemap.
+- `/privacy-policy`: rewritten sections for the family-tree extras (photos, bio, private date of birth / public age, marriage links, change history), delivery receipts, tribute pages, shared tree links, platform-wide matrimony, 30-day deletion of letter images, other people's details; dated.
+- `/terms`: new sections for condolence-letter use, tribute pages and shared links, matrimony profiles; dated. `/refund-policy`: dated.
+
 ## 2026-11-20 — Forest: find a relation; change history in English
 
 - `/shok/forest`: button "Find a relation" — click two names to get the named relation, common ancestor and chain. Counts through linked lineages; two different lineages joined by a marriage link are reported as related by marriage. Shared logic moved to `src/components/family/relation.ts`.
