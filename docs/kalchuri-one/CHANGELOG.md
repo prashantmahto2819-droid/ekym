@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-20 — Matrimony: remarriage section, family tree with profiles, tree share links
+
+- Migration `cm_14_remarriage_tree_share`: `cm_matrimony_profiles.marital_status` (never / widowed / divorced / separated) and `tree_share` (off / ask / open); `cm_matrimony_tree_requests` with RPCs `k1_matrimony_meta`, `k1_matrimony_tree_request / _respond / _inbox`, `k1_matrimony_tree`, `k1_matrimony_my_trees`, `k1_matrimony_set_tree`; public tree share links `family_shares` (`shok_tree_share_create / _list / _revoke`, anon `shok_tree_shared`). Trees are returned as names / relations / villages only.
+- `/matrimony`: two sections (never married / remarriage), marital status and family-tree choice in the profile form, "view / ask for family tree" on each profile, tree requests in the Interests tab.
+- Family page: "Share this family tree" links; public page `/vansh/$token` (works across organizations, no login).
+
 ## 2026-11-20 — Family tree: age entry and automatic sibling order
 
 - Migration `shok_41_age_entry_auto_order`: an age can be entered when the date of birth is unknown (approximate, shown as "about NN"); saving a date or an age orders the sons (and the daughters) of that parent by age, eldest first. Family page (`FamilyExtras`) shows ages and lets the owner / admin / the person enter them.

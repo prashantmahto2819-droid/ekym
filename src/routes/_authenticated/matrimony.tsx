@@ -11,6 +11,7 @@ import { ExtraList, Points } from "@/components/matrimony/ExtraList";
 import { readExtra, type ExtraField } from "@/components/matrimony/extraFields";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Badge } from "@/components/ui/badge";
+import { TreeImage, type SharedTree } from "@/components/family/TreeShare";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,9 @@ type Card = { id: string; display_name: string; gender: string; age: number; hei
 type Inbox = { interest_id: string; direction: string; status: string; other_id: string; other_name: string; other_age: number; other_city: string | null; created_at: string };
 const rpc = async <T,>(fn: string, args: Record<string, unknown>): Promise<T> => { const { data, error } = await supabase.rpc(fn as never, args as never); if (error) throw new Error(error.message); return data as T; };
 
+type Meta = { id: string; marital_status: string; has_tree: boolean; tree_share: string; my_request: string | null };
+type TreeReq = { request_id: string; profile_name: string; requester_name: string; status: string; created_at: string };
+const MARITAL: Record<string, [string, string]> = { never: ["अविवाहित", "Never married"], widowed: ["विधवा / विधुर", "Widowed"], divorced: ["तलाकशुदा", "Divorced"], separated: ["अलग रह रहे", "Separated"] };
 const FOR: Record<string, [string, string]> = { self: ["स्वयं", "Self"], son: ["बेटा", "Son"], daughter: ["बेटी", "Daughter"], brother: ["भाई", "Brother"], sister: ["बहन", "Sister"], relative: ["रिश्तेदार", "Relative"] };
 
 function MatrimonyPage() {
@@ -40,10 +44,23 @@ function MatrimonyPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<"browse" | "inbox" | "mine">("browse");
   const [gender, setGender] = useState("");
+  const [section, setSection] = useState<"first" | "re">("first");
+  const [tree, setTree] = useState<SharedTree | null>(null);
   const [mf, setMf] = useState({ q: "", ageMin: "", ageMax: "", place: "", edu: "", notGotra: "", photo: false, sort: "new" });
   const member = useQuery({ queryKey: ["is_member", org], queryFn: () => rpc<boolean>("k1_is_member", { p_org: org }) });
   const mine = useQuery({ queryKey: ["matri_mine", org], queryFn: async () => { const { data } = await supabase.from("cm_matrimony_profiles").select("id,display_name,gender,birth_year,created_for,status,verified_at,city").eq("organization_id", org).eq("user_id", user!.id); return (data ?? []) as Mine[]; } });
   const cards = useQuery({ queryKey: ["matri_browse", org, gender], enabled: member.data === true, queryFn: () => rpc<Card[]>("k1_matrimony_browse", { p_org: org, p_gender: gender || null }) });
+  const meta = useQuery({ queryKey: ["matri_meta", org], enabled: member.data === true, queryFn: () => rpc<Meta[]>("k1_matrimony_meta", { p_org: org }) });
+  const treeReqs = useQuery({ queryKey: ["matri_tree_inbox", org], enabled: member.data === true, queryFn: () => rpc<TreeReq[]>("k1_matrimony_tree_inbox", { p_org: org }) });
+  const metaOf = new Map((meta.data ?? []).map((m) => [m.id, m] as const));
+  const isRe = (id: string) => (metaOf.get(id)?.marital_status ?? "never") !== "never";
+  async function askTree(id: string) {
+    try { const st = await rpc<string>("k1_matrimony_tree_request", { p_profile: id }); toast.success(st === "sent" ? (L ? "अनुरोध भेज दिया — स्वीकार होने पर वंश वृक्ष दिखेगा" : "Request sent — the tree opens once it is accepted") : (L ? "अनुरोध की स्थिति: " : "Request status: ") + st); void meta.refetch(); } catch (e) { toast.error((e as Error).message); }
+  }
+  async function openTree(id: string) {
+    try { const t = await rpc<SharedTree | null>("k1_matrimony_tree", { p_profile: id }); if (!t) throw new Error(L ? "वंश वृक्ष अभी उपलब्ध नहीं है" : "The family tree is not available yet"); setTree(t); } catch (e) { toast.error((e as Error).message); }
+  }
+  async function answerTree(r: TreeReq, ok: boolean) { try { await rpc("k1_matrimony_tree_respond", { p_request: r.request_id, p_accept: ok }); void treeReqs.refetch(); } catch (e) { toast.error((e as Error).message); } }
   const inbox = useQuery({ queryKey: ["matri_inbox", org], enabled: member.data === true, queryFn: () => rpc<Inbox[]>("k1_matrimony_inbox", { p_org: org }) });
   const refresh = () => { qc.invalidateQueries({ queryKey: ["matri_browse"] }); qc.invalidateQueries({ queryKey: ["matri_inbox"] }); qc.invalidateQueries({ queryKey: ["matri_mine"] }); };
   const myActive = (mine.data ?? []).find((m) => m.status === "active" && m.verified_at);
@@ -57,6 +74,7 @@ function MatrimonyPage() {
   const eduOpts = Array.from(new Set(allCards.map((c) => c.education).filter((x): x is string => !!x))).sort();
   const low = (x: string | null | undefined) => (x ?? "").toLowerCase();
   const shownCards = allCards
+    .filter((c) => (section === "re") === isRe(c.id))
     .filter((c) => !mf.ageMin || c.age >= Number(mf.ageMin))
     .filter((c) => !mf.ageMax || c.age <= Number(mf.ageMax))
     .filter((c) => !mf.place || c.city === mf.place || c.district === mf.place)
@@ -83,6 +101,21 @@ function MatrimonyPage() {
           <div className="flex rounded-md border border-border p-0.5 text-xs">{([["browse", L ? "परिचय देखें" : "Browse"], ["inbox", L ? "रुचियाँ" : "Interests"], ["mine", L ? "मेरे प्रोफ़ाइल" : "My profiles"]] as const).map(([k, l]) => <button key={k} type="button" className={`rounded px-3 py-1 ${tab === k ? "bg-primary text-primary-foreground" : ""}`} onClick={() => setTab(k)}>{l}</button>)}</div>
           {tab === "browse" ? <select className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={gender} onChange={(e) => setGender(e.target.value)}><option value="">{L ? "सभी" : "All"}</option><option value="male">{L ? "वर" : "Grooms"}</option><option value="female">{L ? "वधू" : "Brides"}</option></select> : null}
         </div>
+        {tab === "browse" ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-md border border-border p-0.5 text-sm">
+              <button type="button" onClick={() => setSection("first")} className={`rounded px-3 py-1 ${section === "first" ? "bg-primary text-primary-foreground" : ""}`}>{L ? "कुंवारे / कुंवारी" : "Never married"} ({allCards.filter((c) => !isRe(c.id)).length})</button>
+              <button type="button" onClick={() => setSection("re")} className={`rounded px-3 py-1 ${section === "re" ? "bg-primary text-primary-foreground" : ""}`}>{L ? "पुनर्विवाह" : "Remarriage"} ({allCards.filter((c) => isRe(c.id)).length})</button>
+            </div>
+            <span className="text-xs text-muted-foreground">{section === "re" ? (L ? "विधवा / विधुर, तलाकशुदा या अलग रह रहे — स्त्री और पुरुष दोनों।" : "Widowed, divorced or separated — women and men alike.") : ""}</span>
+          </div>
+        ) : null}
+        {tree ? (
+          <div className="space-y-2 rounded-xl border border-border bg-card p-3">
+            <div className="flex items-center justify-between gap-2"><b>{tree.family_name} — {L ? "वंश वृक्ष" : "Family tree"}</b><Button size="sm" variant="outline" onClick={() => setTree(null)}>{L ? "बंद करें" : "Close"}</Button></div>
+            <TreeImage tree={tree} L={L} />
+          </div>
+        ) : null}
         {tab === "browse" && allCards.length ? (
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm">
             <Input value={mf.q} onChange={(e) => setMf({ ...mf, q: e.target.value })} placeholder={L ? "नाम, काम, शहर, मूल गाँव खोजें" : "Search name, work, city, native place"} className="h-9 w-full sm:w-64" />
@@ -105,6 +138,7 @@ function MatrimonyPage() {
                 <h3 className="font-display text-lg font-semibold">{c.display_name} <span className="text-sm font-normal text-muted-foreground">· {c.age} {L ? "वर्ष" : "yrs"}</span></h3>
                 <p className="text-muted-foreground">{[c.education, c.profession, c.income_range].filter(Boolean).join(" · ")}</p>
                 <p className="text-muted-foreground">{[c.city, c.district].filter(Boolean).join(", ")}{c.gotra ? ` · ${L ? "गोत्र" : "gotra"}: ${c.gotra}` : ""}{c.native_place ? ` · ${L ? "मूल" : "native"}: ${c.native_place}` : ""}{c.height_cm ? ` · ${c.height_cm} cm` : ""}</p>
+                {isRe(c.id) ? <p><Badge variant="secondary">{MARITAL[metaOf.get(c.id)?.marital_status ?? "never"]?.[L ? 0 : 1]}</Badge></p> : null}
                 <Points text={c.about} className="mt-2" />
                 {c.interests ? <p className="mt-1 text-xs text-muted-foreground">{L ? "रुचियाँ" : "Interests"}: {c.interests}</p> : null}
                 {c.expectations ? <div className="mt-1 text-xs text-muted-foreground"><span>{L ? "अपेक्षाएँ" : "Looking for"}: </span><Points text={c.expectations} /></div> : null}
@@ -115,11 +149,31 @@ function MatrimonyPage() {
                     : c.my_interest ? <Badge variant="secondary">{L ? "रुचि भेजी" : "Interest sent"} · {c.my_interest}</Badge>
                     : c.their_interest === "sent" ? <Badge>{L ? "इन्होंने रुचि भेजी है — 'रुचियाँ' में देखें" : "They sent interest — see Interests"}</Badge>
                     : <Button size="sm" variant="outline" onClick={() => interest(c.id)}>{L ? "रुचि भेजें" : "Send interest"}</Button>}
+                  {metaOf.get(c.id)?.has_tree ? (
+                    metaOf.get(c.id)?.tree_share === "open" || metaOf.get(c.id)?.my_request === "accepted" ? <Button size="sm" variant="outline" onClick={() => void openTree(c.id)}>🌳 {L ? "वंश वृक्ष देखें" : "View family tree"}</Button>
+                      : metaOf.get(c.id)?.my_request === "sent" ? <Badge variant="secondary">{L ? "वंश वृक्ष का अनुरोध भेजा है" : "Tree request sent"}</Badge>
+                      : metaOf.get(c.id)?.my_request === "declined" ? <Badge variant="secondary">{L ? "वंश वृक्ष का अनुरोध स्वीकार नहीं हुआ" : "Tree request not accepted"}</Badge>
+                      : <Button size="sm" variant="outline" onClick={() => void askTree(c.id)}>🌳 {L ? "वंश वृक्ष माँगें" : "Ask for family tree"}</Button>
+                  ) : null}
                 </div>
               </article>
             ))}
             {cards.isSuccess && !cards.data.length ? <p className="text-muted-foreground">{L ? "अभी कोई सत्यापित परिचय नहीं।" : "No verified profiles yet."}</p> : null}
             {cards.isSuccess && cards.data.length > 0 && !shownCards.length ? <p className="text-muted-foreground">{L ? "इन फ़िल्टर से कोई परिचय नहीं मिला।" : "No profile matches these filters."}</p> : null}
+          </div>
+        ) : null}
+        {tab === "inbox" && (treeReqs.data ?? []).length ? (
+          <div className="space-y-2 rounded-xl border border-border bg-card p-3 text-sm">
+            <p className="font-semibold">🌳 {L ? "वंश वृक्ष देखने के अनुरोध" : "Requests to see your family tree"}</p>
+            <ul className="space-y-1">
+              {(treeReqs.data ?? []).map((r) => (
+                <li key={r.request_id} className="flex flex-wrap items-center justify-between gap-2">
+                  <span><b>{r.requester_name}</b> — {L ? "परिचय" : "profile"}: {r.profile_name}</span>
+                  {r.status === "sent" ? <span className="flex gap-1"><Button size="sm" onClick={() => void answerTree(r, true)}>{L ? "दिखाएँ" : "Allow"}</Button><Button size="sm" variant="ghost" onClick={() => void answerTree(r, false)}>{L ? "नहीं" : "Decline"}</Button></span>
+                    : <Badge variant="secondary">{r.status === "accepted" ? (L ? "अनुमति दी" : "Allowed") : (L ? "मना किया" : "Declined")}</Badge>}
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
         {tab === "inbox" ? (
@@ -149,10 +203,13 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
     if (error || !data) { toast.error(error?.message ?? "Not found"); return; }
     const r = data as Record<string, unknown>;
     const vals: Record<string, string> = {};
-    for (const k of ["created_for", "gender", "display_name", "birth_year", "height_cm", "education", "profession", "income_range", "city", "district", "gotra", "native_place", "about", "expectations", "interests", "special_note", "contact_phone"]) vals[k] = r[k] == null ? "" : String(r[k]);
+    for (const k of ["created_for", "gender", "display_name", "birth_year", "height_cm", "education", "profession", "income_range", "city", "district", "gotra", "native_place", "about", "expectations", "interests", "special_note", "contact_phone", "marital_status", "tree_share", "family_id"]) vals[k] = r[k] == null ? "" : String(r[k]);
+    setLoadedFamily(vals["family_id"] ?? "");
     setF(vals); setExtras(readExtra(r["extra_fields"])); setFiles([]); setConsent(true); setEditId(id); setOpen(true);
   }
   const [consent, setConsent] = useState(false);
+  const [loadedFamily, setLoadedFamily] = useState("");
+  const myTrees = useQuery({ queryKey: ["matri_my_trees"], queryFn: () => rpc<{ id: string; family_name: string }[]>("k1_matrimony_my_trees", {}) });
   const [busy, setBusy] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [extras, setExtras] = useState<ExtraField[]>([]);
@@ -163,7 +220,7 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
     setBusy(true);
     try {
       const uid = (await supabase.auth.getUser()).data.user!.id;
-      const row = { organization_id: org, user_id: uid, created_for: f["created_for"], display_name: f["display_name"].trim(), gender: f["gender"], birth_year: by, height_cm: f["height_cm"] ? Number(f["height_cm"]) : null, education: f["education"] || null, profession: f["profession"] || null, income_range: f["income_range"] || null, city: f["city"] || null, district: f["district"] || null, gotra: f["gotra"] || null, native_place: f["native_place"] || null, about: f["about"] || null, expectations: f["expectations"] || null, interests: f["interests"] || null, special_note: f["special_note"] || null, contact_phone: normPhone(f["contact_phone"]), extra_fields: readExtra(extras) };
+      const row = { organization_id: org, user_id: uid, created_for: f["created_for"], display_name: f["display_name"].trim(), gender: f["gender"], marital_status: f["marital_status"] || "never", tree_share: f["tree_share"] || "ask", birth_year: by, height_cm: f["height_cm"] ? Number(f["height_cm"]) : null, education: f["education"] || null, profession: f["profession"] || null, income_range: f["income_range"] || null, city: f["city"] || null, district: f["district"] || null, gotra: f["gotra"] || null, native_place: f["native_place"] || null, about: f["about"] || null, expectations: f["expectations"] || null, interests: f["interests"] || null, special_note: f["special_note"] || null, contact_phone: normPhone(f["contact_phone"]), extra_fields: readExtra(extras) };
       let pid = editId;
       if (editId) {
         const { error } = await supabase.from("cm_matrimony_profiles").update({ ...row, verified_at: null } as never).eq("id", editId); if (error) throw error;
@@ -171,6 +228,7 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
         const { data: ins, error } = await supabase.from("cm_matrimony_profiles").insert(row as never).select("id").single();
         if (error) throw error; pid = (ins as { id: string }).id;
       }
+      if (pid && (f["family_id"] ?? "") !== loadedFamily) { const { error: e3 } = await supabase.rpc("k1_matrimony_set_tree" as never, { p_profile: pid, p_family: f["family_id"] || null } as never); if (e3) throw e3; }
       if (files.length && pid) {
         const paths: string[] = [];
         for (let i = 0; i < Math.min(files.length, 6); i++) paths.push(await uploadPhoto("matrimony", `${org}/${pid}/${i + 1}.jpg`, files[i]!, 1000));
@@ -186,10 +244,14 @@ function MyProfiles({ org, mine, onChange, L }: { org: string; mine: Mine[]; onC
     <div className="space-y-3 text-sm">
       <ul className="space-y-2">{mine.map((m) => <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3"><span><b>{m.display_name}</b> · {m.gender === "female" ? (L ? "वधू" : "Bride") : (L ? "वर" : "Groom")} · {new Date().getFullYear() - m.birth_year} {L ? "वर्ष" : "yrs"} · {FOR[m.created_for]?.[L ? 0 : 1] ?? m.created_for} {m.verified_at ? <Badge className="ml-1">{L ? "सत्यापित" : "verified"}</Badge> : <Badge variant="secondary" className="ml-1">{L ? "सत्यापन बाकी" : "pending verification"}</Badge>} <Badge variant="outline" className="ml-1">{L ? ({ active: "चालू", paused: "रुका हुआ", removed: "हटाया गया", pending: "बाकी" } as Record<string, string>)[m.status] ?? m.status : m.status}</Badge></span><span className="flex flex-wrap gap-1">{m.status !== "removed" ? <Button size="sm" onClick={() => setDesign(m.id)}>🎨 {L ? "बायोडाटा कार्ड / QR / शेयर" : "Biodata card / QR / share"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="outline" onClick={() => void startEdit(m.id)}>{L ? "बदलें" : "Edit"}</Button> : null}{m.status === "active" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "paused")}>{L ? "रोकें" : "Pause"}</Button> : m.status === "paused" ? <Button size="sm" variant="outline" onClick={() => setStatus(m.id, "active")}>{L ? "फिर चालू" : "Resume"}</Button> : null}{m.status !== "removed" ? <Button size="sm" variant="ghost" onClick={() => { if (confirm(L ? "प्रोफ़ाइल हटाएँ?" : "Remove profile?")) setStatus(m.id, "removed"); }}>{L ? "हटाएँ" : "Remove"}</Button> : null}</span></li>)}</ul>
       {design ? <CardDesigner profileId={design} L={L} onClose={() => setDesign(null)} /> : null}
-      {!open ? <Button onClick={() => { setEditId(null); setF({ created_for: "self", gender: "male" }); setExtras([]); setFiles([]); setConsent(false); setOpen(true); }}>+ {L ? "नया प्रोफ़ाइल" : "New profile"}</Button> : (
+      {!open ? <Button onClick={() => { setEditId(null); setF({ created_for: "self", gender: "male" }); setLoadedFamily(""); setExtras([]); setFiles([]); setConsent(false); setOpen(true); }}>+ {L ? "नया प्रोफ़ाइल" : "New profile"}</Button> : (
         <div className="grid gap-3 rounded-lg border border-border bg-background p-4 sm:grid-cols-2">
           <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "किसके लिए" : "Profile for"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["created_for"]} onChange={(e) => set("created_for", e.target.value)}>{Object.entries(FOR).map(([o, [h2, en]]) => <option key={o} value={o}>{L ? h2 : en}</option>)}</select></label>
           <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "वर / वधू" : "Gender"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["gender"]} onChange={(e) => set("gender", e.target.value)}><option value="male">{L ? "वर (पुरुष)" : "Male"}</option><option value="female">{L ? "वधू (स्त्री)" : "Female"}</option></select></label>
+          <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "वैवाहिक स्थिति" : "Marital status"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["marital_status"] || "never"} onChange={(e) => set("marital_status", e.target.value)}>{Object.entries(MARITAL).map(([o, [h2, en]]) => <option key={o} value={o}>{L ? h2 : en}</option>)}</select><span className="mt-1 block text-xs text-muted-foreground">{L ? "अविवाहित के अलावा कुछ चुनने पर परिचय \"पुनर्विवाह\" खंड में दिखेगा।" : "Anything other than never married puts the profile in the Remarriage section."}</span></label>
+          <label className="block"><span className="mb-1 block text-xs text-muted-foreground">{L ? "वंश वृक्ष (परिचय के साथ)" : "Family tree (with the profile)"}</span><select className="h-9 w-full rounded-md border border-input bg-background px-2" value={f["family_id"] ?? ""} onChange={(e) => set("family_id", e.target.value)}><option value="">{L ? "— कोई नहीं —" : "— None —"}</option>{(myTrees.data ?? []).map((t) => <option key={t.id} value={t.id}>{t.family_name}</option>)}</select>
+            <select className="mt-1 h-9 w-full rounded-md border border-input bg-background px-2" value={f["tree_share"] || "ask"} onChange={(e) => set("tree_share", e.target.value)}><option value="ask">{L ? "माँगने पर, मेरी अनुमति से दिखे" : "Shown on request, with my permission"}</option><option value="open">{L ? "परिचय देखने वाले हर सदस्य को दिखे" : "Shown to every member who views the profile"}</option><option value="off">{L ? "न दिखे" : "Not shown"}</option></select>
+            <span className="mt-1 block text-xs text-muted-foreground">{L ? "वृक्ष में सिर्फ़ नाम, रिश्ते और गाँव दिखते हैं — मोबाइल नंबर नहीं।" : "The tree shows names, relations and villages only — no phone numbers."}</span></label>
           {In("display_name", L ? "नाम (जो दिखेगा)" : "Display name", "text", {}, true)}{In("birth_year", L ? "जन्म वर्ष (18+)" : "Birth year (18+)", "number", { min: new Date().getFullYear() - 70, max: new Date().getFullYear() - 18, inputMode: "numeric" }, true)}
           {In("height_cm", L ? `कद (सेमी में)${ftIn ? ` = ${ftIn}` : ""}` : `Height (cm)${ftIn ? ` = ${ftIn}` : ""}`, "number", { min: 120, max: 220, inputMode: "numeric", placeholder: L ? "जैसे 170" : "e.g. 170" })}{In("education", L ? "शिक्षा" : "Education")}
           {In("profession", L ? "व्यवसाय" : "Profession")}{In("income_range", L ? "आय (लगभग — वार्षिक या मासिक लिखें)" : "Income (approx. — yearly or monthly)", "text", { list: "mx-income" })}<datalist id="mx-income">{(L ? ["2 लाख तक (वार्षिक)", "2–5 लाख (वार्षिक)", "5–10 लाख (वार्षिक)", "10–20 लाख (वार्षिक)", "20 लाख से अधिक (वार्षिक)", "मासिक लगभग 50 हज़ार", "मासिक लगभग 1 लाख", "मासिक लगभग 2 लाख"] : ["Up to 2 lakh / yr", "2–5 lakh / yr", "5–10 lakh / yr", "10–20 lakh / yr", "Above 20 lakh / yr", "≈ 50k / month", "≈ 1 lakh / month", "≈ 2 lakh / month"]).map((x) => <option key={x} value={x} />)}</datalist>
