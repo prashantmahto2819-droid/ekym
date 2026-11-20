@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Owner's WhatsApp gateway only for the home organization
+
+- Owner's decision: the platform owner's Vivid Relay is used only for प्रगतिशील समाज. Another organization's letters go through its own Messaging channel; without one they are not sent, unless the super admin allows that organization in Shokpatra → सेटिंग (`shok_relay_allot`, `shok_owner_relay_ok`, migration `shok_30_relay_allotment`). Welcome messages follow the same rule. Opening full Shokpatra features to other organizations is on hold.
+
 ## 2026-11-20 — Shokpatra letter images on Cloudflare R2 (prepared)
 
 - `send-letters` is now also kept in this repo (copied from shokpatra) so it deploys with the other functions. Images whose path starts with `r2/` are sent as `https://shokpatra.kalchuri.org/f/…` (served from R2 by the shokpatra Worker); old paths still use Supabase signed URLs. `letters-cleanup` leaves `r2/` paths to the Worker's daily cron. Uploads switch to R2 only when the Worker var `R2_UPLOADS` is "on".

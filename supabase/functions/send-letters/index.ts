@@ -51,16 +51,19 @@ async function counts(db: Db, letterId: string) {
 }
 
 /** Sends queued recipients of one letter, one by one with gaps, until the time budget is used. */
-/** Each organization on Kalchuri One can use its own WhatsApp gateway: the letter's organization's default
- *  Vivid Relay channel (Admin → Messaging) wins; otherwise the platform's app_settings apply. */
+/** Each organization on Kalchuri One uses its own WhatsApp gateway: the letter's organization's default
+ *  Vivid Relay channel (Admin → Messaging). The owner's gateway (app_settings) is only for the home organization
+ *  (प्रगतिशील समाज) and for organizations the super admin has explicitly allowed (shok_owner_relay_ok). */
 async function cfgForOrg(db: Db, base: Cfg, org: string | null): Promise<Cfg> {
   if (!org) return base;
+  const { data: okv } = await db.rpc("shok_owner_relay_ok", { p_org: org });
+  const fallback: Cfg = okv === false ? { ...base, relay_url: "", relay_key: "", relay_session: "" } : base;
   const { data: ch } = await db.from("comms_channels").select("id").eq("organization_id", org).eq("kind", "whatsapp").eq("provider", "vivid_relay").eq("status", "active").order("is_default", { ascending: false }).limit(1);
   const id = ch?.[0]?.id;
-  if (!id) return base;
+  if (!id) return fallback;
   const { data: rt } = await db.rpc("k1_comms_channel_runtime", { p_channel: id });
   const r = (rt as { config?: Record<string, string>; secret?: string; gap_min_s?: number; gap_max_s?: number }[] | null)?.[0];
-  if (!r?.config?.relay_url || !r.secret) return base;
+  if (!r?.config?.relay_url || !r.secret) return fallback;
   return { ...base, relay_url: r.config.relay_url, relay_key: r.secret, relay_session: r.config.session || base.relay_session || "", gap_min: String(r.gap_min_s ?? base.gap_min ?? 6), gap_max: String(r.gap_max_s ?? base.gap_max ?? 14) };
 }
 
@@ -81,7 +84,7 @@ async function work(db: Db, baseCfg: Cfg, letterId: string) {
 
   let fatal: string | null = null;
   try {
-    if (!relay || !key || !session) { fatal = "WhatsApp gateway की सेटिंग पूरी नहीं है: अपने संगठन के Kalchuri One Admin → Messaging में Vivid Relay channel जोड़ें (या platform की \"सेटिंग\" भरें)।"; return; }
+    if (!relay || !key || !session) { fatal = "इस संस्था का अपना WhatsApp गेटवे नहीं जुड़ा है: संस्था के Kalchuri One Admin → Messaging में अपना Vivid Relay / API channel जोड़ें।"; return; }
     // we hold the lock, so rows still marked "sending" belong to a worker that died
     await db.from("letter_recipients").update({ status: "queued" }).eq("letter_id", letterId).eq("status", "sending");
     const start = Date.now();
