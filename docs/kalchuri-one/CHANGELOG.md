@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Family tree (all organizations): gotra, photos + profiles, marriage links, change history
+
+- `FamilyExtras` on the family page (`/admin/families/$id`, `/shok/family/$id`): gotra / kuldevi (edit), member photos + short profiles (add / change), marriage links to other trees, change history. Same data and RPCs as the Shokpatra app, scoped to each organization.
+- Migration `shok_38_org_admins_new_features`: these RPCs no longer require a Shokpatra-app admin; an organization's own admin (role `family.manage`) can use them for its own trees (`can_manage_family`), also for tribute pages (`shok_tribute_can`).
+
 ## 2026-11-20 — Assembly constituency on the membership form
 
 - `org_memberships.vidhansabha` (migration `org_vidhansabha`); `LocationFields` got `includeAc` (optional box with the seats of the chosen state from `assembly_constituencies`, chosen district first, Hindi labels when Hindi is selected); used on `/join`, editable in Admin → Members.
