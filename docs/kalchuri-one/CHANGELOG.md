@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Shokpatra: gotra / kuldevi, relation finder, data checks, exports
+
+- Migration `shok_35_gotra_kuldevi`: optional `families.gotra`, `families.kuldevi`.
+- Shokpatra site (no DB change): "रिश्ता खोजें" on the all-trees page, "डेटा की कमियाँ" and all-members Excel export on the reports page, GEDCOM export of a family tree.
+
 ## 2026-11-20 — Shokpatra: change history, in-app bell, marriage links, tribute pages
 
 - Migration `shok_34_history_bell_marriage_tribute` (additive): `shok_audit` + triggers on members / families and RPC `shok_family_history`; `shok_notifications` (own rows via RLS) filled by `trg_shok_bell` on profiles / families / letters / member_suggestions / family_links and by tribute messages; `marriage_links` (daughter of one tree ↔ husband in another) with `shok_marriage_link / _unlink / _links`; `shok_tributes` + `shok_tribute_messages` with RPCs, two of them callable without login (`shok_tribute_public`, `shok_tribute_post` — visitor messages wait for approval, links refused, rate-limited). None of these send WhatsApp. Check: `supabase/checks/shok34.sql`.
