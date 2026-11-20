@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Family tree: date of birth (private) and age (visible)
+
+- Migration `shok_40_member_birth_age`: private `member_births`; RPCs `shok_member_ages(family)` (age only), `shok_member_dob_get / _set` (the person himself by matching mobile, the family owner, or an admin in scope). The date of birth is never returned to anyone else.
+
 ## 2026-11-20 — Letters list: delivered / read
 
 - Admin → Shok letters shows how many of the sent letters were delivered and read (from the gateway's receipts), for every organization.
