@@ -13,7 +13,7 @@ export const Route = createFileRoute("/m/$token")({
   component: SharedBiodata,
 });
 
-type Pub = { ok: boolean; reason?: string; org?: string; id?: string; image?: string | null; name?: string; gender?: string; age?: number; height_cm?: number | null; education?: string | null; profession?: string | null; city?: string | null; district?: string | null; gotra?: string | null; native_place?: string | null; about?: string | null; expectations?: string | null; interests?: string | null; special_note?: string | null; extra_fields?: unknown; signed_in?: boolean };
+type Pub = { marital_status?: string; ok: boolean; reason?: string; org?: string; id?: string; image?: string | null; name?: string; gender?: string; age?: number; height_cm?: number | null; education?: string | null; profession?: string | null; city?: string | null; district?: string | null; gotra?: string | null; native_place?: string | null; about?: string | null; expectations?: string | null; interests?: string | null; special_note?: string | null; extra_fields?: unknown; signed_in?: boolean };
 
 function SharedBiodata() {
   const { token } = Route.useParams();
@@ -31,6 +31,7 @@ function SharedBiodata() {
   const rows: [string, string | null | undefined][] = [
     [L ? "आयु" : "Age", d.age ? `${d.age} ${L ? "वर्ष" : "yrs"}` : null], [L ? "कद" : "Height", d.height_cm ? `${ft(d.height_cm)} (${d.height_cm} cm)` : null],
     [L ? "शिक्षा" : "Education", d.education], [L ? "व्यवसाय" : "Profession", d.profession], [L ? "निवास" : "Lives in", [d.city, d.district].filter(Boolean).join(", ")],
+    [L ? "वैवाहिक स्थिति" : "Marital status", d.marital_status && d.marital_status !== "never" ? ({ widowed: L ? "विधवा / विधुर" : "Widowed", divorced: L ? "तलाकशुदा" : "Divorced", separated: L ? "अलग रह रहे" : "Separated" } as Record<string, string>)[d.marital_status] ?? null : null],
     [L ? "गोत्र" : "Gotra", d.gotra], [L ? "मूल ग्राम" : "Native place", d.native_place], [L ? "रुचियाँ" : "Interests", d.interests],
   ];
   return (

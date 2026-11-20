@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-20 — Matrimony share page shows the marital status
+
+- `/m/$token`: a remarriage profile shows "Widowed / Divorced / Separated" among its details.
+
 ## 2026-11-20 — Receipts and backup number for an organization's own WhatsApp gateway
 
 - Migration `shok_44_org_receipts`: per-channel webhook secret (`shok_receipt_secrets`, RPCs `shok_receipt_channel_secret_set`, `shok_receipt_channels`); edge function `shok-receipt` accepts `?c=<channel id>` and verifies with that channel's secret (without `c` it stays the owner's relay).
