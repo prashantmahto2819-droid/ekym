@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ReceiptSetup } from "@/components/admin/ReceiptSetup";
 import { useTenant } from "@/core/tenant-context";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ const PROVIDER_FIELDS: Record<Provider, { key: string; label: string; hint?: str
   vivid_relay: [
     { key: "relay_url", label: "Relay URL", hint: "e.g. https://relay.example.com" },
     { key: "session", label: "Session name", hint: "the WhatsApp session created in Vivid Relay" },
+    { key: "session_backup", label: "Backup session (optional)", hint: "used for shok letters when the main number is disconnected" },
   ],
   meta_cloud: [
     { key: "phone_number_id", label: "Phone number ID", hint: "from Meta Business → WhatsApp → API setup" },
@@ -98,6 +100,7 @@ function MessagingPage() {
       </section>
 
       <ChannelsSection channels={channels.data ?? []} canManage={canChannels} onChange={invalidate} org={org} />
+      {(channels.data ?? []).some((c) => c.provider === "vivid_relay" && c.kind === "whatsapp") ? <ReceiptSetup org={org} canManage={canChannels} /> : null}
 
       {canSend ? <BroadcastSection org={org} channels={channels.data ?? []} onDone={invalidate} /> : null}
 

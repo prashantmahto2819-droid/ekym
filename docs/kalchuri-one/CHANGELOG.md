@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-20 — Receipts and backup number for an organization's own WhatsApp gateway
+
+- Migration `shok_44_org_receipts`: per-channel webhook secret (`shok_receipt_secrets`, RPCs `shok_receipt_channel_secret_set`, `shok_receipt_channels`); edge function `shok-receipt` accepts `?c=<channel id>` and verifies with that channel's secret (without `c` it stays the owner's relay).
+- Admin → Messaging: "Shok letters: delivered / read receipts" panel per Vivid Relay channel (webhook URL + secret) and an optional "Backup session" on the channel; `send-letters` switches to it when the main number is disconnected.
+
 ## 2026-11-20 — Report and upcoming death anniversaries for every organization
 
 - Migration `shok_43_org_report_punyatithi`: `shok_report(org)` (admins of that organization: families, living members, phone numbers, village table, letters of 90 days with delivered / read, monthly growth) and `shok_upcoming_punyatithi_org(org, days)`.

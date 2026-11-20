@@ -1,5 +1,6 @@
 // शोक पत्र सेवा · shok-receipt: Vivid Relay का webhook (event "message.receipt") — पत्र पहुँचा / पढ़ा गया।
 // Vivid Relay → Webhooks में यह पता जोड़ें: https://<project>.supabase.co/functions/v1/shok-receipt  (event: message.receipt)
+// संस्था का अपना गेटवे: वही पता + ?c=<चैनल id> (secret निजी टेबल shok_receipt_secrets में)।
 // हस्ताक्षर: X-Signature = "sha256=" + HMAC_SHA256(secret, X-Timestamp + "." + body); secret तालिका server_secrets (key relay_webhook_secret) में।
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -21,7 +22,17 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ ok: false }, 405);
   const body = await req.text();
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { data: s } = await db.from("server_secrets").select("value").eq("key", "relay_webhook_secret").maybeSingle();
+  // ?c=<चैनल id> हो तो उस संस्था के अपने गेटवे का secret; नहीं तो मालिक के गेटवे का (server_secrets)
+  const ch = new URL(req.url).searchParams.get("c") || "";
+  let s: { value?: string } | null = null;
+  if (ch) {
+    if (!/^[0-9a-f-]{36}$/i.test(ch)) return json({ ok: false, error: "bad channel" }, 400);
+    const { data: v } = await db.rpc("shok_receipt_secret_for", { p_channel: ch });
+    s = v ? { value: String(v) } : null;
+  } else {
+    const { data: v } = await db.from("server_secrets").select("value").eq("key", "relay_webhook_secret").maybeSingle();
+    s = v as { value?: string } | null;
+  }
   if (!s?.value) return json({ ok: false, error: "secret not set" }, 503);
   const ts = req.headers.get("X-Timestamp") || "";
   const sig = (req.headers.get("X-Signature") || "").replace(/^sha256=/, "");

@@ -64,7 +64,7 @@ async function cfgForOrg(db: Db, base: Cfg, org: string | null): Promise<Cfg> {
   const { data: rt } = await db.rpc("k1_comms_channel_runtime", { p_channel: id });
   const r = (rt as { config?: Record<string, string>; secret?: string; gap_min_s?: number; gap_max_s?: number }[] | null)?.[0];
   if (!r?.config?.relay_url || !r.secret) return fallback;
-  return { ...base, relay_url: r.config.relay_url, relay_key: r.secret, relay_session: r.config.session || base.relay_session || "", gap_min: String(r.gap_min_s ?? base.gap_min ?? 6), gap_max: String(r.gap_max_s ?? base.gap_max ?? 14) };
+  return { ...base, relay_url: r.config.relay_url, relay_key: r.secret, relay_session: r.config.session || base.relay_session || "", relay_session_backup: r.config.session_backup || "", gap_min: String(r.gap_min_s ?? base.gap_min ?? 6), gap_max: String(r.gap_max_s ?? base.gap_max ?? 14) };
 }
 
 async function work(db: Db, baseCfg: Cfg, letterId: string) {
@@ -80,7 +80,9 @@ async function work(db: Db, baseCfg: Cfg, letterId: string) {
   let session = cfg.relay_session || "";
   // दूसरा (बैकअप) नंबर: पहला नंबर जुड़ा न हो (QR टूट गया / फ़ोन बंद) तो इसी बार से बाकी पत्र इससे जाते हैं। सिर्फ़ अपने गेटवे पर।
   const b = baseCfg as unknown as Record<string, string | undefined>;
-  let backup = cfg.relay_url === baseCfg.relay_url ? String(b.relay_session_backup || "").trim() : "";
+  // अपना गेटवे: सेटिंग का बैकअप; संस्था का अपना चैनल: उसी चैनल का "Backup session"
+  const own = cfg as unknown as Record<string, string | undefined>;
+  let backup = String((cfg.relay_url === baseCfg.relay_url ? b.relay_session_backup : own.relay_session_backup) || "").trim();
   if (backup === session) backup = "";
   const relayHeaders = { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Requested-With": "vivid" };
   const gapMin = Math.max(3, Number(cfg.gap_min) || 6);
