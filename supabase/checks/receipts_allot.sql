@@ -8,7 +8,7 @@ begin
   end loop;
   select count(*) into n from information_schema.columns where table_schema='public' and table_name='letter_recipients' and column_name in ('wa_message_id','delivered_at','read_at');
   raise notice 'letter_recipients receipt columns: % / 3', n;
-  for r in select o.slug, public.shok_owner_relay_ok(o.id) ok from public.organizations o order by 1 loop
+  for r in select o.slug, public.shok_owner_relay_ok(o.id) ok from core.organizations o order by 1 loop
     raise notice 'org % owner relay: %', r.slug, r.ok;
   end loop;
   select count(*) into n from public.server_secrets where key = 'relay_webhook_secret';
