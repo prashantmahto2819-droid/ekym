@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-20 — Matrimony: shortlist, same-gotra warning, reports, clearer verification list
+
+- Migration `cm_16_matrimony_saved_reports`: `cm_matrimony_saved` (own rows) and `cm_matrimony_reports` with `k1_matrimony_report`, `k1_matrimony_reports(org)`, `k1_matrimony_report_close`.
+- `/matrimony`: ★ shortlist with a "my shortlist only" filter, "same gotra" badge (compared with the viewer's own profiles) with a hide option, "report" on every profile.
+- Admin → Community → Matrimony: open reports on top, unverified profiles first with the number of days waiting.
+- Checked: the community feed is already one feed for the whole platform (`cm_05_shared_feed`).
+
 ## 2026-11-20 — Matrimony is shared across the whole platform
 
 - Owner's decision: membership stays per organization, but matrimony profiles of ALL organizations are shown in one place to any active member of any organization. Migration `cm_15_matrimony_platform_wide`: `k1_is_any_member()`; browse / inbox / tree request / tree / public "members" mode no longer limited to one organization; `k1_matrimony_meta` also returns the profile's organization; photos readable by any member. Verification stays with the admin of the organization where the profile was created; the phone number is still shown only after mutual acceptance.

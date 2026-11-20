@@ -34,6 +34,8 @@ function CommunityAdmin() {
     const note = st === "rejected" ? prompt("Reason (sent to the submitter)") : null; if (st === "rejected" && !note) return;
     try { await rpc("k1_listing_decide", { p_id: l.id, p_status: st, p_note: note }); qc.invalidateQueries({ queryKey: ["cm_listings_admin", org] }); } catch (e) { toast.error((e as Error).message); }
   }
+  const reports = useQuery({ queryKey: ["cm_matri_reports", org], enabled: tab === "matrimony", queryFn: async () => ((await rpc("k1_matrimony_reports", { p_org: org })) ?? []) as unknown as { id: string; profile_id: string; display_name: string; reason: string; reporter: string; status: string; created_at: string }[] });
+  async function closeReport(id: string) { try { await rpc("k1_matrimony_report_close", { p_id: id }); qc.invalidateQueries({ queryKey: ["cm_matri_reports", org] }); } catch (e) { toast.error((e as Error).message); } }
   async function verify(id: string, ok: boolean) { try { await rpc("k1_matrimony_verify", { p_id: id, p_verified: ok }); qc.invalidateQueries({ queryKey: ["cm_matri_admin", org] }); } catch (e) { toast.error((e as Error).message); } }
 
   return (
@@ -64,9 +66,18 @@ function CommunityAdmin() {
       {tab === "matrimony" ? (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">Verify after a phone call / document check. Only verified, active profiles are visible to members; phone numbers are revealed only when both sides accept an interest.</p>
-          {(profiles.data ?? []).map((p) => (
+          {(reports.data ?? []).some((r) => r.status === "open") ? (
+            <div className="space-y-1 rounded-lg border border-red-200 bg-red-50 p-3 text-sm">
+              <p className="font-semibold">⚑ शिकायतें / Reports ({(reports.data ?? []).filter((r) => r.status === "open").length})</p>
+              {(reports.data ?? []).filter((r) => r.status === "open").map((r) => (
+                <div key={r.id} className="flex flex-wrap items-center justify-between gap-2"><span><b>{r.display_name}</b> — {r.reason} <span className="text-xs text-muted-foreground">({r.reporter}, {new Date(r.created_at).toLocaleDateString()})</span></span><Button size="sm" variant="outline" onClick={() => closeReport(r.id)}>निपटा दिया / Done</Button></div>
+              ))}
+            </div>
+          ) : null}
+          {(profiles.data ?? []).some((p) => !p.verified_at && p.status === "active") ? <p className="text-sm font-semibold">सत्यापन बाकी / Awaiting verification: {(profiles.data ?? []).filter((p) => !p.verified_at && p.status === "active").length}</p> : null}
+          {[...(profiles.data ?? [])].sort((a, b) => Number(!!a.verified_at) - Number(!!b.verified_at) || a.created_at.localeCompare(b.created_at)).map((p) => (
             <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-background p-3 text-sm">
-              <span><b>{p.display_name}</b> · {p.gender} · {new Date().getFullYear() - p.birth_year} yrs · {p.city ?? ""} · {p.education ?? ""} {p.profession ? `· ${p.profession}` : ""} <span className="text-xs text-muted-foreground">({p.created_for})</span> {p.verified_at ? <Badge className="ml-1">verified</Badge> : <Badge variant="secondary" className="ml-1">unverified</Badge>} <Badge variant="outline" className="ml-1">{p.status}</Badge></span>
+              <span><b>{p.display_name}</b> · {p.gender} · {new Date().getFullYear() - p.birth_year} yrs · {p.city ?? ""} · {p.education ?? ""} {p.profession ? `· ${p.profession}` : ""} <span className="text-xs text-muted-foreground">({p.created_for})</span> {p.verified_at ? <Badge className="ml-1">verified</Badge> : <Badge variant="secondary" className="ml-1">unverified · {Math.max(0, Math.floor((Date.now() - new Date(p.created_at).getTime()) / 864e5))} दिन / days</Badge>} <Badge variant="outline" className="ml-1">{p.status}</Badge></span>
               {can("community.matrimony.manage") ? <Button size="sm" variant={p.verified_at ? "ghost" : "default"} onClick={() => verify(p.id, !p.verified_at)}>{p.verified_at ? "Un-verify" : "Verify"}</Button> : null}
             </div>
           ))}
