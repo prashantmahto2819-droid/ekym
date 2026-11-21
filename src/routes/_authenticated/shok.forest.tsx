@@ -6,13 +6,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { lineageRoot, relation } from "@/components/family/relation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/core/i18n";
 import { useTenant } from "@/core/tenant-context";
+import { normName } from "@/family/hindi";
 import type { Person } from "@/family/layout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,8 +27,7 @@ type N = Person & { kids: N[]; w: number; x: number; y: number; d: number; linke
 const NW = 150, NH = 44, HG = 14, VG = 40, CP = 18, CT = 54;
 type Card = { r: N; x: number; y: number; w: number; h: number; people: number; label: string };
 type Head = { vil: string; x: number; y: number; n: number; people: number };
-/** बिंदी / नुक्ता / छोटी-बड़ी मात्रा के फ़र्क़ के बिना मिलान */
-const norm = (t: string | null | undefined) => (t ?? "").toLowerCase().replace(/[\u0901\u0902\u093c\s.]/g, "").replace(/ई/g, "इ").replace(/ऊ/g, "उ").replace(/ी/g, "ि").replace(/ू/g, "ु");
+const norm = normName; // अंग्रेज़ी अक्षरों में लिखा नाम भी हिंदी नाम से मिलता है
 const cut = (t: string, n: number) => { const a = [...t]; return a.length > n ? a.slice(0, n - 1).join("") + "…" : t; };
 
 function layout(members: Person[], links: Link2[]) {
@@ -95,6 +95,7 @@ function ForestPage() {
     queryFn: async () => { const { data, error } = await sb.rpc("shok_forest", { p_org: tenant.organization_id }); if (error) throw new Error(error.message); return (data ?? { members: [], links: [] }) as { members: Person[]; links: Link2[] }; },
   });
   const mq = useQuery({ queryKey: ["shok_forest_marriages"], staleTime: 120000, queryFn: async () => { const { data } = await sb.rpc("shok_marriage_links", { p_family: null }); return (data ?? []) as Marriage[]; } });
+  const fq = useQuery({ queryKey: ["k1_families_org", tenant.organization_id, "forest"], staleTime: 120000, queryFn: async () => { const { data } = await sb.rpc("k1_families", { p_org: tenant.organization_id, p_limit: 500 }); return (data ?? []) as { id: string; mine: boolean }[]; } });
   const lay = useMemo(() => layout(q.data?.members ?? [], q.data?.links ?? []), [q.data]);
   const [view, setView] = useState({ x: 0, y: 0, k: 0.7 });
   const [term, setTerm] = useState("");
@@ -133,6 +134,20 @@ function ForestPage() {
     setView({ k, x: box.current.clientWidth / 2 - (n.x + NW / 2) * k, y: (top ? 110 : box.current.clientHeight / 2) - (n.y + NH / 2) * k });
     setHit(n.id);
   }
+  // अपना परिवार: उस परिवार का सबसे ऊपर वाला नाम
+  const myTop = useMemo(() => {
+    const ids = new Set((fq.data ?? []).filter((f) => f.mine).map((f) => f.id));
+    let best: N | undefined;
+    for (const n of lay.all) if (n.family_id && ids.has(n.family_id) && (!best || n.d < best.d)) best = n;
+    return best?.id ?? null;
+  }, [fq.data, lay]);
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || !myTop || !box.current) return;
+    opened.current = true;
+    centerOn(myTop, 0.8, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myTop, q.data]);
   function fit() {
     if (!box.current) return;
     const k = Math.min(1, Math.max(0.08, Math.min(box.current.clientWidth / lay.W, box.current.clientHeight / lay.H)));
@@ -174,6 +189,7 @@ function ForestPage() {
           <Button size="sm" variant="outline" onClick={() => zoom(1.25)}>+</Button>
           <Button size="sm" variant="outline" onClick={() => zoom(0.8)}>−</Button>
           <Button size="sm" variant="outline" onClick={fit}>{L ? "पूरा दिखाएँ" : "Fit all"}</Button>
+          {myTop ? <Button size="sm" variant="outline" onClick={() => centerOn(myTop, 0.8, true)}>🏠 {L ? "मेरा परिवार" : "My family"}</Button> : null}
           <Button size="sm" variant={relMode ? "default" : "outline"} onClick={() => { setRelMode((v) => !v); setPick([]); }}>🔗 {relMode ? (L ? "रिश्ता खोजना बंद करें" : "Stop finding relations") : (L ? "रिश्ता खोजें" : "Find a relation")}</Button>
         </div>
       </div>

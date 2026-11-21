@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-21 — Forest page: Latin search and "My family"
+
+- `/shok/forest` search now matches a name typed in English letters with its Hindi form (`src/family/hindi.ts`: `toHindi`, `normName`, a copy of the Shokpatra app's `js/hindi.js` + `normName` — keep in step).
+- The page opens on the signed-in user's own family when there is one (`k1_families.mine`), with a "My family" button to return to it.
+
 ## 2026-11-21 — Forest page: village-wise groups, family cards, ranked search
 
 - `/shok/forest`: trees are grouped village-wise (heading with family / people counts, biggest village first), each lineage sits in its own white card (family name · people count); village and family titles grow as you zoom out. Opens at a readable size instead of far away.
