@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-21 — Forest page: village-wise groups, family cards, ranked search
+
+- `/shok/forest`: trees are grouped village-wise (heading with family / people counts, biggest village first), each lineage sits in its own white card (family name · people count); village and family titles grow as you zoom out. Opens at a readable size instead of far away.
+- Search is a ranked suggestion list: villages, families and people (name start first, every word must match, bindi / nukta / matra differences ignored); each person row shows father / husband, family and village. A wife now jumps to her husband's box.
+
 ## 2026-11-20 — Animated tutorial page; privacy policy and terms brought up to date
 
 - New public route `/tutorial` ("Learn by watching", Hindi / English): animated lessons on drawn sample screens — a cursor moves, types and clicks, a caption bar says what is happening, written steps sit beside it (click a step to jump, play / step controls, auto-plays when scrolled into view). Player `public/learn/player.js` + `player.css` are the same files as the Shokpatra app's `js/tutorial-player.js` / `css/tutorial.css` (keep equal); lessons are data in `public/learn/lessons-k1.js` (`{hi,en}` texts). Linked in the footer (Policies column) and the sitemap.

@@ -1,5 +1,7 @@
 // सभी वंश वृक्ष एक पन्ने पर + खोज — हर संस्था के लिए (उसी संस्था के मंज़ूर वृक्ष)।
 // "रिश्ता खोजें": दो नाम चुनने पर रिश्ता (जुड़े हुए वंश और विवाह की कड़ी समेत)।
+// जमावट: गाँव-वार कतारें (गाँव का शीर्षक + गिनती), हर वंश अपने डिब्बे में; दूर से देखने पर शीर्षक बड़े होते हैं।
+// खोज: गाँव, परिवार और लोग — सबसे सटीक ऊपर, हर नाम के साथ पिता / पति, परिवार, गाँव (शोकपत्र ऐप के forest.js जैसा)।
 // खिसकाना (खींचकर), बड़ा-छोटा (पहिया / बटन), नाम खोजना; नाम पर दबाने से उसका परिवार खुलता है।
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
@@ -21,7 +23,11 @@ export const Route = createFileRoute("/_authenticated/shok/forest")({ component:
 type Link2 = { child_family_id: string; parent_member_id: string };
 type Marriage = { daughter_id: string; husband_id: string; daughter_name: string; husband_name: string };
 type N = Person & { kids: N[]; w: number; x: number; y: number; d: number; linked?: boolean };
-const NW = 150, NH = 44, HG = 14, VG = 40;
+const NW = 150, NH = 44, HG = 14, VG = 40, CP = 18, CT = 54;
+type Card = { r: N; x: number; y: number; w: number; h: number; people: number; label: string };
+type Head = { vil: string; x: number; y: number; n: number; people: number };
+/** बिंदी / नुक्ता / छोटी-बड़ी मात्रा के फ़र्क़ के बिना मिलान */
+const norm = (t: string | null | undefined) => (t ?? "").toLowerCase().replace(/[\u0901\u0902\u093c\s.]/g, "").replace(/ई/g, "इ").replace(/ऊ/g, "उ").replace(/ी/g, "ि").replace(/ू/g, "ु");
 const cut = (t: string, n: number) => { const a = [...t]; return a.length > n ? a.slice(0, n - 1).join("") + "…" : t; };
 
 function layout(members: Person[], links: Link2[]) {
@@ -55,17 +61,29 @@ function layout(members: Person[], links: Link2[]) {
     n.x = x + n.w / 2 - NW / 2; n.y = y0 + n.d * (NH + VG); all.push(n);
   };
   const depth = (n: N): number => 1 + Math.max(0, ...n.kids.map(depth));
-  // वृक्षों को पंक्तियों में जमाना
-  roots.sort((a, b) => (a.family_name ?? "").localeCompare(b.family_name ?? "", "hi"));
-  const ROW = 4200;
-  let x = 30, y = 60, rowH = 0, W = 0;
-  for (const r of roots) {
-    prep(r, 0);
-    if (x > 30 && x + r.w > ROW) { x = 30; y += rowH + 90; rowH = 0; }
-    place(r, x, y);
-    x += r.w + 70; rowH = Math.max(rowH, depth(r) * (NH + VG)); W = Math.max(W, x);
+  // गाँव-वार कतारें; हर वंश अपने डिब्बे में
+  const count = (n: N): number => 1 + (wifeOf.has(n.id) ? 1 : 0) + n.kids.reduce((a, c) => a + count(c), 0);
+  const groups = new Map<string, N[]>();
+  for (const r of roots) { prep(r, 0); const v = r.village_name || "—"; groups.set(v, [...(groups.get(v) ?? []), r]); }
+  const vils = [...groups.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], "hi"));
+  const ROW = Math.max(2200, Math.sqrt(roots.reduce((a, r) => a + r.w + 80, 0) * 1100) * 1.5);
+  const cards: Card[] = [], heads: Head[] = [];
+  let y = 40, W = 0;
+  for (const [vil, list] of vils) {
+    list.sort((a, b) => b.w - a.w);
+    heads.push({ vil, x: 30, y: y + 34, n: list.length, people: list.reduce((a, r) => a + count(r), 0) });
+    y += 34 + 66;
+    let x = 30, rowH = 0;
+    for (const r of list) {
+      if (x > 30 && x + r.w > ROW) { x = 30; y += rowH + CT + 60; rowH = 0; }
+      place(r, x + CP, y + CT);
+      const hgt = depth(r) * (NH + VG) - VG, people = count(r);
+      cards.push({ r, x, y, w: r.w + CP * 2, h: hgt + CT + CP, people, label: r.family_name ?? "" });
+      x += r.w + CP * 2 + 34; W = Math.max(W, x); rowH = Math.max(rowH, hgt + CP);
+    }
+    y += rowH + CT + 80;
   }
-  return { all, roots, wifeOf, W: Math.max(W, 600), H: y + rowH + 40, byId, up };
+  return { all, roots, wifeOf, W: Math.max(W, 600), H: y + 40, byId, up, cards, heads };
 }
 
 function ForestPage() {
@@ -78,7 +96,7 @@ function ForestPage() {
   });
   const mq = useQuery({ queryKey: ["shok_forest_marriages"], staleTime: 120000, queryFn: async () => { const { data } = await sb.rpc("shok_marriage_links", { p_family: null }); return (data ?? []) as Marriage[]; } });
   const lay = useMemo(() => layout(q.data?.members ?? [], q.data?.links ?? []), [q.data]);
-  const [view, setView] = useState({ x: 0, y: 0, k: 0.6 });
+  const [view, setView] = useState({ x: 0, y: 0, k: 0.7 });
   const [term, setTerm] = useState("");
   const [hit, setHit] = useState<string | null>(null);
   const [relMode, setRelMode] = useState(false);
@@ -87,18 +105,32 @@ function ForestPage() {
   const box = useRef<HTMLDivElement>(null);
 
   const late = (p: Person) => (p.is_deceased ? (L ? "स्व. " : "Late ") : "") + p.name;
-  const matches = useMemo(() => {
-    const t = term.trim().toLowerCase();
-    if (t.length < 2) return [];
-    return (q.data?.members ?? []).filter((p) => !p.name_unknown && [p.name, p.family_name, p.native_place, p.village_name].some((x) => (x ?? "").toLowerCase().includes(t))).slice(0, 30);
-  }, [term, q.data]);
+  type Hit = { key: string; sc: number; title: string; badge: string; sub: string; go: () => void };
+  const matches = useMemo<Hit[]>(() => {
+    const words = term.trim().split(/\s+/).map(norm).filter(Boolean);
+    if (words.join("").length < 2) return [];
+    const score = (text: string | null | undefined) => { const t = norm(text); if (!t) return 0; let sc = 0; for (const w of words) { const i = t.indexOf(w); if (i < 0) return 0; sc += i === 0 ? 3 : 1; } return sc + (t === words.join("") ? 4 : 0); };
+    const rows: Hit[] = [];
+    for (const h of lay.heads) { const sc = score(h.vil); if (sc) rows.push({ key: `v${h.vil}`, sc: sc + 5, title: h.vil, badge: L ? "गाँव" : "Village", sub: L ? `${h.n} परिवार · ${h.people} लोग` : `${h.n} families · ${h.people} people`, go: () => setView({ k: 0.55, x: 20 - h.x * 0.55, y: 20 - (h.y - 40) * 0.55 }) }); }
+    for (const c of lay.cards) { const sc = score(c.label); if (sc) rows.push({ key: `f${c.r.id}`, sc: sc + 3, title: c.label, badge: L ? "परिवार" : "Family", sub: [c.r.village_name, L ? `${c.people} लोग` : `${c.people} people`].filter(Boolean).join(" · "), go: () => centerOn(c.r.id, 0.8, true) }); }
+    for (const p of q.data?.members ?? []) {
+      if (p.name_unknown) continue;
+      const sc = score(p.name) || (words.length > 1 ? score(`${p.name} ${p.family_name ?? ""} ${p.village_name ?? ""} ${p.native_place ?? ""}`) / 2 : 0);
+      if (!sc) continue;
+      const par = p.parent_id ? lay.up.get(p.parent_id) ?? lay.byId.get(p.parent_id) : undefined;
+      const wife = p.member_kind === "spouse";
+      const rel = par && !par.name_unknown ? (wife ? (L ? "पति: " : "Husband: ") : (L ? "पिता: " : "Father: ")) + late(par) : "";
+      rows.push({ key: p.id, sc: sc + (p.is_head ? 0.5 : 0), title: late(p), badge: wife ? (L ? "पत्नी" : "Wife") : p.member_kind === "daughter" ? (L ? "पुत्री" : "Daughter") : p.is_head ? (L ? "मुखिया" : "Head") : "", sub: [rel, p.family_name, p.village_name || p.native_place].filter(Boolean).join(" · "), go: () => centerOn(p.id) });
+    }
+    return rows.sort((a, b) => b.sc - a.sc || a.title.localeCompare(b.title, "hi"));
+  }, [term, q.data, lay, L]);
 
-  function centerOn(id: string) {
+  function centerOn(id: string, zoomTo = 1, top = false) {
     let n = lay.byId.get(id);
     if (!n) { const p = (q.data?.members ?? []).find((m) => m.id === id); if (p?.parent_id) n = lay.byId.get(p.parent_id); } // पत्नी → पति का डिब्बा
     if (!n || !box.current) return;
-    const k = 1;
-    setView({ k, x: box.current.clientWidth / 2 - (n.x + NW / 2) * k, y: box.current.clientHeight / 2 - (n.y + NH / 2) * k });
+    const k = zoomTo;
+    setView({ k, x: box.current.clientWidth / 2 - (n.x + NW / 2) * k, y: (top ? 110 : box.current.clientHeight / 2) - (n.y + NH / 2) * k });
     setHit(n.id);
   }
   function fit() {
@@ -147,14 +179,18 @@ function ForestPage() {
       </div>
       <div className="relative max-w-md">
         <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder={L ? "नाम, परिवार या गाँव खोजिए" : "Search a name, family or village"} />
-        {matches.length ? (
-          <ul className="absolute z-10 mt-1 max-h-72 w-full overflow-auto rounded-md border border-border bg-background shadow">
-            {matches.map((p) => (
-              <li key={p.id}><button type="button" className="block w-full px-3 py-1.5 text-left text-sm hover:bg-secondary" onClick={() => { centerOn(p.id); setTerm(""); }}>
-                <b>{late(p)}</b> <span className="text-muted-foreground">— {[p.family_name, p.native_place || p.village_name].filter(Boolean).join(" · ")}</span>
-              </button></li>
-            ))}
-          </ul>
+        {term.trim().length >= 2 ? (
+          <div className="absolute z-10 mt-1 w-full rounded-md border border-border bg-background shadow-lg">
+            <p className="px-3 py-1.5 text-xs text-muted-foreground">{matches.length ? (matches.length > 14 ? (L ? `${matches.length} मिले — पहले 14; और शब्द लिखकर छाँटिए` : `${matches.length} found — first 14; add a word to narrow`) : (L ? `${matches.length} मिले` : `${matches.length} found`)) : (L ? "कोई नहीं मिला। पिता का नाम या गाँव लिखकर देखिए।" : "Nothing found. Try the father's name or the village.")}</p>
+            <ul className="max-h-80 overflow-auto">
+              {matches.slice(0, 14).map((m) => (
+                <li key={m.key} className="border-t border-border"><button type="button" className="block w-full px-3 py-2 text-left text-sm hover:bg-secondary" onClick={() => { m.go(); setTerm(""); }}>
+                  <b>{m.title}</b>{m.badge ? <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-[11px]">{m.badge}</span> : null}
+                  {m.sub ? <span className="block text-xs text-muted-foreground">{m.sub}</span> : null}
+                </button></li>
+              ))}
+            </ul>
+          </div>
         ) : null}
       </div>
       {relMode ? (
@@ -168,7 +204,7 @@ function ForestPage() {
       {q.isLoading ? <p className="text-muted-foreground">…</p> : q.error ? <p className="text-destructive">{(q.error as Error).message}</p> : !lay.all.length ? <p className="text-muted-foreground">{L ? "अभी कोई मंज़ूर वंश वृक्ष नहीं है।" : "No approved family trees yet."}</p> : (
         <div
           ref={box}
-          className="h-[70vh] cursor-grab touch-none overflow-hidden rounded-xl border border-border bg-[#fffdf8] select-none active:cursor-grabbing"
+          className="h-[70vh] cursor-grab touch-none overflow-hidden rounded-xl border border-border bg-[#f7f6f2] select-none active:cursor-grabbing"
           onPointerDown={(e) => { drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false }; (e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId); }}
           onPointerMove={(e) => { const d = drag.current; if (!d) return; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) + Math.abs(dy) > 4) d.moved = true; if (d.moved) setView((v) => ({ ...v, x: d.vx + dx, y: d.vy + dy })); }}
           onPointerUp={() => { setTimeout(() => { drag.current = null; }, 0); }}
@@ -176,6 +212,23 @@ function ForestPage() {
         >
           <svg width="100%" height="100%" fontFamily="Mukta, 'Noto Sans Devanagari', sans-serif">
             <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
+              {lay.heads.map((h) => (
+                <g key={`v${h.vil}`}>
+                  <text x={h.x} y={h.y} fontSize={Math.min(150, Math.max(26, 26 / view.k))} fill="#14213d">{h.vil}<tspan dx={12} fontSize="0.5em" fill="#6b7385">{L ? `${h.n} परिवार · ${h.people} लोग` : `${h.n} families · ${h.people} people`}</tspan></text>
+                  <line x1={h.x} y1={h.y + 14} x2={lay.W} y2={h.y + 14} stroke="#d8d2c2" strokeWidth={1.5} />
+                </g>
+              ))}
+              {lay.cards.map((c) => {
+                const label = `${c.label} · ${c.people} ${L ? "लोग" : "people"}`;
+                const fs = Math.min(34, Math.max(15, (c.w - 24) / ([...label].length * 0.62)), Math.max(15, 15 / view.k));
+                return (
+                  <g key={`c${c.r.id}`}>
+                    <rect x={c.x} y={c.y} width={c.w} height={c.h} rx={16} fill="#ffffff" stroke="#e3ddcd" strokeWidth={1.5} />
+                    <rect x={c.x} y={c.y} width={c.w} height={6} rx={3} fill="#b8924a" />
+                    <text x={c.x + 14} y={c.y + 30} fontSize={fs} fontWeight={700} fill="#8a6a2c">{label}</text>
+                  </g>
+                );
+              })}
               {lay.all.filter((n) => n.kids.length).map((n) => {
                 const px = n.x + NW / 2, my = n.y + NH + VG / 2;
                 return n.kids.map((c) => <path key={c.id} d={`M${px} ${n.y + NH}V${my}H${c.x + NW / 2}V${c.y}`} fill="none" stroke={c.linked ? "#b8924a" : "#9aa3b5"} strokeWidth={1.3} strokeDasharray={c.linked ? "6 4" : undefined} />);
@@ -186,7 +239,7 @@ function ForestPage() {
                 const x1 = a.x + NW / 2, y1 = a.y + NH, x2 = b.x + NW / 2, y2 = b.y + NH, dip = Math.max(y1, y2) + 50;
                 return <path key={m.daughter_id} d={`M${x1},${y1} C${x1},${dip} ${x2},${dip} ${x2},${y2}`} fill="none" stroke="#c2528b" strokeWidth={2} strokeDasharray="3 5"><title>{`${m.daughter_name} 💍 ${m.husband_name}`}</title></path>;
               })}
-              {lay.roots.map((r) => <text key={`t${r.id}`} x={r.x} y={r.y - 12} fontSize={13} fontWeight={700} fill="#b8924a">{r.family_name}</text>)}
+              {lay.all.filter((n) => n.linked).map((n) => <text key={`t${n.id}`} x={n.x} y={n.y - 8} fontSize={12} fontWeight={700} fill="#b8924a">↳ {n.family_name}</text>)}
               {lay.all.map((n) => {
                 const w = lay.wifeOf.get(n.id);
                 const girl = n.member_kind === "daughter" || n.member_kind === "woman";
